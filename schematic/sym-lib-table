@@ -1,2 +1,3 @@
 (sym_lib_table
+  (lib (name UniversalboxArm1-0-rescue)(type Legacy)(uri ${KIPRJMOD}/UniversalboxArm1-0-rescue.lib)(options "")(descr ""))
 )
