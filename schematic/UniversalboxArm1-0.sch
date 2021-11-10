@@ -5,8 +5,8 @@ $Descr A2 23386 16535
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "2021-11-05"
-Rev "0.2"
+Date "2021-11-10"
+Rev "0.3"
 Comp ""
 Comment1 ""
 Comment2 ""
@@ -1477,7 +1477,7 @@ U 1 1 60A34273
 P 4450 12000
 F 0 "U60" H 4400 10114 50  0000 C CNN
 F 1 "STM32L452RETx" H 4400 10023 50  0000 C CNN
-F 2 "Package_QFP:LQFP-64_10x10mm_P0.5mm" H 3850 10300 50  0001 R CNN
+F 2 "MalteM:LQFP-64_10x10mm_P0.5mm_Handsoldering" H 3850 10300 50  0001 R CNN
 F 3 "http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/DM00340549.pdf" H 4450 12000 50  0001 C CNN
 	1    4450 12000
 	1    0    0    -1  
@@ -1608,9 +1608,9 @@ F 3 "" H 15050 4300 50  0001 C CNN
 	1    15050 4300
 	1    0    0    -1  
 $EndComp
-Text Label 13500 2900 0    50   ~ 0
-Motor1R
 Text Label 13500 3200 0    50   ~ 0
+Motor1R
+Text Label 13500 2900 0    50   ~ 0
 Motor1F
 Text Label 13500 5400 0    50   ~ 0
 Motor2R
@@ -1688,16 +1688,13 @@ Wire Wire Line
 	8250 13700 7900 13700
 Text Label 7950 13700 0    50   ~ 0
 AvrSck
-NoConn ~ 2750 2800
-Wire Wire Line
-	2750 2800 2750 2900
 $Comp
 L Interface_UART:MAX3221 U110
 U 1 1 618621EA
 P 19500 9850
 F 0 "U110" H 19500 10928 50  0000 C CNN
 F 1 "MAX3221" H 19500 10837 50  0000 C CNN
-F 2 "Package_SO:SSOP-16_5.3x6.2mm_P0.65mm" H 19550 9850 50  0001 C CIN
+F 2 "MalteM:SSOP-16_5.3x6.2mm_P0.65mm_Handsolder" H 19550 9850 50  0001 C CIN
 F 3 "http://www.ti.com/lit/ds/symlink/max3221.pdf" H 19500 10800 50  0001 C CNN
 	1    19500 9850
 	1    0    0    -1  
@@ -2258,8 +2255,6 @@ Wire Notes Line
 Text Notes 11100 8600 0    50   ~ 0
 Placeholder for\ndimensions of\n160x128 LCD
 Wire Wire Line
-	3750 13400 3650 13400
-Wire Wire Line
 	7500 13500 8250 13500
 Wire Wire Line
 	5050 12600 5350 12600
@@ -2273,8 +2268,6 @@ Text Label 3300 13300 0    50   ~ 0
 SpiAvrDi
 Text Label 3300 13100 0    50   ~ 0
 SpiAvrSck
-Wire Wire Line
-	3650 13400 3650 14450
 $Comp
 L Device:Crystal Y60
 U 1 1 612BDC0F
@@ -2326,17 +2319,6 @@ F 2 "" H 2800 13800 50  0001 C CNN
 F 3 "" H 2800 13800 50  0001 C CNN
 	1    2800 13800
 	1    0    0    -1  
-$EndComp
-$Comp
-L Device:Crystal Y61
-U 1 1 6146543E
-P 3100 11450
-F 0 "Y61" V 3054 11581 50  0000 L CNN
-F 1 "32768Hz" V 3145 11581 50  0000 L CNN
-F 2 "MalteM:Crystal_MP03" H 3100 11450 50  0001 C CNN
-F 3 "~" H 3100 11450 50  0001 C CNN
-	1    3100 11450
-	0    -1   -1   0   
 $EndComp
 Wire Wire Line
 	3750 11500 3550 11500
@@ -2650,8 +2632,6 @@ Wire Wire Line
 	9350 10800 10550 10800
 Wire Wire Line
 	5050 13600 6000 13600
-Wire Wire Line
-	3650 14450 7500 14450
 Wire Wire Line
 	5050 13000 7600 13000
 Wire Wire Line
@@ -3627,7 +3607,7 @@ USART1
 Text Notes 22300 14400 0    50   ~ 0
 USART1
 Text Notes 21350 12300 0    50   ~ 0
-Display RAM Requirements
+Display RAM requirements
 Text Notes 20950 12600 0    50   ~ 0
 128x128
 Text Notes 21350 12450 0    50   ~ 0
@@ -3705,7 +3685,7 @@ U 1 1 62F436B6
 P 14450 9850
 F 0 "C120" H 14565 9896 50  0000 L CNN
 F 1 "100µF" H 14565 9805 50  0000 L CNN
-F 2 "Capacitor_SMD:C_1206_3216Metric_Pad1.42x1.75mm_HandSolder" H 14488 9700 50  0001 C CNN
+F 2 "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder" H 14488 9700 50  0001 C CNN
 F 3 "~" H 14450 9850 50  0001 C CNN
 	1    14450 9850
 	1    0    0    -1  
@@ -3740,31 +3720,18 @@ $EndComp
 Wire Wire Line
 	14450 9600 14250 9600
 $Comp
-L Device:C C121
+L Device:C C3
 U 1 1 6310D4BD
-P 13200 9750
-F 0 "C121" H 13315 9796 50  0000 L CNN
-F 1 "100µF" H 13315 9705 50  0000 L CNN
-F 2 "Capacitor_SMD:C_1206_3216Metric_Pad1.42x1.75mm_HandSolder" H 13238 9600 50  0001 C CNN
-F 3 "~" H 13200 9750 50  0001 C CNN
-	1    13200 9750
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR0192
-U 1 1 6310D919
-P 13200 9950
-F 0 "#PWR0192" H 13200 9700 50  0001 C CNN
-F 1 "GND" H 13205 9777 50  0000 C CNN
-F 2 "" H 13200 9950 50  0001 C CNN
-F 3 "" H 13200 9950 50  0001 C CNN
-	1    13200 9950
+P 11250 2250
+F 0 "C3" H 11365 2296 50  0000 L CNN
+F 1 "100µF" H 11365 2205 50  0000 L CNN
+F 2 "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder" H 11288 2100 50  0001 C CNN
+F 3 "~" H 11250 2250 50  0001 C CNN
+	1    11250 2250
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
 	13850 9600 13600 9600
-Wire Wire Line
-	13200 9900 13200 9950
 $Comp
 L Device:R R120
 U 1 1 632D59D6
@@ -3814,7 +3781,6 @@ F 3 "" H 13200 9600 50  0001 C CNN
 	1    13200 9600
 	1    0    0    -1  
 $EndComp
-Connection ~ 13200 9600
 Wire Wire Line
 	15400 9500 15750 9500
 Text Notes 15050 10150 0    50   ~ 0
@@ -4320,7 +4286,7 @@ F 1 "PESD24V2S2UT" H 15045 14155 50  0000 R CNN
 F 2 "Package_TO_SOT_SMD:SOT-23" H 15475 14150 50  0001 L CNN
 F 3 "http://www.littelfuse.com/~/media/files/littelfuse/technical%20resources/documents/data%20sheets/sp05xxba.pdf" H 15375 14325 50  0001 C CNN
 	1    15250 14200
-	-1   0    0    -1  
+	1    0    0    -1  
 $EndComp
 Wire Wire Line
 	15550 13700 15550 14000
@@ -5234,8 +5200,6 @@ F 3 "" H 15350 3500 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	15350 3650 15350 3500
-Wire Wire Line
-	3900 1400 9300 1400
 Text Label 5350 1400 0    50   ~ 0
 VccBase
 Wire Wire Line
@@ -5283,4 +5247,111 @@ Wire Wire Line
 	7150 12300 7550 12300
 Text Label 7350 12300 0    50   ~ 0
 IrRec
+Wire Wire Line
+	10800 2100 11250 2100
+Wire Wire Line
+	11250 2400 10800 2400
+Connection ~ 10800 2400
+Text Notes 11300 2100 0    50   ~ 0
+Optional
+$Comp
+L Device:C C4
+U 1 1 61AC88C7
+P 8500 1550
+F 0 "C4" H 8615 1596 50  0000 L CNN
+F 1 "100µF" H 8615 1505 50  0000 L CNN
+F 2 "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder" H 8538 1400 50  0001 C CNN
+F 3 "~" H 8500 1550 50  0001 C CNN
+	1    8500 1550
+	1    0    0    -1  
+$EndComp
+Connection ~ 8500 1400
+Wire Wire Line
+	8500 1400 9300 1400
+Text Notes 8400 1300 0    50   ~ 0
+Optional
+$Comp
+L power:GND #PWR0108
+U 1 1 61AC92A7
+P 8500 1850
+F 0 "#PWR0108" H 8500 1600 50  0001 C CNN
+F 1 "GND" H 8505 1677 50  0000 C CNN
+F 2 "" H 8500 1850 50  0001 C CNN
+F 3 "" H 8500 1850 50  0001 C CNN
+	1    8500 1850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8500 1850 8500 1700
+Wire Wire Line
+	2750 2800 2750 2900
+NoConn ~ 2750 2800
+Wire Wire Line
+	3900 1400 5900 1400
+$Comp
+L Device:D_Schottky D3
+U 1 1 61B9C9A3
+P 5100 1050
+F 0 "D3" H 5100 834 50  0000 C CNN
+F 1 "SK14" H 5100 925 50  0000 C CNN
+F 2 "Diode_SMD:D_SMA" H 5100 1050 50  0001 C CNN
+F 3 "~" H 5100 1050 50  0001 C CNN
+	1    5100 1050
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5250 1050 5900 1050
+Wire Wire Line
+	5900 1050 5900 1400
+Connection ~ 5900 1400
+Wire Wire Line
+	5900 1400 8500 1400
+Wire Wire Line
+	4400 1050 4950 1050
+Connection ~ 4400 1050
+$Comp
+L Mechanical:MountingHole_Pad H5
+U 1 1 61F5568B
+P 10300 8000
+F 0 "H5" H 10200 7958 50  0000 R CNN
+F 1 "MountingHole_Pad" H 10200 8049 50  0000 R CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 10300 8000 50  0001 C CNN
+F 3 "~" H 10300 8000 50  0001 C CNN
+	1    10300 8000
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	10650 7750 10300 7750
+Wire Wire Line
+	10300 7750 10300 7900
+Connection ~ 10650 7750
+Text Label 3350 12500 0    50   ~ 0
+FlashCS
+Text Label 5250 11900 0    50   ~ 0
+KeyLeft
+Text Label 5250 13000 0    50   ~ 0
+KeyRight
+Text Label 3300 12900 0    50   ~ 0
+KeyDown
+Wire Wire Line
+	2700 13400 2700 14450
+Wire Wire Line
+	2700 13400 3750 13400
+Wire Wire Line
+	2700 14450 7500 14450
+Text Label 3300 13400 0    50   ~ 0
+KeyUp
+Text Notes 7450 12200 0    50   ~ 0
+Close JP61 if U130 is used
+$Comp
+L Device:Crystal Y61
+U 1 1 6146543E
+P 3100 11450
+F 0 "Y61" V 3054 11581 50  0000 L CNN
+F 1 "32768Hz" V 3145 11581 50  0000 L CNN
+F 2 "MalteM:Crystal_MP03" H 3100 11450 50  0001 C CNN
+F 3 "~" H 3100 11450 50  0001 C CNN
+	1    3100 11450
+	0    -1   -1   0   
+$EndComp
 $EndSCHEMATC
