@@ -2,4 +2,4 @@
 In early stage of development
 
 
-![alt text](img/early-version-rendered.jpg "Kicad rendering")
+![alt text](img/production-version-rendered.jpg "Kicad rendering")
