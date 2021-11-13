@@ -5,7 +5,7 @@ $Descr A2 23386 16535
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "2021-11-10"
+Date "2021-11-13"
 Rev "0.3"
 Comp ""
 Comment1 ""
@@ -3504,15 +3504,13 @@ Text Notes 19150 13700 0    50   ~ 0
 LEDs
 Text Notes 19100 13800 0    50   ~ 0
 Relais
-Text Notes 18750 13900 0    50   ~ 0
-RAM for Display
-Text Notes 19100 14000 0    50   ~ 0
+Text Notes 19100 13900 0    50   ~ 0
 Flash
-Text Notes 19000 14100 0    50   ~ 0
+Text Notes 19000 14000 0    50   ~ 0
 ESP-01
-Text Notes 18950 14200 0    50   ~ 0
+Text Notes 18950 14100 0    50   ~ 0
 H-Bridge
-Text Notes 19150 14300 0    50   ~ 0
+Text Notes 19150 14200 0    50   ~ 0
 USB
 Text Notes 19600 13600 0    50   ~ 0
 4
@@ -3558,53 +3556,45 @@ Text Notes 21750 13500 0    50   ~ 0
 256KiB
 Text Notes 22250 13500 0    50   ~ 0
 1400KiB
+Text Notes 19550 13900 0    50   ~ 0
+Yes
+Text Notes 20700 13900 0    50   ~ 0
+Yes
+Text Notes 21800 13900 0    50   ~ 0
+Yes
+Text Notes 22350 13900 0    50   ~ 0
+Yes
 Text Notes 19550 14000 0    50   ~ 0
 Yes
-Text Notes 20700 14000 0    50   ~ 0
-Yes
-Text Notes 21800 14000 0    50   ~ 0
-Yes
-Text Notes 22350 14000 0    50   ~ 0
-Yes
-Text Notes 19450 13900 0    50   ~ 0
-160x128
-Text Notes 21700 13900 0    50   ~ 0
-320x240
-Text Notes 22250 13900 0    50   ~ 0
-320x240
-Text Notes 19550 14100 0    50   ~ 0
-Yes
-Text Notes 20500 14100 0    50   ~ 0
+Text Notes 20500 14000 0    50   ~ 0
 RX/TX switch
-Text Notes 21600 14100 0    50   ~ 0
+Text Notes 21600 14000 0    50   ~ 0
 RX/TX switch
-Text Notes 22150 14100 0    50   ~ 0
+Text Notes 22150 14000 0    50   ~ 0
 RX/TX switch
-Text Notes 19500 14200 0    50   ~ 0
+Text Notes 19500 14100 0    50   ~ 0
 4x PWM
-Text Notes 19550 14300 0    50   ~ 0
+Text Notes 19550 14200 0    50   ~ 0
 Yes
-Text Notes 20700 14300 0    50   ~ 0
+Text Notes 20700 14200 0    50   ~ 0
 Yes
-Text Notes 21800 14300 0    50   ~ 0
+Text Notes 21800 14200 0    50   ~ 0
 Yes
-Text Notes 22350 14300 0    50   ~ 0
+Text Notes 22350 14200 0    50   ~ 0
 No
-Text Notes 20600 14200 0    50   ~ 0
+Text Notes 20600 14100 0    50   ~ 0
 4x PWM
-Text Notes 22300 14200 0    50   ~ 0
+Text Notes 22300 14100 0    50   ~ 0
 4x PWM
-Text Notes 21600 14200 0    50   ~ 0
+Text Notes 21600 14100 0    50   ~ 0
 3x PWM 1x IO
-Text Notes 20600 13900 0    50   ~ 0
-320x240
-Text Notes 19050 14400 0    50   ~ 0
+Text Notes 19050 14300 0    50   ~ 0
 RS232
-Text Notes 21750 14400 0    50   ~ 0
+Text Notes 21750 14300 0    50   ~ 0
 USART1
-Text Notes 20600 14400 0    50   ~ 0
+Text Notes 20600 14300 0    50   ~ 0
 USART1
-Text Notes 22300 14400 0    50   ~ 0
+Text Notes 22300 14300 0    50   ~ 0
 USART1
 Text Notes 21350 12300 0    50   ~ 0
 Display RAM requirements
@@ -3646,15 +3636,15 @@ Text Notes 22150 12700 0    50   ~ 0
 60KiB
 Text Notes 22150 12800 0    50   ~ 0
 225KiB
-Text Notes 19050 14500 0    50   ~ 0
+Text Notes 19050 14400 0    50   ~ 0
 STLINK
-Text Notes 19550 14500 0    50   ~ 0
+Text Notes 19550 14400 0    50   ~ 0
 Yes
-Text Notes 20700 14500 0    50   ~ 0
+Text Notes 20700 14400 0    50   ~ 0
 Yes
-Text Notes 21800 14500 0    50   ~ 0
+Text Notes 21800 14400 0    50   ~ 0
 Yes
-Text Notes 22350 14500 0    50   ~ 0
+Text Notes 22350 14400 0    50   ~ 0
 No
 Text Notes 21100 13300 0    50   ~ 0
 STM32F730
@@ -3670,10 +3660,6 @@ Text Notes 20150 13400 0    50   ~ 0
 120
 Text Notes 20100 13500 0    50   ~ 0
 320KiB
-Text Notes 20050 13900 0    50   ~ 0
-320x240
-Text Notes 21150 13900 0    50   ~ 0
-320x240
 Wire Wire Line
 	14450 9400 14450 9500
 Wire Wire Line
@@ -4019,35 +4005,35 @@ F 3 "" H 20200 11400 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	3300 9900 3300 12200
-Text Notes 18900 14600 0    50   ~ 0
+Text Notes 18900 14500 0    50   ~ 0
 TSOP31236
-Text Notes 19550 14600 0    50   ~ 0
+Text Notes 19550 14500 0    50   ~ 0
 Yes
-Text Notes 20550 14600 0    50   ~ 0
+Text Notes 20550 14500 0    50   ~ 0
 without ESP
-Text Notes 21650 14600 0    50   ~ 0
+Text Notes 21650 14500 0    50   ~ 0
 without ESP
-Text Notes 22200 14600 0    50   ~ 0
+Text Notes 22200 14500 0    50   ~ 0
 without ESP
 Wire Wire Line
 	19800 11550 19550 11550
 Text Label 19550 11550 0    50   ~ 0
 ADC3
-Text Notes 20050 14400 0    50   ~ 0
+Text Notes 20050 14300 0    50   ~ 0
 USART1
-Text Notes 19500 14400 0    50   ~ 0
+Text Notes 19500 14300 0    50   ~ 0
 USART1
+Text Notes 20150 14400 0    50   ~ 0
+Yes
 Text Notes 20150 14500 0    50   ~ 0
 Yes
-Text Notes 20150 14600 0    50   ~ 0
+Text Notes 20150 14200 0    50   ~ 0
 Yes
-Text Notes 20150 14300 0    50   ~ 0
-Yes
-Text Notes 20100 14200 0    50   ~ 0
+Text Notes 20100 14100 0    50   ~ 0
 4x PWM
-Text Notes 20150 14100 0    50   ~ 0
-Yes
 Text Notes 20150 14000 0    50   ~ 0
+Yes
+Text Notes 20150 13900 0    50   ~ 0
 Yes
 Text Notes 20200 13800 0    50   ~ 0
 4
@@ -4055,19 +4041,19 @@ Text Notes 20200 13700 0    50   ~ 0
 4
 Text Notes 20200 13600 0    50   ~ 0
 4
-Text Notes 21050 14200 0    50   ~ 0
-3x PWM 1x IO
 Text Notes 21050 14100 0    50   ~ 0
+3x PWM 1x IO
+Text Notes 21050 14000 0    50   ~ 0
 RX/TX switch
-Text Notes 21250 14300 0    50   ~ 0
+Text Notes 21250 14200 0    50   ~ 0
 Yes
-Text Notes 21200 14400 0    50   ~ 0
+Text Notes 21200 14300 0    50   ~ 0
 USART1
-Text Notes 21250 14500 0    50   ~ 0
+Text Notes 21250 14400 0    50   ~ 0
 Yes
-Text Notes 21100 14600 0    50   ~ 0
+Text Notes 21100 14500 0    50   ~ 0
 without ESP
-Text Notes 21300 14000 0    50   ~ 0
+Text Notes 21300 13900 0    50   ~ 0
 Yes
 Text Notes 21300 13800 0    50   ~ 0
 4
@@ -4327,31 +4313,31 @@ Wire Notes Line
 	3200 12000 3200 12200
 Text Notes 2950 12150 0    50   ~ 0
 or I2C
-Text Notes 19000 14700 0    50   ~ 0
+Text Notes 19000 14600 0    50   ~ 0
 Free I2C
-Text Notes 21800 14700 0    50   ~ 0
+Text Notes 21800 14600 0    50   ~ 0
 no
-Text Notes 19450 14700 0    50   ~ 0
+Text Notes 19450 14600 0    50   ~ 0
 I2C3/I2C4
-Text Notes 20100 14700 0    50   ~ 0
+Text Notes 20100 14600 0    50   ~ 0
 I2C3
-Text Notes 20700 14700 0    50   ~ 0
+Text Notes 20700 14600 0    50   ~ 0
 no
 Wire Notes Line
-	19400 13200 19400 14700
+	19400 13100 19400 14600
 Wire Notes Line
-	19950 13200 19950 14700
+	19950 13100 19950 14600
 Wire Notes Line
-	20500 13200 20500 14700
+	20500 13100 20500 14600
 Wire Notes Line
-	21050 13200 21050 14700
+	21050 13100 21050 14600
 Wire Notes Line
-	21600 13200 21600 14700
+	21600 13100 21600 14600
 Wire Notes Line
-	22150 13200 22150 14700
-Text Notes 22350 14700 0    50   ~ 0
+	22150 13100 22150 14600
+Text Notes 22350 14600 0    50   ~ 0
 no
-Text Notes 21250 14700 0    50   ~ 0
+Text Notes 21250 14600 0    50   ~ 0
 no
 Wire Wire Line
 	6550 11400 6550 10000
