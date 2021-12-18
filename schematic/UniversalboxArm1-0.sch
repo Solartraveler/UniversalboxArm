@@ -5,8 +5,8 @@ $Descr A2 23386 16535
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "2021-12-04"
-Rev "0.4"
+Date "2021-12-18"
+Rev "0.5"
 Comp ""
 Comment1 ""
 Comment2 ""
@@ -285,7 +285,7 @@ L Device:R R35
 U 1 1 6095C0CE
 P 4950 5450
 F 0 "R35" V 4743 5450 50  0000 C CNN
-F 1 "150Ω" V 4834 5450 50  0000 C CNN
+F 1 "330Ω" V 4834 5450 50  0000 C CNN
 F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 4880 5450 50  0001 C CNN
 F 3 "~" H 4950 5450 50  0001 C CNN
 	1    4950 5450
@@ -307,7 +307,7 @@ L Device:C C23
 U 1 1 6095C20A
 P 5500 5600
 F 0 "C23" H 5615 5646 50  0000 L CNN
-F 1 "1µF" H 5615 5555 50  0000 L CNN
+F 1 "10µF" H 5615 5555 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 5538 5450 50  0001 C CNN
 F 3 "~" H 5500 5600 50  0001 C CNN
 	1    5500 5600
@@ -486,7 +486,7 @@ L Device:R R30
 U 1 1 60A31528
 P 9050 3500
 F 0 "R30" V 8843 3500 50  0000 C CNN
-F 1 "1MΩ" V 8934 3500 50  0000 C CNN
+F 1 "220kΩ" V 8934 3500 50  0000 C CNN
 F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 8980 3500 50  0001 C CNN
 F 3 "~" H 9050 3500 50  0001 C CNN
 	1    9050 3500
@@ -512,7 +512,7 @@ Always block if on\nUSB power\nAVR can only enable if on\nbattery power\n
 Wire Wire Line
 	6300 4150 6550 4150
 Text Notes 6350 4100 0    50   ~ 0
-use 0.5% precision\nvariant for D22,\nlike TS431BCX\n
+use 0.5% precision\nvariant for D22,\nTL431B\n
 $Comp
 L power:GND #PWR0121
 U 1 1 6096AE2F
@@ -624,12 +624,12 @@ $EndComp
 $Comp
 L power:GND #PWR0124
 U 1 1 60A081EA
-P 6650 7000
-F 0 "#PWR0124" H 6650 6750 50  0001 C CNN
-F 1 "GND" H 6655 6827 50  0000 C CNN
-F 2 "" H 6650 7000 50  0001 C CNN
-F 3 "" H 6650 7000 50  0001 C CNN
-	1    6650 7000
+P 7050 7000
+F 0 "#PWR0124" H 7050 6750 50  0001 C CNN
+F 1 "GND" H 7055 6827 50  0000 C CNN
+F 2 "" H 7050 7000 50  0001 C CNN
+F 3 "" H 7050 7000 50  0001 C CNN
+	1    7050 7000
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -653,7 +653,7 @@ $EndComp
 Wire Wire Line
 	6650 4250 7200 4250
 Wire Wire Line
-	6650 7000 6650 6950
+	7050 7000 7050 6950
 $Comp
 L Device:C C24
 U 1 1 60A571A0
@@ -1061,15 +1061,15 @@ Wire Wire Line
 $Comp
 L Device:R R33
 U 1 1 609D221A
-P 5550 6550
-F 0 "R33" V 5343 6550 50  0000 C CNN
-F 1 "4.7kΩ" V 5434 6550 50  0000 C CNN
-F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 5480 6550 50  0001 C CNN
-F 3 "~" H 5550 6550 50  0001 C CNN
-	1    5550 6550
+P 5950 6550
+F 0 "R33" V 5743 6550 50  0000 C CNN
+F 1 "4.7kΩ" V 5834 6550 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 5880 6550 50  0001 C CNN
+F 3 "~" H 5950 6550 50  0001 C CNN
+	1    5950 6550
 	0    -1   -1   0   
 $EndComp
-Text Notes 5900 6400 0    50   ~ 0
+Text Notes 6300 6400 0    50   ~ 0
 TH20 should touch\nthe battery BT20
 Text Label 3350 5750 0    50   ~ 0
 AvrInt0
@@ -1086,39 +1086,39 @@ Wire Wire Line
 Wire Wire Line
 	9400 6100 9400 5400
 Wire Wire Line
-	5850 6550 5750 6550
+	6250 6550 6150 6550
 $Comp
 L power:+5V #PWR0140
 U 1 1 60B19109
-P 5300 6550
-F 0 "#PWR0140" H 5300 6400 50  0001 C CNN
-F 1 "+5V" H 5315 6723 50  0000 C CNN
-F 2 "" H 5300 6550 50  0001 C CNN
-F 3 "" H 5300 6550 50  0001 C CNN
-	1    5300 6550
+P 5700 6550
+F 0 "#PWR0140" H 5700 6400 50  0001 C CNN
+F 1 "+5V" H 5715 6723 50  0000 C CNN
+F 2 "" H 5700 6550 50  0001 C CNN
+F 3 "" H 5700 6550 50  0001 C CNN
+	1    5700 6550
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5400 6550 5300 6550
-Connection ~ 5750 6550
+	5800 6550 5700 6550
+Connection ~ 6150 6550
 Wire Wire Line
-	5750 6550 5700 6550
+	6150 6550 6100 6550
 Wire Wire Line
-	5150 6450 5150 7200
+	5350 6450 5350 7200
 Wire Wire Line
-	5150 7200 6350 7200
+	5350 7200 6750 7200
 Wire Wire Line
-	4700 6450 5150 6450
+	4700 6450 5350 6450
 Connection ~ 4700 6450
 $Comp
 L Sensor_Temperature:KTY81 TH20
 U 1 1 60B8406D
-P 6000 6550
-F 0 "TH20" V 5710 6550 50  0000 C CNN
-F 1 "KTY81-221" V 5801 6550 50  0000 C CNN
-F 2 "Package_TO_SOT_THT:TO-92-2" V 6200 6550 50  0001 C CNN
-F 3 "http://www.nxp.com/documents/data_sheet/KTY81_SER.pdf" H 6000 6500 50  0001 C CNN
-	1    6000 6550
+P 6400 6550
+F 0 "TH20" V 6110 6550 50  0000 C CNN
+F 1 "KTY81-221" V 6201 6550 50  0000 C CNN
+F 2 "Package_TO_SOT_THT:TO-92-2" V 6600 6550 50  0001 C CNN
+F 3 "http://www.nxp.com/documents/data_sheet/KTY81_SER.pdf" H 6400 6500 50  0001 C CNN
+	1    6400 6550
 	0    -1   -1   0   
 $EndComp
 Text Notes 2050 7600 0    50   ~ 0
@@ -1154,12 +1154,12 @@ $EndComp
 Text Label 3800 4050 0    50   ~ 0
 AvrDo33
 Wire Wire Line
-	2800 6250 5750 6250
+	2800 6250 6150 6250
 Connection ~ 2800 6250
 Wire Wire Line
 	2800 6250 2800 6600
 Wire Wire Line
-	5750 6250 5750 6550
+	6150 6250 6150 6550
 Wire Wire Line
 	2300 4950 2750 4950
 Text Label 2500 4950 0    50   ~ 0
@@ -1302,12 +1302,12 @@ Wire Wire Line
 $Comp
 L Transistor_FET:BSS138 Q25
 U 1 1 60B55064
-P 6550 6750
-F 0 "Q25" H 6755 6796 50  0000 L CNN
-F 1 "BSS138" H 6755 6705 50  0000 L CNN
-F 2 "Package_TO_SOT_SMD:SOT-23" H 6750 6675 50  0001 L CIN
-F 3 "https://www.fairchildsemi.com/datasheets/BS/BSS138.pdf" H 6550 6750 50  0001 L CNN
-	1    6550 6750
+P 6950 6750
+F 0 "Q25" H 7155 6796 50  0000 L CNN
+F 1 "BSS138" H 7155 6705 50  0000 L CNN
+F 2 "Package_TO_SOT_SMD:SOT-23" H 7150 6675 50  0001 L CIN
+F 3 "https://www.fairchildsemi.com/datasheets/BS/BSS138.pdf" H 6950 6750 50  0001 L CNN
+	1    6950 6750
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -1324,10 +1324,10 @@ F 3 "" H 7800 7000 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	6150 6550 6650 6550
+	6550 6550 7050 6550
 Wire Wire Line
-	6350 6750 6350 7200
-Connection ~ 6350 7200
+	6750 6750 6750 7200
+Connection ~ 6750 7200
 $Comp
 L power:GND #PWR0144
 U 1 1 60C7628A
@@ -2958,7 +2958,7 @@ L Device:R R51
 U 1 1 61ED1D20
 P 8450 11000
 F 0 "R51" V 8243 11000 50  0000 C CNN
-F 1 "220kΩ" V 8334 11000 50  0000 C CNN
+F 1 "220kΩ" V 8550 11000 50  0000 C CNN
 F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 8380 11000 50  0001 C CNN
 F 3 "~" H 8450 11000 50  0001 C CNN
 	1    8450 11000
@@ -5260,8 +5260,8 @@ Text Notes 10550 14300 0    50   ~ 0
 red
 Text Notes 10300 6950 0    50   ~ 0
 Part naming conventions:\n*0..*9: USB Vin\n*10...*19: reserved\n*20...*49: Battery Vin\n*50...*59: LCD and flash\n*60...*89: ARM CPU + basics\n*90...*99: Relais\n*100...*109: Reserved\n*110...*119: RS232\n*120...*129: ESP-01\n*130...*139: TSOP31236
-Text Notes 5150 7500 0    50   ~ 0
-Bug: TH20 is connected to a digital I/O.
+Text Notes 5150 7800 0    50   ~ 0
+Red: Fixes done after pcb manufacturing\nBug: TH20 is connected to a digital I/O.\nWorkarond: Cut wire on PCB and remove D24.\nThen connect pin of TH20 to cathode pad of D24\nConnect wire of anode pad of D24 to AvrMosi.
 Wire Wire Line
 	9300 1400 9900 1400
 Wire Wire Line
@@ -5283,7 +5283,7 @@ Wire Wire Line
 Wire Wire Line
 	7500 6750 7500 7200
 Wire Wire Line
-	6350 7200 7500 7200
+	6750 7200 7500 7200
 Wire Wire Line
 	6650 3200 6650 2800
 Wire Wire Line
@@ -5370,13 +5370,13 @@ F 3 "http://www2.st.com/resource/en/datasheet/CD00050750.pdf" H 2700 2300 50  00
 $EndComp
 Wire Wire Line
 	3100 1350 3100 1850
-Wire Notes Line rgb(255, 0, 0)
+Wire Notes Line width 12 rgb(255, 0, 0)
 	11100 3000 11550 3000
-Wire Notes Line rgb(255, 0, 0)
+Wire Notes Line width 12 rgb(255, 0, 0)
 	11550 3000 11550 3450
-Wire Notes Line rgb(255, 0, 0)
+Wire Notes Line width 12 rgb(255, 0, 0)
 	11550 3450 11100 3450
-Wire Notes Line rgb(255, 0, 0)
+Wire Notes Line width 12 rgb(255, 0, 0)
 	11100 3450 11100 3000
 Text Notes 11100 3700 0    50   ~ 0
 Replace R31 by Diode\nTS4148 RY
@@ -5403,4 +5403,28 @@ Wire Wire Line
 Wire Wire Line
 	11700 3500 11700 3400
 Connection ~ 11200 3500
+Wire Notes Line width 12 rgb(255, 0, 0)
+	9700 5500 9250 5500
+Wire Notes Line width 12 rgb(255, 0, 0)
+	9250 5500 9250 5050
+Wire Notes Line width 12 rgb(255, 0, 0)
+	5550 6450 5550 6150
+Text Notes 5100 6400 0    50   ~ 0
+cut wire on\nPCB here
+Wire Notes Line width 12 rgb(255, 0, 0)
+	9700 5050 9250 5050
+Wire Notes Line width 12 rgb(255, 0, 0)
+	9700 5500 9700 5050
+Wire Notes Line width 12 style solid rgb(255, 0, 0)
+	6150 6250 6150 6100
+Text Notes 9550 5500 0    50   ~ 0
+NOT
+Wire Notes Line style solid rgb(255, 0, 0)
+	5050 6250 5050 7300
+Wire Notes Line style solid rgb(255, 0, 0)
+	5050 7300 9850 7300
+Wire Notes Line style solid rgb(255, 0, 0)
+	9850 7300 9850 4900
+Wire Notes Line style solid rgb(255, 0, 0)
+	9850 4900 9400 4900
 $EndSCHEMATC

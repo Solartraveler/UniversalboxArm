@@ -1,0 +1,28 @@
+Bugs in Version 1.0:
+
+1. == While programming the AVR, the right button may not be pressed ==
+   Otherwise SCK of the programmer is short to GND
+   Workaround: Don't press the right button while programming, disconnect programmer before testing
+   Next version: Put a resistor in the SCK line to J20
+2. == The output of the temperature sensor is connected to a digital input ==
+   Workaround: Remove D24, connect Pin 1 of TH20 (Temperature output) to PB5 (at J20 this is easy)
+   Cut PB0 before it goes to TH20 and then make a connection of PB0 (again from J20) to the anode pad of D24.
+   Next version: Switch PB5 and PB0.
+3 == R31 needs to be a Diode ==
+   Otherwise the low resistance of U2 will drop the level of Q23 and Q24 to low ending in those fets to be always on
+   So the ARM could not be switched off while on battery power.
+   A diode in a 0805 case can be soldered on the R31 easily
+   Next version: Really add a diode here
+4. == Too much ripple while charing ==
+   C23 is too small, the maximum capacity available at 0805 is 22µF
+   Next version: Use a 1208 footprint there
+5. == Description on the PCB is at the wrong place ==
+   The "only H7" description is next to C64, but should be next to C71
+   Next version: Move description
+6. == TL431B is difficult to get in low quantities ==
+   Next version: Change footprint to use TS431B instead
+
+
+
+
+
