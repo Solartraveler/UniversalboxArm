@@ -1,0 +1,24 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install Dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y gcc-arm-none-eabi make freeglut3-dev
+    - name: make Coprocessor
+      run: make -C src/avr-coprocessor
+    - name: Artifacts upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: Build artifacts
+        path: |
+          src/avr-coprocessor/*/main.hex
+          src/avr-coprocessor/*/pc-simulator/pcSimulate
