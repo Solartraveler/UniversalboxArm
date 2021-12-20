@@ -12,7 +12,7 @@ jobs:
     - name: Install Dependencies
       run: |
         sudo apt update
-        sudo apt install -y gcc-arm-none-eabi make freeglut3-dev gcc-avr kicad xfig
+        sudo apt install -y gcc-arm-none-eabi make freeglut3-dev gcc-avr avr-libc kicad xfig
     - name: make Coprocessor
       run: make -C src/avr-coprocessor
     - name: make STM32L452
