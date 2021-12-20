@@ -9,7 +9,8 @@
 
 static inline void PinsInit(void) {
 	PORTA = 0;
-	PORTB = (1<<2) | (1<<6) | (1<<5); //pullup for the two buttons, pullup for not power by battery
+	PORTB = (1<<2) | (1<<6); //pullup for the two buttons
+	PORTB |= (1<<0) | (1<<5); //pullup for not power by battery (with and without PCB fix)
 	DDRA = (1<<7) | (1<<1);
 	DDRB = (1<<1) | (1<<3) | (1<<4) | (1<<5);
 	//save some power
@@ -44,8 +45,12 @@ static inline void ArmUserprog(void) {
 
 static inline void ArmBatteryOn(void) {
 	//on when pin is active low
+	//PB5 if no PCB fix is applied
 	PORTB &= ~(1<<5);
 	DDRB |= (1<<5);
+	//PB0 if PCB fix is applied
+	PORTB &= ~(1<<0);
+	DDRB |= (1<<0);
 }
 
 static inline bool KeyPressedRight(void) {

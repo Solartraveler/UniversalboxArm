@@ -38,13 +38,15 @@
   PINA.5 = Input, Vcc measurement
   PINA.6 = Input, Voltage drop for charge current measurement
   PINA.7 = Output, pull high to set ARM into reset state.
-  PINB.0 = Input, Battery temperature measurement (MOSI for ISP)
+  PINB.0 = With PCB fix: pull down to power the ARM by battery. (MOSI for ISP)
+         = Without PCB fix: Input, Non working battery temperature measurement (MOSI for ISP)
   PINB.1 = Output, User LED (MISO for ISP)
   PINB.2 = Input with pullup, right key (SCK for ISP)
   PINB.3 = Output, PWM for battery charging (OC1B). Set to 0V to disable charging
   PINB.4 = Output, Power save option, set high to enable temperature and battery
                    voltage measurement, low disconnects the voltage dividers
-  PINB.5 = Output, pull down to power the ARM by battery.
+  PINB.5 = With PCB Fix: Input, battery temperature measurement
+           Without PC fix: Output, pull down to power the ARM by battery.
   PINB.6 = Input with pullup, left key (allows wakeup from power down by Int0)
            If workaround for teperature sensor is applied: Input without pullup,
            temperature sensor can be read as long as key is not pressed
@@ -56,6 +58,11 @@
            pressed, as this would short circuit SCK of the programmer to ground.
            With the workaround for the temperature sensor, the same is true for
            the left button too.
+
+  If no temperature measurement is needed, the PCB fix can be skipped.
+  This program drives both pins PB0 and PB5 and therefore can be used for both
+  variants.
+
 */
 
 #include <stdlib.h>
