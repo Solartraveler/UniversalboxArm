@@ -31,6 +31,11 @@ OPT = -Og
 # Build path
 BUILD_DIR = build
 
+COMMON=../common
+
+STM_HAL=$(COMMON)/STM32L4xx_HAL_Driver
+CMSIS=$(COMMON)/CMSIS
+
 ######################################
 # source
 ######################################
@@ -39,12 +44,12 @@ C_SOURCES =  \
 Core/Src/main.c \
 Core/Src/stm32l4xx_it.c \
 Core/Src/stm32l4xx_hal_msp.c \
-Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal.c \
-Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_rcc.c \
-Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_gpio.c \
-Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_pwr.c \
-Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_pwr_ex.c \
-Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_cortex.c \
+$(STM_HAL)/Src/stm32l4xx_hal.c \
+$(STM_HAL)/Src/stm32l4xx_hal_rcc.c \
+$(STM_HAL)/Src/stm32l4xx_hal_gpio.c \
+$(STM_HAL)/Src/stm32l4xx_hal_pwr.c \
+$(STM_HAL)/stm32l4xx_hal_pwr_ex.c \
+$(STM_HAL)/stm32l4xx_hal_cortex.c \
 Core/Src/system_stm32l4xx.c
 
 # ASM sources
@@ -103,11 +108,11 @@ AS_INCLUDES =
 # C includes
 C_INCLUDES =  \
 -ICore/Inc \
--IDrivers/STM32L4xx_HAL_Driver/Inc \
--IDrivers/STM32L4xx_HAL_Driver/Inc/Legacy \
--IDrivers/CMSIS/Device/ST/STM32L4xx/Include \
--IDrivers/CMSIS/Include \
--IDrivers/CMSIS/Include
+-I$(STM_HAL)/Inc \
+-I$(STM_HAL)/Inc/Legacy \
+-I$(CMSIS)/Device/ST/STM32L4xx/Include \
+-I$(CMSIS)/Include \
+-I$(CMSIS)/Include
 
 
 # compile gcc flags
