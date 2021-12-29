@@ -6,7 +6,7 @@ encoding utf-8
 Sheet 1 1
 Title ""
 Date "2021-12-18"
-Rev "0.5"
+Rev "0.6"
 Comp ""
 Comment1 ""
 Comment2 ""
@@ -329,7 +329,7 @@ $EndComp
 Wire Wire Line
 	5500 5750 5500 5800
 Text Notes 5100 5400 0    50   ~ 0
-2kHz PWM
+1,9kHz PWM
 $Comp
 L Device:D_Schottky D1
 U 1 1 6096FBE9
@@ -1367,8 +1367,8 @@ $Comp
 L MCU_ST_STM32L4:STM32L452RETx U60
 U 1 1 60A34273
 P 4450 12000
-F 0 "U60" H 4400 10114 50  0000 C CNN
-F 1 "STM32L452RETx" H 4400 10023 50  0000 C CNN
+F 0 "U60" H 4650 10200 50  0000 C CNN
+F 1 "STM32L452RETx" H 4900 10100 50  0000 C CNN
 F 2 "MalteM:LQFP-64_10x10mm_P0.5mm_Handsoldering" H 3850 10300 50  0001 R CNN
 F 3 "http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/DM00340549.pdf" H 4450 12000 50  0001 C CNN
 	1    4450 12000
@@ -2163,8 +2163,8 @@ $Comp
 L Device:C C67
 U 1 1 6138EB03
 P 3000 13500
-F 0 "C67" H 3115 13546 50  0000 L CNN
-F 1 "22pF" H 3115 13455 50  0000 L CNN
+F 0 "C67" V 2950 13550 50  0000 L CNN
+F 1 "22pF" V 3150 13400 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 3038 13350 50  0001 C CNN
 F 3 "~" H 3000 13500 50  0001 C CNN
 	1    3000 13500
@@ -2174,8 +2174,8 @@ $Comp
 L Device:C C68
 U 1 1 6138EF37
 P 3000 13800
-F 0 "C68" H 3115 13846 50  0000 L CNN
-F 1 "22pF" H 3115 13755 50  0000 L CNN
+F 0 "C68" V 3100 13850 50  0000 L CNN
+F 1 "22pF" V 3200 13700 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 3038 13650 50  0001 C CNN
 F 3 "~" H 3000 13800 50  0001 C CNN
 	1    3000 13800
@@ -2206,8 +2206,8 @@ $Comp
 L Device:C C69
 U 1 1 614F60AD
 P 2750 11300
-F 0 "C69" H 2865 11346 50  0000 L CNN
-F 1 "4.7pF" H 2865 11255 50  0000 L CNN
+F 0 "C69" V 2700 11350 50  0000 L CNN
+F 1 "4.7pF" V 2900 11150 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 2788 11150 50  0001 C CNN
 F 3 "~" H 2750 11300 50  0001 C CNN
 	1    2750 11300
@@ -2217,8 +2217,8 @@ $Comp
 L Device:C C70
 U 1 1 614F6223
 P 2750 11600
-F 0 "C70" H 2865 11646 50  0000 L CNN
-F 1 "4.7pF" H 2865 11555 50  0000 L CNN
+F 0 "C70" V 2700 11650 50  0000 L CNN
+F 1 "4.7pF" V 2900 11450 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 2788 11450 50  0001 C CNN
 F 3 "~" H 2750 11600 50  0001 C CNN
 	1    2750 11600
@@ -2749,13 +2749,13 @@ Wire Wire Line
 Wire Wire Line
 	6850 12300 6850 12450
 Wire Wire Line
-	7000 12650 7350 12650
-Text Label 7100 12650 0    50   ~ 0
+	7000 12650 7250 12650
+Text Label 7050 12650 0    50   ~ 0
 EspTx
 Text Notes 5500 13100 0    50   ~ 0
 STM Usart3Tx
-Text Notes 7450 12750 0    50   ~ 0
-STM Usart3Rx\nclose 3-2 for STM32L\nclose 1-2 for STM F4, F7, H7 and\nset RX<->TX switch bit there
+Text Notes 7300 12750 0    50   ~ 0
+STM Usart3Rx\nclose 3-2 of JP60 for STM32L\nclose 1-2 for STM F4, F7, H7 and\nset RX<->TX switch bit there
 Wire Wire Line
 	10400 14200 10650 14200
 Wire Wire Line
@@ -2816,18 +2816,18 @@ F 3 "http://ww1.microchip.com/downloads/en/devicedoc/doc0807.pdf" H 10400 11850 
 $EndComp
 Connection ~ 8950 8800
 Wire Wire Line
-	7050 11700 8900 11700
+	7050 11700 8750 11700
 Connection ~ 7050 11700
 Wire Wire Line
-	10150 12850 8800 12850
+	10150 12850 8650 12850
 Wire Wire Line
-	8800 12850 8800 11800
+	8650 12850 8650 11800
 Wire Wire Line
-	8800 11800 6800 11800
+	8650 11800 6800 11800
 Wire Wire Line
-	8900 11700 8900 12750
+	8750 11700 8750 12750
 Wire Wire Line
-	8900 12750 10250 12750
+	8750 12750 10250 12750
 Wire Wire Line
 	10000 11650 9450 11650
 Wire Wire Line
@@ -3220,46 +3220,46 @@ Wire Wire Line
 $Comp
 L Device:C C71
 U 1 1 6114C702
-P 9100 11850
-F 0 "C71" H 9215 11896 50  0000 L CNN
-F 1 "4.7µF" H 9215 11805 50  0000 L CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 9138 11700 50  0001 C CNN
-F 3 "~" H 9100 11850 50  0001 C CNN
-	1    9100 11850
+P 8950 11850
+F 0 "C71" H 9065 11896 50  0000 L CNN
+F 1 "4.7µF" H 9065 11805 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 8988 11700 50  0001 C CNN
+F 3 "~" H 8950 11850 50  0001 C CNN
+	1    8950 11850
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	8900 11700 9100 11700
-Connection ~ 8900 11700
+	8750 11700 8950 11700
+Connection ~ 8750 11700
 $Comp
 L power:GND #PWR0188
 U 1 1 611DBDE9
-P 9100 12050
-F 0 "#PWR0188" H 9100 11800 50  0001 C CNN
-F 1 "GND" H 9105 11877 50  0000 C CNN
-F 2 "" H 9100 12050 50  0001 C CNN
-F 3 "" H 9100 12050 50  0001 C CNN
-	1    9100 12050
+P 8950 12050
+F 0 "#PWR0188" H 8950 11800 50  0001 C CNN
+F 1 "GND" H 8955 11877 50  0000 C CNN
+F 2 "" H 8950 12050 50  0001 C CNN
+F 3 "" H 8950 12050 50  0001 C CNN
+	1    8950 12050
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	9100 12050 9100 12000
+	8950 12050 8950 12000
 Wire Notes Line
-	8950 11600 8950 12550
+	8800 11600 8800 12550
 Wire Notes Line
-	8950 12550 9400 12550
+	8800 12550 9400 12550
 Wire Notes Line
 	9400 12550 9400 11600
 Wire Notes Line
-	9400 11600 8950 11600
-Text Notes 9000 12500 0    50   ~ 0
+	9400 11600 8800 11600
+Text Notes 8850 12500 0    50   ~ 0
 STM32H7\nonly, VCAP2\npin there
 $Comp
 L Comparator:MCP65R41 U61
 U 1 1 60C4346C
 P 1650 15050
-F 0 "U61" H 1991 15096 50  0000 L CNN
-F 1 "MCP65R41T-1202E" H 1991 15005 50  0000 L CNN
+F 0 "U61" H 1700 15200 50  0000 L CNN
+F 1 "MCP65R41T-1202E" H 1600 14850 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6_Handsoldering" H 1650 14650 50  0001 C CNN
 F 3 "https://ww1.microchip.com/downloads/en/DeviceDoc/MCP65R41;MCP65R46-Data-Sheet-20002269C.pdf" H 1650 15050 50  0001 C CNN
 	1    1650 15050
@@ -3753,8 +3753,8 @@ $Comp
 L Jumper:SolderJumper_2_Open JP50
 U 1 1 60FE0A28
 P 8700 9900
-F 0 "JP50" H 8700 10105 50  0000 C CNN
-F 1 "SolderJumper_2_Open" H 8700 10014 50  0000 C CNN
+F 0 "JP50" H 8700 10150 50  0000 C CNN
+F 1 "SolderJumper_2_Open" H 8700 10050 50  0000 C CNN
 F 2 "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm" H 8700 9900 50  0001 C CNN
 F 3 "~" H 8700 9900 50  0001 C CNN
 	1    8700 9900
@@ -3853,8 +3853,8 @@ $Comp
 L Jumper:SolderJumper_3_Open JP130
 U 1 1 619AD424
 P 20000 11550
-F 0 "JP130" V 19954 11618 50  0000 L CNN
-F 1 "SolderJumper_3_Open" V 20045 11618 50  0000 L CNN
+F 0 "JP130" H 19950 11850 50  0000 L CNN
+F 1 "SolderJumper_3_Open" H 19950 11750 50  0000 L CNN
 F 2 "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm" H 20000 11550 50  0001 C CNN
 F 3 "~" H 20000 11550 50  0001 C CNN
 	1    20000 11550
@@ -3949,8 +3949,8 @@ $Comp
 L Power_Protection:SP0502BAHT D71
 U 1 1 60CFCA8E
 P 17850 13400
-F 0 "D71" H 18055 13446 50  0000 L CNN
-F 1 "PESD5V2S2UT" H 18055 13355 50  0000 L CNN
+F 0 "D71" H 17750 13600 50  0000 L CNN
+F 1 "PESD5V2S2UT" V 18100 12950 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-23" H 18075 13350 50  0001 L CNN
 F 3 "http://www.littelfuse.com/~/media/files/littelfuse/technical%20resources/documents/data%20sheets/sp05xxba.pdf" H 17975 13525 50  0001 C CNN
 	1    17850 13400
@@ -3960,8 +3960,8 @@ $Comp
 L Power_Protection:SP0502BAHT D70
 U 1 1 60CFDAD9
 P 17400 13600
-F 0 "D70" H 17605 13646 50  0000 L CNN
-F 1 "PESD5V2S2UT" H 17605 13555 50  0000 L CNN
+F 0 "D70" H 17300 13800 50  0000 L CNN
+F 1 "PESD5V2S2UT" V 17650 13150 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-23" H 17625 13550 50  0001 L CNN
 F 3 "http://www.littelfuse.com/~/media/files/littelfuse/technical%20resources/documents/data%20sheets/sp05xxba.pdf" H 17525 13725 50  0001 C CNN
 	1    17400 13600
@@ -3971,8 +3971,8 @@ $Comp
 L Power_Protection:SP0502BAHT D69
 U 1 1 60CFDE2D
 P 16950 13800
-F 0 "D69" H 16745 13846 50  0000 R CNN
-F 1 "PESD5V2S2UT" H 16745 13755 50  0000 R CNN
+F 0 "D69" H 17000 14000 50  0000 R CNN
+F 1 "PESD5V2S2UT" V 17200 13850 50  0000 R CNN
 F 2 "Package_TO_SOT_SMD:SOT-23" H 17175 13750 50  0001 L CNN
 F 3 "http://www.littelfuse.com/~/media/files/littelfuse/technical%20resources/documents/data%20sheets/sp05xxba.pdf" H 17075 13925 50  0001 C CNN
 	1    16950 13800
@@ -4040,8 +4040,8 @@ $Comp
 L Power_Protection:SP0502BAHT D65
 U 1 1 6165A369
 P 12650 13400
-F 0 "D65" H 12855 13446 50  0000 L CNN
-F 1 "PESD5V2S2UT" H 12855 13355 50  0000 L CNN
+F 0 "D65" H 12550 13600 50  0000 L CNN
+F 1 "PESD5V2S2UT" V 12400 13050 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-23" H 12875 13350 50  0001 L CNN
 F 3 "http://www.littelfuse.com/~/media/files/littelfuse/technical%20resources/documents/data%20sheets/sp05xxba.pdf" H 12775 13525 50  0001 C CNN
 	1    12650 13400
@@ -4051,8 +4051,8 @@ $Comp
 L Power_Protection:SP0502BAHT D66
 U 1 1 6165A635
 P 13150 13600
-F 0 "D66" H 13355 13646 50  0000 L CNN
-F 1 "PESD5V2S2UT" H 13355 13555 50  0000 L CNN
+F 0 "D66" H 13050 13800 50  0000 L CNN
+F 1 "PESD5V2S2UT" V 12900 13200 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-23" H 13375 13550 50  0001 L CNN
 F 3 "http://www.littelfuse.com/~/media/files/littelfuse/technical%20resources/documents/data%20sheets/sp05xxba.pdf" H 13275 13725 50  0001 C CNN
 	1    13150 13600
@@ -4062,8 +4062,8 @@ $Comp
 L Power_Protection:SP0502BAHT D67
 U 1 1 6165A86D
 P 13650 13800
-F 0 "D67" H 13445 13846 50  0000 R CNN
-F 1 "PESD5V2S2UT" H 13445 13755 50  0000 R CNN
+F 0 "D67" H 13700 14000 50  0000 R CNN
+F 1 "PESD5V2S2UT" V 13400 13900 50  0000 R CNN
 F 2 "Package_TO_SOT_SMD:SOT-23" H 13875 13750 50  0001 L CNN
 F 3 "http://www.littelfuse.com/~/media/files/littelfuse/technical%20resources/documents/data%20sheets/sp05xxba.pdf" H 13775 13925 50  0001 C CNN
 	1    13650 13800
@@ -4137,24 +4137,18 @@ $Comp
 L Power_Protection:SP0502BAHT D68
 U 1 1 6249AB62
 P 15250 14200
-F 0 "D68" H 15045 14246 50  0000 R CNN
-F 1 "PESD24V2S2UT" H 15045 14155 50  0000 R CNN
+F 0 "D68" H 15300 14400 50  0000 R CNN
+F 1 "PESD24V2S2UT" V 15000 14200 50  0000 R CNN
 F 2 "Package_TO_SOT_SMD:SOT-23" H 15475 14150 50  0001 L CNN
 F 3 "http://www.littelfuse.com/~/media/files/littelfuse/technical%20resources/documents/data%20sheets/sp05xxba.pdf" H 15375 14325 50  0001 C CNN
 	1    15250 14200
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	15550 13700 15550 14000
-Wire Wire Line
-	15550 14000 15350 14000
+	15550 13700 15550 13800
 Connection ~ 15550 13700
 Wire Wire Line
 	15550 13700 15900 13700
-Wire Wire Line
-	15150 14000 14950 14000
-Wire Wire Line
-	14950 14000 14950 13700
 Connection ~ 14950 13700
 Wire Wire Line
 	14950 13700 15000 13700
@@ -4357,8 +4351,8 @@ Text Notes 5050 12900 0    50   ~ 0
 BP+
 Text Notes 5050 13000 0    50   ~ 0
 BP+
-Text Notes 2950 15500 0    50   ~ 0
-Checked for the STM32L45xxx:\nBP+: Bootloader drives this pin as pull-up\nBP-: Bootloader drives this pin as pull-down
+Text Notes 2950 15550 0    50   ~ 0
+Checked for the STM32L45xxx:\nBP+: Bootloader drives this pin as pull-up\nBP-: Bootloader drives this pin as pull-down\nRP+: Bootloader and reset drives this pin as pull-up
 Wire Wire Line
 	5750 11400 5750 9400
 Wire Wire Line
@@ -4986,8 +4980,8 @@ $Comp
 L Relay:IM01 K92
 U 1 1 60AA18DA
 P 19850 5150
-F 0 "K92" H 20480 5196 50  0000 L CNN
-F 1 "IM01" H 20480 5105 50  0000 L CNN
+F 0 "K92" H 19950 4850 50  0000 L CNN
+F 1 "IM01" H 19950 4750 50  0000 L CNN
 F 2 "Relay_SMD:Relay_DPDT_Omron_G6K-2F-Y" H 19650 5150 50  0001 C CNN
 F 3 "http://www.te.com/commerce/DocumentDelivery/DDEController?Action=srchrtrv&DocNm=108-98001&DocType=SS&DocLang=EN" H 19650 5150 50  0001 C CNN
 	1    19850 5150
@@ -4997,8 +4991,8 @@ $Comp
 L Relay:IM01 K91
 U 1 1 60AA17FC
 P 19850 3150
-F 0 "K91" H 20480 3196 50  0000 L CNN
-F 1 "IM01" H 20480 3105 50  0000 L CNN
+F 0 "K91" H 20000 2850 50  0000 L CNN
+F 1 "IM01" H 20000 2750 50  0000 L CNN
 F 2 "Relay_SMD:Relay_DPDT_Omron_G6K-2F-Y" H 19650 3150 50  0001 C CNN
 F 3 "http://www.te.com/commerce/DocumentDelivery/DDEController?Action=srchrtrv&DocNm=108-98001&DocType=SS&DocLang=EN" H 19650 3150 50  0001 C CNN
 	1    19850 3150
@@ -5008,8 +5002,8 @@ $Comp
 L Relay:IM01 K90
 U 1 1 60A9E415
 P 19850 1300
-F 0 "K90" H 20480 1346 50  0000 L CNN
-F 1 "IM01" H 20480 1255 50  0000 L CNN
+F 0 "K90" H 20000 1000 50  0000 L CNN
+F 1 "IM01" H 20000 900 50  0000 L CNN
 F 2 "Relay_SMD:Relay_DPDT_Omron_G6K-2F-Y" H 19650 1300 50  0001 C CNN
 F 3 "http://www.te.com/commerce/DocumentDelivery/DDEController?Action=srchrtrv&DocNm=108-98001&DocType=SS&DocLang=EN" H 19650 1300 50  0001 C CNN
 	1    19850 1300
@@ -5201,8 +5195,8 @@ $Comp
 L Device:Crystal Y61
 U 1 1 6146543E
 P 3100 11450
-F 0 "Y61" V 3054 11581 50  0000 L CNN
-F 1 "32768Hz" V 3145 11581 50  0000 L CNN
+F 0 "Y61" V 3300 11400 50  0000 L CNN
+F 1 "32768Hz" V 2900 11300 50  0000 L CNN
 F 2 "MalteM:Crystal_MP03" H 3100 11450 50  0001 C CNN
 F 3 "~" H 3100 11450 50  0001 C CNN
 	1    3100 11450
@@ -5427,4 +5421,16 @@ Wire Notes Line style solid rgb(255, 0, 0)
 	9850 7300 9850 4900
 Wire Notes Line style solid rgb(255, 0, 0)
 	9850 4900 9400 4900
+Wire Wire Line
+	15550 13800 15350 13800
+Wire Wire Line
+	15350 13800 15350 14000
+Wire Wire Line
+	15150 14000 15150 13800
+Wire Wire Line
+	15150 13800 14950 13800
+Wire Wire Line
+	14950 13800 14950 13700
+Text Notes 5050 11700 0    50   ~ 0
+RP+
 $EndSCHEMATC
