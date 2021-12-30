@@ -1,7 +1,7 @@
 /* Boxlib
 (c) 2021 by Malte Marwedel
 
-SPDX-License-Identifier:  BSD-3-Clause
+SPDX-License-Identifier: BSD-3-Clause
 */
 
 #include "leds.h"

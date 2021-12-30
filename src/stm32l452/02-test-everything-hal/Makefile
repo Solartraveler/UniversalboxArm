@@ -80,6 +80,7 @@ $(BOXLIB)/peripheral.c \
 $(BOXLIB)/flash.c \
 $(BOXLIB)/lcd.c \
 $(BOXLIB)/coproc.c \
+$(BOXLIB)/ir.c \
 testEverything.c
 
 

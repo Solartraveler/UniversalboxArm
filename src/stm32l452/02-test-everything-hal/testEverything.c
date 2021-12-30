@@ -21,6 +21,7 @@ License: BSD-3-Clause
 #include "boxlib/lcd.h"
 #include "boxlib/flash.h"
 #include "boxlib/coproc.h"
+#include "boxlib/ir.h"
 
 #include "main.h"
 
@@ -210,7 +211,30 @@ void checkEsp(void) {
 }
 
 void checkIr(void) {
-	printf("\r\nTODO\r\n");
+	IrOn();
+	printf("\r\nIR enabled, signal low will be printed every second until a key is pressed\r\n");
+	char input = 0;
+	do {
+		input = rs232GetChar();
+		uint32_t timeEnd = HAL_GetTick() + 1000;
+		float sig = 0;
+		float noSig = 0;
+		while (HAL_GetTick() < timeEnd) {
+			if (IrPinSignal()) {
+				sig++;
+			} else {
+				noSig++;
+			}
+		}
+		if ((sig + noSig) > 1) {
+			float perc = sig * 1000.0 / (sig + noSig);
+			unsigned int a = perc / 10;
+			unsigned int b = perc - a;
+			printf("Signal %u.%u%%\r\n", a, b);
+		}
+	} while (input == 0);
+	IrOff();
+	printf("Ir disabled\r\n");
 }
 
 void setLcdBacklight(void) {
