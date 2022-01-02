@@ -22,6 +22,7 @@ License: BSD-3-Clause
 #include "boxlib/flash.h"
 #include "boxlib/coproc.h"
 #include "boxlib/ir.h"
+#include "boxlib/peripheral.h"
 
 #include "main.h"
 
@@ -36,8 +37,10 @@ void mainMenu(void) {
 	printf("6: Set flash page size to 2^n\r\n");
 	printf("7: Check ESP-01\r\n");
 	printf("8: Toggle LCD backlight\r\n");
-	printf("9: Write to LCD\r\n");
-	printf("a: Check IR\r\n");
+	printf("9: Init and write to LCD\r\n");
+	printf("a: write color pixel to LCD\r\n");
+	printf("b: Check IR\r\n");
+	printf("c: Peripheral powercycle (RS232, LCD, flash)\r\n");
 	printf("r: Reboot\r\n");
 	printf("h: This screen\r\n");
 }
@@ -253,7 +256,43 @@ void writeLcd(void) {
 	LcdEnable();
 	LcdInit();
 	LcdTestpattern();
-	printf("\r\nTODO\r\n");
+}
+
+void readSerialLine(char * input, size_t len) {
+	memset(input, 0, len);
+	size_t i = 0;
+	while (i < (len - 1)) {
+		char c = rs232GetChar();
+		if (c != 0) {
+			input[i] = c;
+			i++;
+			printf("%c", c);
+		}
+		if ((c == '\r') || (c == '\n'))
+		{
+			break;
+		}
+	}
+}
+
+void writePixelLcd(void) {
+	printf("\r\nEnter 2x3 decimal digits for x+y, then 6 hexadecimal digits for color, separated with a space\r\n");
+	char buffer[16] = {0};
+	readSerialLine(buffer, sizeof(buffer));
+	unsigned int x, y, color;
+	sscanf(buffer, "%u %u %x", &x, &y, &color);
+	LcdWritePixel(x, y, color);
+	printf("Written(%u,%u) = 0x%x\r\n", x, y, color);
+}
+
+void PeripheralPowercycle(void) {
+	printf("\r\nPower off for 2 sec\r\n");
+	PeripheralPowerOff();
+	HAL_Delay(1000);
+	printf("If you see this message, the power off test failed\r\n");
+	HAL_Delay(1000);
+	PeripheralPowerOn();
+	printf("Power back on. There should be no message printed between this and the power off message\r\n");
 }
 
 void testCycle(void) {
@@ -276,7 +315,9 @@ void testCycle(void) {
 		case '7': checkEsp(); break;
 		case '8': setLcdBacklight(); break;
 		case '9': writeLcd(); break;
-		case 'a': checkIr(); break;
+		case 'a': writePixelLcd(); break;
+		case 'b': checkIr(); break;
+		case 'c': PeripheralPowercycle(); break;
 		case 'r': NVIC_SystemReset(); break;
 		case 'h': mainMenu(); break;
 		default: break;

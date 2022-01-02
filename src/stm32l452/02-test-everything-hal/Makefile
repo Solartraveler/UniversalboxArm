@@ -36,6 +36,7 @@ COMMON=../common
 STM_HAL=$(COMMON)/STM32L4xx_HAL_Driver
 CMSIS=$(COMMON)/CMSIS
 BOXLIB=$(COMMON)/boxlib
+DISPLAYLIB=$(COMMON)/st7735
 
 ######################################
 # source
@@ -81,6 +82,7 @@ $(BOXLIB)/flash.c \
 $(BOXLIB)/lcd.c \
 $(BOXLIB)/coproc.c \
 $(BOXLIB)/ir.c \
+$(DISPLAYLIB)/st7735.c \
 testEverything.c
 
 

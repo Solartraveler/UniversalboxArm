@@ -5,8 +5,8 @@ $Descr A2 23386 16535
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "2021-12-18"
-Rev "0.6"
+Date "2022-01-02"
+Rev "0.7"
 Comp ""
 Comment1 ""
 Comment2 ""
@@ -5433,4 +5433,6 @@ Wire Wire Line
 	14950 13800 14950 13700
 Text Notes 5050 11700 0    50   ~ 0
 RP+
+Text Notes 10800 10050 0    50   ~ 0
+Bug: If JP50 is left open,\nthe reset line of the LCD needs\na pullup resister of approx\n10kΩ to the PerEnablePower signal.
 $EndSCHEMATC

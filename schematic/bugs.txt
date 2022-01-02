@@ -21,7 +21,10 @@ Bugs in Version 1.0:
    Next version: Move description
 6. == TL431B is difficult to get in low quantities ==
    Next version: Change footprint to use TS431B instead
-
+7. == Reset of LCD needs a pullup ==
+   If JP50 is left open (no control by GPIO), the reset needs a pull up to the PerEnablePower signal.
+   Workaround: Add a 10k pull up on the J50 connecter. Or close JP50 and use the GPIO.
+   Next version: Allow adding a pullup resiter.
 
 
 
