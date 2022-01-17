@@ -5,8 +5,8 @@ $Descr A2 23386 16535
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "2022-01-02"
-Rev "0.7"
+Date "2022-01-17"
+Rev "0.8"
 Comp ""
 Comment1 ""
 Comment2 ""
@@ -1027,10 +1027,6 @@ Wire Wire Line
 Wire Wire Line
 	4700 7000 4700 6950
 Wire Wire Line
-	2900 6800 2900 4550
-Wire Wire Line
-	2300 4550 2900 4550
-Wire Wire Line
 	2350 5850 2350 6800
 Wire Wire Line
 	2800 5150 2800 6250
@@ -1162,8 +1158,8 @@ Wire Wire Line
 	6150 6250 6150 6550
 Wire Wire Line
 	2300 4950 2750 4950
-Text Label 2500 4950 0    50   ~ 0
-AvrOutx
+Text Label 2350 4950 0    50   ~ 0
+AvrOutResetArm
 $Comp
 L Connector:TestPoint TP20
 U 1 1 60CA37DC
@@ -1189,7 +1185,7 @@ F 3 "~" H 3500 6800 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	3350 6800 2900 6800
+	3350 6800 3000 6800
 NoConn ~ 1650 1450
 Wire Wire Line
 	1650 1450 1550 1450
@@ -1701,10 +1697,7 @@ Wire Wire Line
 Wire Wire Line
 	2450 7400 2550 7400
 Wire Wire Line
-	2900 6800 2450 6800
-Wire Wire Line
 	2450 6800 2450 7400
-Connection ~ 2900 6800
 Connection ~ 2450 7400
 Text Label 2050 7200 0    50   ~ 0
 SpiAvrSck
@@ -1729,8 +1722,8 @@ Wire Wire Line
 	3750 10400 3600 10400
 Wire Wire Line
 	1850 10600 1700 10600
-Text Label 1650 10600 0    50   ~ 0
-AvrOutx
+Text Label 1250 10600 0    50   ~ 0
+AvrOutResetArm
 $Comp
 L Device:R R61
 U 1 1 626A4300
@@ -1754,8 +1747,6 @@ F 3 "~" H 1700 10750 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Connection ~ 1700 10600
-Wire Wire Line
-	1700 10600 1500 10600
 Wire Wire Line
 	2150 10800 2150 10900
 Wire Wire Line
@@ -2151,7 +2142,7 @@ L Device:Crystal Y60
 U 1 1 612BDC0F
 P 3250 13650
 F 0 "Y60" V 3204 13781 50  0000 L CNN
-F 1 "16MHz" V 3295 13781 50  0000 L CNN
+F 1 "32768Hz" V 3295 13781 50  0000 L CNN
 F 2 "Crystal:Crystal_HC49-U_Vertical" H 3250 13650 50  0001 C CNN
 F 3 "~" H 3250 13650 50  0001 C CNN
 	1    3250 13650
@@ -2164,7 +2155,7 @@ L Device:C C67
 U 1 1 6138EB03
 P 3000 13500
 F 0 "C67" V 2950 13550 50  0000 L CNN
-F 1 "22pF" V 3150 13400 50  0000 L CNN
+F 1 "10pF" V 3150 13400 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 3038 13350 50  0001 C CNN
 F 3 "~" H 3000 13500 50  0001 C CNN
 	1    3000 13500
@@ -2175,7 +2166,7 @@ L Device:C C68
 U 1 1 6138EF37
 P 3000 13800
 F 0 "C68" V 3100 13850 50  0000 L CNN
-F 1 "22pF" V 3200 13700 50  0000 L CNN
+F 1 "10pF" V 3200 13700 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 3038 13650 50  0001 C CNN
 F 3 "~" H 3000 13800 50  0001 C CNN
 	1    3000 13800
@@ -2201,47 +2192,47 @@ $EndComp
 Wire Wire Line
 	3750 11500 3550 11500
 Wire Wire Line
-	3550 11500 3550 11300
+	3550 11500 3550 11100
 $Comp
 L Device:C C69
 U 1 1 614F60AD
-P 2750 11300
-F 0 "C69" V 2700 11350 50  0000 L CNN
-F 1 "4.7pF" V 2900 11150 50  0000 L CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 2788 11150 50  0001 C CNN
-F 3 "~" H 2750 11300 50  0001 C CNN
-	1    2750 11300
+P 2750 11100
+F 0 "C69" V 2700 11150 50  0000 L CNN
+F 1 "22pF" V 2900 10950 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 2788 10950 50  0001 C CNN
+F 3 "~" H 2750 11100 50  0001 C CNN
+	1    2750 11100
 	0    1    1    0   
 $EndComp
 $Comp
 L Device:C C70
 U 1 1 614F6223
-P 2750 11600
-F 0 "C70" V 2700 11650 50  0000 L CNN
-F 1 "4.7pF" V 2900 11450 50  0000 L CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 2788 11450 50  0001 C CNN
-F 3 "~" H 2750 11600 50  0001 C CNN
-	1    2750 11600
+P 2750 11400
+F 0 "C70" V 2700 11450 50  0000 L CNN
+F 1 "22pF" V 2900 11250 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 2788 11250 50  0001 C CNN
+F 3 "~" H 2750 11400 50  0001 C CNN
+	1    2750 11400
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	2600 11600 2450 11600
+	2600 11400 2450 11400
 Wire Wire Line
-	2450 11600 2450 11300
+	2450 11400 2450 11100
 Wire Wire Line
-	2450 11300 2600 11300
+	2450 11100 2600 11100
 $Comp
 L power:GND #PWR0173
 U 1 1 615D30F6
-P 2450 11600
-F 0 "#PWR0173" H 2450 11350 50  0001 C CNN
-F 1 "GND" H 2455 11427 50  0000 C CNN
-F 2 "" H 2450 11600 50  0001 C CNN
-F 3 "" H 2450 11600 50  0001 C CNN
-	1    2450 11600
+P 2450 11400
+F 0 "#PWR0173" H 2450 11150 50  0001 C CNN
+F 1 "GND" H 2455 11227 50  0000 C CNN
+F 2 "" H 2450 11400 50  0001 C CNN
+F 3 "" H 2450 11400 50  0001 C CNN
+	1    2450 11400
 	1    0    0    -1  
 $EndComp
-Connection ~ 2450 11600
+Connection ~ 2450 11400
 Connection ~ 3250 13500
 Wire Wire Line
 	3250 13500 3150 13500
@@ -2780,27 +2771,27 @@ F 3 "https://www.infineon.com/dgdl/irlml6402pbf.pdf?fileId=5546d462533600a401535
 	0    1    -1   0   
 $EndComp
 Wire Wire Line
-	8450 8800 8950 8800
+	8450 8800 8600 8800
 $Comp
 L Device:C C50
 U 1 1 60E5A73A
-P 8950 8950
-F 0 "C50" H 9065 8996 50  0000 L CNN
-F 1 "100nF" H 9065 8905 50  0000 L CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 8988 8800 50  0001 C CNN
-F 3 "~" H 8950 8950 50  0001 C CNN
-	1    8950 8950
+P 8600 8950
+F 0 "C50" H 8715 8996 50  0000 L CNN
+F 1 "100nF" H 8715 8905 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 8638 8800 50  0001 C CNN
+F 3 "~" H 8600 8950 50  0001 C CNN
+	1    8600 8950
 	1    0    0    -1  
 $EndComp
 $Comp
 L power:GND #PWR0181
 U 1 1 60E5BD97
-P 8950 9100
-F 0 "#PWR0181" H 8950 8850 50  0001 C CNN
-F 1 "GND" H 8955 8927 50  0000 C CNN
-F 2 "" H 8950 9100 50  0001 C CNN
-F 3 "" H 8950 9100 50  0001 C CNN
-	1    8950 9100
+P 8600 9100
+F 0 "#PWR0181" H 8600 8850 50  0001 C CNN
+F 1 "GND" H 8605 8927 50  0000 C CNN
+F 2 "" H 8600 9100 50  0001 C CNN
+F 3 "" H 8600 9100 50  0001 C CNN
+	1    8600 9100
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -2814,7 +2805,6 @@ F 3 "http://ww1.microchip.com/downloads/en/devicedoc/doc0807.pdf" H 10400 11850 
 	1    10400 11850
 	1    0    0    -1  
 $EndComp
-Connection ~ 8950 8800
 Wire Wire Line
 	7050 11700 8750 11700
 Connection ~ 7050 11700
@@ -2931,7 +2921,7 @@ L Device:R R50
 U 1 1 61DD5E64
 P 8000 9100
 F 0 "R50" V 7793 9100 50  0000 C CNN
-F 1 "220kΩ" V 7884 9100 50  0000 C CNN
+F 1 "56kΩ" V 7884 9100 50  0000 C CNN
 F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 7930 9100 50  0001 C CNN
 F 3 "~" H 8000 9100 50  0001 C CNN
 	1    8000 9100
@@ -3179,12 +3169,12 @@ Wire Wire Line
 $Comp
 L power:PWR_FLAG #FLG0107
 U 1 1 631292F2
-P 8950 8800
-F 0 "#FLG0107" H 8950 8875 50  0001 C CNN
-F 1 "PWR_FLAG" H 8950 8974 50  0000 C CNN
-F 2 "" H 8950 8800 50  0001 C CNN
-F 3 "~" H 8950 8800 50  0001 C CNN
-	1    8950 8800
+P 8800 8800
+F 0 "#FLG0107" H 8800 8875 50  0001 C CNN
+F 1 "PWR_FLAG" H 8800 8974 50  0000 C CNN
+F 2 "" H 8800 8800 50  0001 C CNN
+F 3 "~" H 8800 8800 50  0001 C CNN
+	1    8800 8800
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -3597,7 +3587,7 @@ L Device:R R120
 U 1 1 632D59D6
 P 13750 9900
 F 0 "R120" V 13543 9900 50  0000 C CNN
-F 1 "220kΩ" V 13634 9900 50  0000 C CNN
+F 1 "56kΩ" V 13634 9900 50  0000 C CNN
 F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 13680 9900 50  0001 C CNN
 F 3 "~" H 13750 9900 50  0001 C CNN
 	1    13750 9900
@@ -3699,8 +3689,6 @@ Wire Wire Line
 	3700 9500 9150 9500
 Wire Wire Line
 	9250 9600 9250 8800
-Wire Wire Line
-	9250 8800 8950 8800
 $Comp
 L Connector:Conn_01x02_Male J121
 U 1 1 610D9973
@@ -3752,18 +3740,18 @@ Wire Wire Line
 $Comp
 L Jumper:SolderJumper_2_Open JP50
 U 1 1 60FE0A28
-P 8700 9900
-F 0 "JP50" H 8700 10150 50  0000 C CNN
-F 1 "SolderJumper_2_Open" H 8700 10050 50  0000 C CNN
-F 2 "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm" H 8700 9900 50  0001 C CNN
-F 3 "~" H 8700 9900 50  0001 C CNN
-	1    8700 9900
+P 8550 9900
+F 0 "JP50" H 8550 10150 50  0000 C CNN
+F 1 "SolderJumper_2_Open" H 8550 10050 50  0000 C CNN
+F 2 "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm" H 8550 9900 50  0001 C CNN
+F 3 "~" H 8550 9900 50  0001 C CNN
+	1    8550 9900
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	8850 9900 10550 9900
+	8700 9900 9000 9900
 Wire Wire Line
-	8550 9900 3300 9900
+	8400 9900 3300 9900
 Wire Wire Line
 	3750 12500 2350 12500
 Wire Wire Line
@@ -4257,8 +4245,6 @@ Text Notes 7450 4000 0    50   ~ 0
 0.1%
 Text Notes 7450 4450 0    50   ~ 0
 0.1%
-Text Notes 2100 11200 0    50   ~ 0
-Nucleo sample board uses 6pF\nfor C69 and C70,\nbut no supplier found
 $Comp
 L power:+5V #PWR0204
 U 1 1 60FE6E9E
@@ -5072,15 +5058,13 @@ Wire Wire Line
 Wire Wire Line
 	10650 7750 10650 7900
 Wire Wire Line
-	2900 11600 3100 11600
+	2900 11400 3100 11400
 Wire Wire Line
-	2900 11300 3100 11300
-Connection ~ 3100 11600
+	2900 11100 3100 11100
+Connection ~ 3100 11400
+Connection ~ 3100 11100
 Wire Wire Line
-	3100 11600 3750 11600
-Connection ~ 3100 11300
-Wire Wire Line
-	3100 11300 3550 11300
+	3100 11100 3550 11100
 $Comp
 L Jumper:SolderJumper_2_Open JP61
 U 1 1 61912D3F
@@ -5102,8 +5086,6 @@ Wire Wire Line
 Wire Wire Line
 	11450 1700 11000 1700
 Connection ~ 11000 1700
-Text Notes 11500 1400 0    50   ~ 0
-Optional
 $Comp
 L Device:C C4
 U 1 1 61AC88C7
@@ -5194,12 +5176,12 @@ Close JP61 if U130 is used
 $Comp
 L Device:Crystal Y61
 U 1 1 6146543E
-P 3100 11450
-F 0 "Y61" V 3300 11400 50  0000 L CNN
-F 1 "32768Hz" V 2900 11300 50  0000 L CNN
-F 2 "MalteM:Crystal_MP03" H 3100 11450 50  0001 C CNN
-F 3 "~" H 3100 11450 50  0001 C CNN
-	1    3100 11450
+P 3100 11250
+F 0 "Y61" V 3300 11200 50  0000 L CNN
+F 1 "8MHz" V 2900 11100 50  0000 L CNN
+F 2 "MalteM:Crystal_MP03" H 3100 11250 50  0001 C CNN
+F 3 "~" H 3100 11250 50  0001 C CNN
+	1    3100 11250
 	0    -1   -1   0   
 $EndComp
 Text Notes 19450 13300 0    50   ~ 0
@@ -5433,6 +5415,50 @@ Wire Wire Line
 	14950 13800 14950 13700
 Text Notes 5050 11700 0    50   ~ 0
 RP+
-Text Notes 10800 10050 0    50   ~ 0
-Bug: If JP50 is left open,\nthe reset line of the LCD needs\na pullup resister of approx\n10kΩ to the PerEnablePower signal.
+Text Notes 9350 9100 0    50   ~ 0
+R54 is only required \nif JP50 is left open
+Text Notes 1050 11600 0    50   ~ 0
+wrong crystal case for Y61\nand position on PCB\nAlso an additional resistor\nmight be recommend for some\ncrystals
+Wire Wire Line
+	3100 11400 3450 11400
+Wire Wire Line
+	3450 11400 3450 11600
+Wire Wire Line
+	3450 11600 3750 11600
+Wire Wire Line
+	1250 10600 1700 10600
+Wire Wire Line
+	3000 4550 3000 6800
+Connection ~ 3000 6800
+Wire Wire Line
+	2450 6800 3000 6800
+Wire Wire Line
+	2300 4550 3000 4550
+$Comp
+L Device:R #R54
+U 1 1 620B0931
+P 9000 9050
+F 0 "#R54" V 8793 9050 50  0000 C CNN
+F 1 "220kΩ" V 8884 9050 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 8930 9050 50  0001 C CNN
+F 3 "~" H 9000 9050 50  0001 C CNN
+	1    9000 9050
+	-1   0    0    1   
+$EndComp
+Connection ~ 8600 8800
+Wire Wire Line
+	8600 8800 8800 8800
+Connection ~ 8800 8800
+Wire Wire Line
+	8800 8800 9000 8800
+Wire Wire Line
+	9000 8900 9000 8800
+Connection ~ 9000 8800
+Wire Wire Line
+	9000 8800 9250 8800
+Wire Wire Line
+	9000 9200 9000 9900
+Connection ~ 9000 9900
+Wire Wire Line
+	9000 9900 10550 9900
 $EndSCHEMATC

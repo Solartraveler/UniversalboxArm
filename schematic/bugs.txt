@@ -8,7 +8,7 @@ Bugs in Version 1.0:
    Workaround: Remove D24, connect Pin 1 of TH20 (Temperature output) to PB5 (at J20 this is easy)
    Cut PB0 before it goes to TH20 and then make a connection of PB0 (again from J20) to the anode pad of D24.
    Next version: Switch PB5 and PB0.
-3 == R31 needs to be a Diode ==
+3 == R31 needs to be a diode ==
    Otherwise the low resistance of U2 will drop the level of Q23 and Q24 to low ending in those fets to be always on
    So the ARM could not be switched off while on battery power.
    A diode in a 0805 case can be soldered on the R31 easily
@@ -25,7 +25,12 @@ Bugs in Version 1.0:
    If JP50 is left open (no control by GPIO), the reset needs a pull up to the PerEnablePower signal.
    Workaround: Add a 10k pull up on the J50 connecter. Or close JP50 and use the GPIO.
    Next version: Allow adding a pullup resiter.
-
+8. == Low and high speed crystals are switched ==
+   Workaround: Solder a low speed crystal at the footprint of the highspeed crystal (Y60).
+   And a high speed crystal at Y61.
+   Next version: Fix footprint and reorder crystals.
+9. == ESD Protection for some pins is not complete ==
+   The ESD protection is for 5V inputs. But PA3 and PA4 only support an input of 3.3V.
 
 
 
