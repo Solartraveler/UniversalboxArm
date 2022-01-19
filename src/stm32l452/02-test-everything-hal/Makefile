@@ -32,6 +32,7 @@ OPT = -Og
 BUILD_DIR = build
 
 COMMON=../common
+VERYCOMMON=../../common
 
 STM_HAL=$(COMMON)/STM32L4xx_HAL_Driver
 CMSIS=$(COMMON)/CMSIS
@@ -147,6 +148,7 @@ C_INCLUDES =  \
 -I$(CMSIS)/Device/ST/STM32L4xx/Include \
 -I$(CMSIS)/Include \
 -I$(COMMON) \
+-I$(VERYCOMMON) \
 -I.
 
 

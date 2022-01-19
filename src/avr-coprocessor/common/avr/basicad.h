@@ -3,10 +3,6 @@
 #include <avr/io.h>
 #include <inttypes.h>
 
-//uint16_t getadc(uint8_t channel);
-//uint16_t sample_ad(uint8_t channel, uint8_t samples);
-//uint16_t samle_adQuartil(uint8_t channel);
-
 /* ADEN: Activate converter
    ADSC: Start first A/D conversion
    prescal->ADPS0..ADPS2:

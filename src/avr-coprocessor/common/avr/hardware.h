@@ -5,31 +5,12 @@
 
 #include <avr/io.h>
 #include <avr/pgmspace.h>
+#include <avr/wdt.h>
 
 #include "timing.h"
 #include "basicad.h"
 
-#if 0
-
-//using the LED as debug output
-#define SOFTTX_DDR DDRB
-#define SOFTTX_PORT PORTB
-#define SOFTTX_PIN PIN1
-
-#else
-
-//using the AVR Do as debug output
-#define SOFTTX_DDR DDRA
-#define SOFTTX_PORT PORTA
-#define SOFTTX_PIN PIN1
-
-#endif
-
-#define BAUDRATE 1200
-
-#if ((F_CPU / BAUDRATE) < 100)
-#error "Not supported for baudrate"
-#endif
+#include "configuration.h"
 
 #define PWM_MAX 65
 
@@ -39,14 +20,16 @@ static inline void HardwareInit(void) {
 	PORTA = 0;
 	PORTB = (1<<2) | (1<<6); //pullup for the two buttons
 	//save some power
-	PRR = (1<<PRTIM0) | (1<<PRUSI);
+	PRR = (1<<PRUSI);
 	DIDR0 = (1<<1) | (1<<3) | (1<<4) | (1<<5) | (1<<6) | (1<<7);
 	DIDR1 = (1<<5) | (1<<4);
+
+#if !defined(LOWSPEEDOSC)
+
 	//drop down the frequency to the intended one (assuming 8MHz oscillator)
 	//This code is only reliable if interrupts are still disabled
 	CLKPR = (1<<CLKPCE);
 #if (F_CPU == 8000000)
-#warning 1
 	CLKPR = 0;
 #elif (F_CPU == 4000000)
 	CLKPR = (1<<CLKPS0);
@@ -64,6 +47,16 @@ static inline void HardwareInit(void) {
 	CLKPR = (1<<CLKPS3);
 #else
 #error "Not supported for prescaler"
+#endif
+
+#elif (F_CPU != 128000)
+
+#error "Not supported for prescaler"
+
+#endif
+
+#if defined(USE_WATCHDOG)
+	wdt_enable(WDTO_2S);
 #endif
 }
 
@@ -93,8 +86,16 @@ static inline void ArmUserprog(void) {
 
 static inline void ArmBatteryOn(void) {
 	//on when pin is active low
+#ifdef ARMPOWERORIGINALPIN
+	//PB5 if no PCB fix is applied
+	PORTB &= ~(1<<5);
+	DDRB |= (1<<5);
+#endif
+#ifdef ARMPOWERBUGFIXPIN
+	//PB0 if PCB fix is applied
 	PORTB &= ~(1<<0);
 	DDRB |= (1<<0);
+#endif
 }
 
 static inline void ArmBatteryOff(void) {
@@ -164,3 +165,23 @@ static inline bool KeyPressedLeft(void) {
 	return true;
 }
 
+static inline void TimerInit(void) {
+	TCCR0B = 0; //stop timer
+	TIFR |= (1<<OCF0A); //clear compare flag
+	TCCR0A = 1<<0; //clear timer on compare match (WGM00 in header, CTC0 in datasheet)
+	TCNT0L = 0; //clear counter
+	OCR0A = F_CPU/(64ULL* 100); //10ms timing
+	TCCR0B = (1<<CS00) | (1<<CS01); //start timer with prescaler = 64
+}
+
+static inline bool TimerHasOverflown(void) {
+	if (TIFR & (1<<OCF0A)) {
+		TIFR |= (1<<OCF0A); //clear compare flag
+		return true;
+	}
+	return false;
+}
+
+static inline void WatchdogReset(void) {
+	wdt_reset();
+}

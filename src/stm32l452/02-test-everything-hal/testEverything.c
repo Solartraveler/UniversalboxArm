@@ -32,16 +32,19 @@ void mainMenu(void) {
 	printf("1: Set LEDs\r\n");
 	printf("2: Set relays\r\n");
 	printf("3: Check 32KHz crystal\r\n");
-	printf("4: Check 16MHz crystal\r\n");
+	printf("4: Check high speed crystal\r\n");
 	printf("5: Check SPI flash\r\n");
 	printf("6: Set flash page size to 2^n\r\n");
 	printf("7: Check ESP-01\r\n");
 	printf("8: Toggle LCD backlight\r\n");
-	printf("9: Init and write to LCD\r\n");
-	printf("a: write color pixel to LCD\r\n");
+	printf("9: Init and write to the LCD\r\n");
+	printf("a: Write a color pixel to the LCD\r\n");
 	printf("b: Check IR\r\n");
 	printf("c: Peripheral powercycle (RS232, LCD, flash)\r\n");
-	printf("r: Reboot\r\n");
+	printf("d: Check coprocessor communication\r\n");
+	printf("e: Reboot to DFU mode\r\n");
+	printf("f: Reboot to normal mode\r\n");
+	printf("r: Reboot without coprocessor\r\n");
 	printf("h: This screen\r\n");
 }
 
@@ -131,11 +134,48 @@ void setRelays() {
 }
 
 void check32kCrystal(void) {
-	printf("\r\nTODO\r\n");
+	printf("\r\nStarting external low speed crystal\r\n");
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE;
+	RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+	HAL_StatusTypeDef result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
+	if (result != HAL_OK) {
+		printf("Error, returned %u\r\n", (unsigned int)result);
+		return;
+	}
+	printf("Running\r\n");
 }
 
 void check16MCrystal(void) {
-	printf("\r\nTODO\r\n");
+	//parts of the function are copied from the ST cube generator
+	static bool switched = false;
+	if (switched) {
+		printf("\r\nAlready running on external crystal\r\n");
+		return;
+	}
+	printf("\r\nStarting external high speed crystal\r\n");
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	HAL_StatusTypeDef result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
+	if (result != HAL_OK) {
+		printf("Error, returned %u\r\n", (unsigned int)result);
+		return;
+	}
+	printf("Switching to external crystal\r\n");
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
+	//MSI is 4MHz, HSE is 8MHz, so all clocks stays the same with div2.
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
+	result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+	if (result != HAL_OK) {
+		printf("Error, returned %u\r\n", (unsigned int)result);
+		return;
+	}
+	switched = true;
+	printf("Running with HSE clock source\r\n");
 }
 
 void checkFlash(void) {
@@ -295,6 +335,28 @@ void PeripheralPowercycle(void) {
 	printf("Power back on. There should be no message printed between this and the power off message\r\n");
 }
 
+void checkCoprocComm(void) {
+	printf("\r\nCheck coprocessor communication\r\n");
+	uint16_t pattern = CoprocReadTestpattern();
+	uint16_t version = CoprocReadVersion();
+	uint16_t vcc = CoprocReadVcc();
+
+	printf("Pattern: 0x%x, version: 0x%x, Vcc: %umV\r\n", pattern, version, vcc);
+	if (pattern == 0xF055) {
+		printf("Looks good\r\n");
+	} else {
+		printf("Error, pattern does not fit\r\n");
+	}
+}
+
+void rebootToDfu(void) {
+	CoprocWriteReboot(2); //2 for dfu bootloader
+}
+
+void rebootToNormal(void) {
+	CoprocWriteReboot(1); //1 for normal boot
+}
+
 void testCycle(void) {
 	Led2Green();
 	HAL_Delay(100);
@@ -318,6 +380,9 @@ void testCycle(void) {
 		case 'a': writePixelLcd(); break;
 		case 'b': checkIr(); break;
 		case 'c': PeripheralPowercycle(); break;
+		case 'd': checkCoprocComm(); break;
+		case 'e': rebootToDfu(); break;
+		case 'f': rebootToNormal(); break;
 		case 'r': NVIC_SystemReset(); break;
 		case 'h': mainMenu(); break;
 		default: break;

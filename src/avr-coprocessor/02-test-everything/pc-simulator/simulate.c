@@ -10,7 +10,7 @@
 #include "timing.h"
 
 uint8_t g_ledState;
-uint8_t g_armRun;
+uint8_t g_armRun = 1;
 uint8_t g_armBootload;
 uint8_t g_armBattery;
 uint8_t g_sensors;
@@ -113,18 +113,18 @@ void LedOff(void) {
 }
 
 void ArmReset(void) {
-	if (g_armRun == 0)
-	{
-		printf("ARM running\n");
-		g_armRun = 1;
-	}
-}
-
-void ArmRun(void) {
 	if (g_armRun)
 	{
 		printf("ARM reset\n");
 		g_armRun = 0;
+	}
+}
+
+void ArmRun(void) {
+	if (g_armRun == 0)
+	{
+		printf("ARM running\n");
+		g_armRun = 1;
 	}
 }
 

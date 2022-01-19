@@ -4,12 +4,11 @@
 # is public domain), believed to be neutral to any flavor of "make"
 # (GNU make, BSD make, SysV make)
 
-
 MCU = attiny861a
 MCUAVRDUDE = attiny861
 FORMAT = ihex
 TARGET = main
-SRC = $(TARGET).c ../common/avr/softtx.c femtoVsnprintf.c ../common/avr/hardware.c
+SRC = $(TARGET).c spi.c ../common/avr/hardware.c
 ASRC =
 OPT = -O2 -fweb -Winline -mcall-prologues -mrelax
 
@@ -32,7 +31,7 @@ CSTANDARD = -std=gnu99
 CDEFS =
 
 # Place -I options here
-CINCS = -I avr -I ../common/avr
+CINCS = -I avr -I ../common/avr -I ../../common
 
 
 CDEBUG = -g$(DEBUG)
@@ -105,8 +104,9 @@ AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 # to submit bug reports.
 #AVRDUDE_VERBOSE = -v -v
 
-
-AVRDUDE_BASIC = -p $(MCUAVRDUDE) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
+#Since the internal 128KHz oscillator is used, the programming frequency may not
+#be higher than 32kHz - oscillator derivation
+AVRDUDE_BASIC = -p $(MCUAVRDUDE) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER) -B 25kHz
 AVRDUDE_FLAGS = $(AVRDUDE_BASIC) $(AVRDUDE_NO_VERIFY) $(AVRDUDE_VERBOSE) $(AVRDUDE_ERASE_COUNTER)
 
 
@@ -150,11 +150,11 @@ removebackup:
 upload: program
 
 program: $(TARGET).hex $(TARGET).eep
-	$(AVRDUDE) $(AVRDUDE_FLAGS) -B 100kHz $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
-#set to 8Mhz internal resonator, no self programming, brown out at 1.8V, no clock div, fastest startup
+#set to 128Khz internal resonator, no self programming, brown out at 1.8V, no clock div, fastest startup
 fuses:
-	$(AVRDUDE) $(AVRDUDE_FLAGS) -B 25kHz -U lfuse:w:0xC2:m -U hfuse:w:0xDE:m -U efuse:w:0xff:m
+	$(AVRDUDE) $(AVRDUDE_FLAGS) -U lfuse:w:0xC3:m -U hfuse:w:0xDE:m -U efuse:w:0xff:m
 
 # Convert ELF to COFF for use in debugging / simulating in AVR Studio or VMLAB.
 COFFCONVERT=$(OBJCOPY) --debugging \

@@ -15,3 +15,8 @@ When using this, no battery should be connected, as no current limiting is done 
 the voltage is not watched. The fuse bits need to be set to use the 8MHz internal clock
 and the MCU runs with 1MHz internally.
 
+## 03-reset-button-with-spi ##
+Provides the same functionality as 01-minimal-reset-button, but the MCU acts as SPI slave to the ARM master.
+The reset mode can be controlled over this interface, and the input voltage can be read out.
+Suitable firmware if no battery functionality is added.
+

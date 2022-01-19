@@ -1,8 +1,8 @@
 #pragma once
 
-#define F_CPU (1000000)
-
 #include <stdint.h>
+
+#include "configuration.h"
 
 #include <util/delay.h>
 
