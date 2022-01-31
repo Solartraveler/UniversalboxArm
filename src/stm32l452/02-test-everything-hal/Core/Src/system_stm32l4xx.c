@@ -209,6 +209,12 @@ void SystemInit(void)
 #else
   SCB->VTOR = FLASH_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal FLASH */
 #endif
+  uintptr_t x = (uintptr_t)&SystemInit;
+  //TODO: Replace addresses by those from the linker script
+  if ((x >= 0x20000000) && (x <= 0x8000000))
+  {
+    SCB->VTOR = 0x20018000;
+  }
 }
 
 /**

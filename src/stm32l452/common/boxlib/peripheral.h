@@ -9,3 +9,4 @@ void PeripheralPowerOff(void);
 
 void PeripheralTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len);
 
+void PeripheralPrescaler(uint32_t prescaler);

@@ -10,6 +10,11 @@ Device id: 0x28, second byte: 0x0
 
 64MBit AT45DB641E: 256byte pagesize
 Device id: 0x27, second byte: 0x1
+
+Surprising discovery: While the datasheet does not require a minimum SPI
+frequency, data writing seem to abort at some point with a frequency of
+15.625kHz after 191 byte + 4 command bytes. This is 0.09984s, so there seems
+to be a 0.1s timeout within the device.
 */
 
 #define AT45PAGESIZE 256

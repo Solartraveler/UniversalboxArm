@@ -46,3 +46,29 @@ void PeripheralTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
 		HAL_SPI_Receive(&hspi2 ,dataIn, len, 100);
 	}
 }
+
+void PeripheralPrescaler(uint32_t prescaler) {
+	uint32_t bits;
+	if (prescaler <= 2) {
+		bits = SPI_BAUDRATEPRESCALER_2;
+	} else if (prescaler <= 4) {
+		bits = SPI_BAUDRATEPRESCALER_4;
+	} else if (prescaler <= 8) {
+		bits = SPI_BAUDRATEPRESCALER_8;
+	} else if (prescaler <= 16) {
+		bits = SPI_BAUDRATEPRESCALER_16;
+	} else if (prescaler <= 32) {
+		bits = SPI_BAUDRATEPRESCALER_32;
+	} else if (prescaler <= 64) {
+		bits = SPI_BAUDRATEPRESCALER_64;
+	} else if (prescaler <= 128) {
+		bits = SPI_BAUDRATEPRESCALER_128;
+	} else {
+		bits = SPI_BAUDRATEPRESCALER_256;
+	}
+	uint32_t reg = READ_REG(hspi2.Instance->CR1);
+	reg &= ~SPI_CR1_BR_Msk;
+	reg |= bits;
+	WRITE_REG(hspi2.Instance->CR1, reg);
+}
+

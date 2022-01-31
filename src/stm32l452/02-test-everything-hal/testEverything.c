@@ -9,10 +9,12 @@ License: BSD-3-Clause
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
+#include <ctype.h>
 
 #include "testEverything.h"
 
 #include "stm32l4xx_hal.h"
+#include "usart.h"
 
 #include "boxlib/keys.h"
 #include "boxlib/leds.h"
@@ -23,6 +25,8 @@ License: BSD-3-Clause
 #include "boxlib/coproc.h"
 #include "boxlib/ir.h"
 #include "boxlib/peripheral.h"
+#include "boxlib/esp.h"
+#include "boxlib/simpleadc.h"
 
 #include "main.h"
 
@@ -45,6 +49,7 @@ void mainMenu(void) {
 	printf("e: Reboot to DFU mode\r\n");
 	printf("f: Reboot to normal mode\r\n");
 	printf("r: Reboot without coprocessor\r\n");
+	printf("g: Measure bogomips\r\n");
 	printf("h: This screen\r\n");
 }
 
@@ -61,22 +66,68 @@ void testInit(void) {
 	Led1Red();
 	HAL_Delay(100);
 	rs232Init();
-	printf("Test everything 0.1\r\n");
+	printf("Test everything 0.2\r\n");
 	mainMenu();
 }
+
+#define CHANNELS 19
+
+	const char * g_adcNames[CHANNELS] = {
+	"Ref",
+	"PC0",
+	"PC1",
+	"PC2",
+	"PC3",
+	"PA0",
+	"PA1",
+	"PA2",
+	"PA3",
+	"PA4",
+	"PA5",
+	"PA6",
+	"PA7",
+	"PC4",
+	"PC5",
+	"PB0",
+	"PB1",
+	"Tmp",
+	"Bat"
+};
 
 void readSensors() {
 	bool right = KeyRighPressed();
 	bool left = KeyLeftPressed();
 	bool up = KeyUpPressed();
 	bool down = KeyDownPressed();
-	printf("\n\rright: %u, left: %u, up: %u, down: %u\r\n", right, left, up, down);
+	printf("\r\nright: %u, left: %u, up: %u, down: %u\r\n", right, left, up, down);
 	bool avrIn = CoprocInGet();
 	printf("Coprocessor pin: %u\r\n", avrIn);
+	static bool adcInit = false;
+	if (adcInit == false) {
+		AdcInit();
+		adcInit = true;
+	}
+	int32_t tsCal1 = *((uint16_t*)0x1FFF75A8); //30°C calibration value
+	int32_t tsCal2 = *((uint16_t*)0x1FFF75CA); //130°C calibration value
+	int32_t vrefint = *((uint16_t*)0x1FFF75AA); //voltage reference
+
+	for (uint32_t i = 0; i < CHANNELS; i++) {
+		uint32_t val = AdcGet(i);
+		printf("ADC input %u %s: %u\r\n", (unsigned int)i, g_adcNames[i], (unsigned int)val);
+		if ((i == 0) && (val > 0)) {
+			uint32_t vdda = 3000 * vrefint / val;
+			printf("  VRef = %umV\r\n", (unsigned int)vdda);
+		}
+		if (i == 17) {
+			int32_t temperatureCelsius = 100000 / (tsCal2 - tsCal1) * (val - tsCal1) + 30000;
+			temperatureCelsius /= 1000;
+			printf("  Temp = %i°C\r\n", (int)temperatureCelsius);
+		}
+	}
 }
 
 void setLeds() {
-	printf("\n\rToggle LEDs by entering 1...4. All other keys return\n\r");
+	printf("\r\nToggle LEDs by entering 1...4. All other keys return\r\n");
 	char c;
 	bool valid;
 	static bool state[4] = {false, false, false, false};
@@ -112,7 +163,7 @@ void setLeds() {
 }
 
 void setRelays() {
-	printf("\n\rToggle relays by entering 1...4. All other keys return\n\r");
+	printf("\r\nToggle relays by entering 1...4. All other keys return\r\n");
 	char c;
 	bool valid;
 	static bool state[4] = {false, false, false, false};
@@ -146,29 +197,52 @@ void check32kCrystal(void) {
 	printf("Running\r\n");
 }
 
-void check16MCrystal(void) {
+void checkHseCrystal(void) {
 	//parts of the function are copied from the ST cube generator
 	static bool switched = false;
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	HAL_StatusTypeDef result;
 	if (switched) {
-		printf("\r\nAlready running on external crystal\r\n");
+		printf("\r\nAlready running on external crystal. Switching back.\r\n");
+		RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+		                             | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+		RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+		//HSI is 16MHz, HSE is 8MHz, so peripheral clocks stays the same with div2
+		RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+		RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+		RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+		result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+		if (result != HAL_OK) {
+			printf("Error, returned %u\r\n", (unsigned int)result);
+			return;
+		}
+		RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+		RCC_OscInitStruct.HSEState = RCC_HSE_OFF;
+		RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+		result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
+		switched = false;
+		printf("Back running on HSI\r\n");
+		SystemCoreClockUpdate();
 		return;
 	}
 	printf("\r\nStarting external high speed crystal\r\n");
-	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
 	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-	HAL_StatusTypeDef result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
+	result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
 	if (result != HAL_OK) {
 		printf("Error, returned %u\r\n", (unsigned int)result);
 		return;
 	}
 	printf("Switching to external crystal\r\n");
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK;
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+	                             | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
-	//MSI is 4MHz, HSE is 8MHz, so all clocks stays the same with div2.
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
+	//HSI is 16MHz, HSE is 8MHz, so peripheral clocks stays the same with div1
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 	result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
 	if (result != HAL_OK) {
 		printf("Error, returned %u\r\n", (unsigned int)result);
@@ -176,10 +250,12 @@ void check16MCrystal(void) {
 	}
 	switched = true;
 	printf("Running with HSE clock source\r\n");
+	SystemCoreClockUpdate();
 }
 
 void checkFlash(void) {
 	FlashEnable();
+	PeripheralPrescaler(128);
 	uint16_t status = FlashGetStatus();
 	uint16_t density = (status >> 10) & 0xF;
 	uint16_t comp = (status >> 14) & 1;
@@ -214,8 +290,24 @@ void checkFlash(void) {
 				FlashWrite(0, bufferOut, sizeof(bufferOut));
 				FlashRead(0, bufferIn, sizeof(bufferIn));
 				uint32_t timestamp2 = HAL_GetTick();
+				uint32_t delta = timestamp2 - timestamp;
 				if (memcmp(bufferOut, bufferIn, sizeof(bufferOut)) == 0) {
 					printf("Writing and reading back %ubyte successful\r\n", AT45PAGESIZE);
+					printf("Write+Read took %ums\r\n", (unsigned int)delta);
+					for (uint32_t i = 128; i >= 2; i /= 2) {
+						PeripheralPrescaler(i);
+						memset(bufferIn, 0, sizeof(bufferIn));
+						timestamp = HAL_GetTick();
+						FlashRead(0, bufferIn, sizeof(bufferIn));
+						timestamp2 = HAL_GetTick();
+						delta = timestamp2 - timestamp;
+						if (memcmp(bufferOut, bufferIn, sizeof(bufferOut)) == 0) {
+							printf("Reading with prescaler %u succeed. Time %ums\r\n", (unsigned int)i, (unsigned int)delta);
+						} else {
+							printf("Reading with prescaler %u failed\r\n", (unsigned int)i);
+							break;
+						}
+					}
 				} else {
 					printf("Error, read back data mismatched:\r\n");
 					printHex(bufferIn, sizeof(bufferIn));
@@ -224,7 +316,7 @@ void checkFlash(void) {
 					FlashReadBuffer1(bufferIn, 0, sizeof(bufferIn));
 					printHex(bufferIn, sizeof(bufferIn));
 				}
-				printf("Write+Read took %ums\r\n", (unsigned int)(timestamp2 - timestamp));
+
 			} else {
 				printf("Error, device ID does not fit to the pagesize\r\n");
 			}
@@ -249,8 +341,60 @@ void setFlashPagesize(void) {
 	} while (input == 0);
 }
 
+void checkEspPrint(const char * buffer) {
+	const uint32_t maxCharsLine = 80;
+	uint32_t forceNewline = maxCharsLine;
+	while (*buffer) {
+		if (isprint(*buffer) || (*buffer == '\r') || (*buffer == '\n')) {
+			if (*buffer == '\r') {
+				forceNewline = maxCharsLine;
+			}
+			putchar(*buffer);
+			forceNewline--;
+		}
+		buffer++;
+		if (forceNewline == 0) {
+			printf("\r\n");
+			forceNewline = maxCharsLine;
+		}
+	}
+}
+
 void checkEsp(void) {
-	printf("\r\nTODO\r\n");
+	char inBuffer[1024] = {0};
+	size_t maxBuffer = sizeof(inBuffer);
+	MX_USART3_UART_Init();
+	printf("\r\n==Enabling Esp==\r\n");
+	EspEnable();
+	EspCommand("", inBuffer, maxBuffer, 1000);
+	checkEspPrint(inBuffer);
+	if ((strstr(inBuffer, "ready")) || (strstr(inBuffer, "Ai-Thinker"))) {
+
+		EspCommand("AT+GMR\r\n", inBuffer, maxBuffer, 250); //request version
+		printf("\r\n==Version==\r\n");
+		checkEspPrint(inBuffer);
+
+		EspCommand("AT+CWMODE=?\r\n", inBuffer, maxBuffer, 250); //possible modes?
+		printf("\r\n==Supported modes==\r\n");
+		checkEspPrint(inBuffer);
+
+		EspCommand("AT+CWJAP?\r\n", inBuffer, maxBuffer, 250); //current mode?
+		printf("\r\n==Current mode==\r\n");
+		checkEspPrint(inBuffer);
+
+		EspCommand("AT+CWMODE=1\r\n", inBuffer, maxBuffer, 250); //lets become a client
+		printf("\r\n==Now a client==\r\n");
+		checkEspPrint(inBuffer);
+
+		//list available AP, dont know the right timeout. 1000 is too less
+		EspCommand("AT+CWLAP\r\n", inBuffer, maxBuffer, 7000);
+		printf("\r\n==Available APs==\r\n");
+		checkEspPrint(inBuffer);
+	} else {
+		printf("Error, no valid answer from ESP detected\r\n");
+	}
+	EspDisable();
+	printf("\r\n==Esp disabled==\r\n");
 }
 
 void checkIr(void) {
@@ -294,6 +438,7 @@ void setLcdBacklight(void) {
 
 void writeLcd(void) {
 	LcdEnable();
+	PeripheralPrescaler(2);
 	LcdInit();
 	LcdTestpattern();
 }
@@ -321,6 +466,7 @@ void writePixelLcd(void) {
 	readSerialLine(buffer, sizeof(buffer));
 	unsigned int x, y, color;
 	sscanf(buffer, "%u %u %x", &x, &y, &color);
+	PeripheralPrescaler(2);
 	LcdWritePixel(x, y, color);
 	printf("Written(%u,%u) = 0x%x\r\n", x, y, color);
 }
@@ -357,11 +503,20 @@ void rebootToNormal(void) {
 	CoprocWriteReboot(1); //1 for normal boot
 }
 
+void bogomips(void) {
+	uint32_t timeout = HAL_GetTick() + 1000;
+	uint32_t ips = 0;
+	while (timeout > HAL_GetTick()) {
+		ips++;
+	}
+	printf("\r\nIPS: %u\r\n", (unsigned int)ips);
+}
+
 void testCycle(void) {
 	Led2Green();
-	HAL_Delay(100);
+	HAL_Delay(250);
 	Led2Off();
-	HAL_Delay(100);
+	HAL_Delay(250);
 	char input = rs232GetChar();
 	if (input) {
 		printf("%c", input);
@@ -371,7 +526,7 @@ void testCycle(void) {
 		case '1': setLeds(); break;
 		case '2': setRelays(); break;
 		case '3': check32kCrystal(); break;
-		case '4': check16MCrystal(); break;
+		case '4': checkHseCrystal(); break;
 		case '5': checkFlash(); break;
 		case '6': setFlashPagesize(); break;
 		case '7': checkEsp(); break;
@@ -384,6 +539,7 @@ void testCycle(void) {
 		case 'e': rebootToDfu(); break;
 		case 'f': rebootToNormal(); break;
 		case 'r': NVIC_SystemReset(); break;
+		case 'g': bogomips(); break;
 		case 'h': mainMenu(); break;
 		default: break;
 	}
