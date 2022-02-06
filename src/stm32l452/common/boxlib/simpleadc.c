@@ -21,7 +21,11 @@ void AdcInit(void) {
 	HAL_Delay(1); //errata workaround. TODO: Check if needed for STM32L too
 	ADC1->CR |= ADC_CR_ADEN; //can not be done within 4 adc clock cycles, due errata
 	while ((ADC1->ISR & ADC_ISR_ADRDY) == 0);
-	//configure all channnels with 47.5 ADC clock cycles sampling time
+	/* Configure all channnels with 47.5 ADC clock cycles sampling time
+	at 16MHz and a divider of 4 this results in a sample time of 11µs
+	The temperature sensore needs at least 5µs sampling time, so this works
+	up to 35MHz, otherwise the sampling time needs to be increased.
+	*/
 	ADC1->SMPR1 = ADC_SMPR1_SMP0_2 | ADC_SMPR1_SMP1_2 | ADC_SMPR1_SMP2_2 |
 	              ADC_SMPR1_SMP3_2 | ADC_SMPR1_SMP4_2 | ADC_SMPR1_SMP5_2 |
 	              ADC_SMPR1_SMP6_2 | ADC_SMPR1_SMP7_2 | ADC_SMPR1_SMP8_2 |

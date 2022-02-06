@@ -1,5 +1,5 @@
 /*
-(c) 2021 by Malte Marwedel
+(c) 2021-2022 by Malte Marwedel
 
 License: BSD-3-Clause
 */
@@ -30,6 +30,9 @@ License: BSD-3-Clause
 
 #include "main.h"
 
+#include "usbd_core.h"
+#include "usb.h"
+
 void mainMenu(void) {
 	printf("\r\nSelect operation:\r\n");
 	printf("0: Read all inputs\r\n");
@@ -46,11 +49,12 @@ void mainMenu(void) {
 	printf("b: Check IR\r\n");
 	printf("c: Peripheral powercycle (RS232, LCD, flash)\r\n");
 	printf("d: Check coprocessor communication\r\n");
-	printf("e: Reboot to DFU mode\r\n");
-	printf("f: Reboot to normal mode\r\n");
-	printf("r: Reboot without coprocessor\r\n");
-	printf("g: Measure bogomips\r\n");
+	printf("e: Measure bogomips\r\n");
 	printf("h: This screen\r\n");
+	printf("u: Init USB device\r\n");
+	printf("p: Reboot to DFU mode\r\n");
+	printf("q: Reboot to normal mode\r\n");
+	printf("r: Reboot without coprocessor\r\n");
 }
 
 void printHex(const uint8_t * data, size_t len) {
@@ -66,7 +70,7 @@ void testInit(void) {
 	Led1Red();
 	HAL_Delay(100);
 	rs232Init();
-	printf("Test everything 0.2\r\n");
+	printf("Test everything 0.3\r\n");
 	mainMenu();
 }
 
@@ -111,17 +115,25 @@ void readSensors() {
 	int32_t tsCal2 = *((uint16_t*)0x1FFF75CA); //130°C calibration value
 	int32_t vrefint = *((uint16_t*)0x1FFF75AA); //voltage reference
 
+	uint32_t vdda = 0;
 	for (uint32_t i = 0; i < CHANNELS; i++) {
 		uint32_t val = AdcGet(i);
 		printf("ADC input %u %s: %u\r\n", (unsigned int)i, g_adcNames[i], (unsigned int)val);
 		if ((i == 0) && (val > 0)) {
-			uint32_t vdda = 3000 * vrefint / val;
+			vdda = 3000 * vrefint / val;
 			printf("  VRef = %umV\r\n", (unsigned int)vdda);
 		}
 		if (i == 17) {
-			int32_t temperatureCelsius = 100000 / (tsCal2 - tsCal1) * (val - tsCal1) + 30000;
-			temperatureCelsius /= 1000;
-			printf("  Temp = %i°C\r\n", (int)temperatureCelsius);
+			/* The calibrated temperature values are for 3.0Vcc, so we need do scale
+			   the adc value to the current vcc value
+			*/
+			val *= vdda;
+			val /= 3000;
+			int32_t temperatureMCelsius = 100000 / (tsCal2 - tsCal1) * (val - tsCal1) + 30000;
+			int32_t temperature10thCelsius = temperatureMCelsius / 100;
+			int32_t temperatureCelsius = temperature10thCelsius /10;
+			int32_t diff = temperature10thCelsius - temperatureCelsius * 10;
+			printf("  Temp = %u.%u°C\r\n", (int)temperatureCelsius, (int)diff);
 		}
 	}
 }
@@ -316,7 +328,6 @@ void checkFlash(void) {
 					FlashReadBuffer1(bufferIn, 0, sizeof(bufferIn));
 					printHex(bufferIn, sizeof(bufferIn));
 				}
-
 			} else {
 				printf("Error, device ID does not fit to the pagesize\r\n");
 			}
@@ -512,6 +523,225 @@ void bogomips(void) {
 	printf("\r\nIPS: %u\r\n", (unsigned int)ips);
 }
 
+//================== code for USB testing ==============
+
+usbd_device g_usbDev;
+
+//must be 4byte aligned
+uint32_t g_usbBuffer[20];
+
+/* The PID used here is reserved for general test purpose.
+See: https://pid.codes/1209/
+*/
+uint8_t g_deviceDescriptor[] = {
+	0x12,       //length of this struct
+	0x01,       //always 1
+	0x10,0x01,  //usb version
+	0xFF,       //device class
+	0xFF,       //subclass
+	0xFF,       //device protocol
+	0x20,       //maximum packet size
+	0x09,0x12,  //vid
+	0x02,0x00,  //pid
+	0x00,0x01,  //revision
+	0x1,        //manufacturer index
+	0x2,        //product name index
+	0x3,        //serial number index
+	0x01        //number of configurations
+};
+
+uint8_t g_DeviceConfiguration[] = {
+	9,     //length of this entry
+	0x2,   //device configuration
+	18, 0, //total length of this struct
+	0x1,   //number of interfaces
+	0x1,   //this config
+	0x0,   //descriptor of this config index, not used
+	0x80, //bus powered
+	50,   //100mA
+	//interface descriptor follows
+	9,    //length of this descriptor
+	0x4,  //interface descriptor
+	0x0,  //interface number
+	0x0,  //alternate settings
+	0x0,  //number of endpoints without ep 0
+	0xFF, //class code -> vendor specific
+	0x0,  //subclass code
+	0x0,  //protocol code
+	0x0   //string index for interface descriptor
+};
+
+static struct usb_string_descriptor g_lang_desc     = USB_ARRAY_DESC(USB_LANGID_ENG_US);
+static struct usb_string_descriptor g_manuf_desc_en = USB_STRING_DESC("marwedels.de");
+static struct usb_string_descriptor g_prod_desc_en  = USB_STRING_DESC("UniversalboxARM");
+static struct usb_string_descriptor g_serial_desc   = USB_STRING_DESC("TestEverything");
+
+void USB_IRQHandler(void) {
+	Led1Red();
+	usbd_poll(&g_usbDev);
+	Led1Off();
+}
+
+static usbd_respond usbGetDesc(usbd_ctlreq *req, void **address, uint16_t *length) {
+	const uint8_t dtype = req->wValue >> 8;
+	const uint8_t dnumber = req->wValue & 0xFF;
+	void* desc = NULL;
+	uint16_t len = 0;
+	usbd_respond result = usbd_fail;
+	switch (dtype) {
+		case USB_DTYPE_DEVICE:
+			desc = g_deviceDescriptor;
+			len = sizeof(g_deviceDescriptor);
+			result = usbd_ack;
+			break;
+		case USB_DTYPE_CONFIGURATION:
+			desc = g_DeviceConfiguration;
+			len = sizeof(g_DeviceConfiguration);
+			result = usbd_ack;
+			break;
+		case USB_DTYPE_STRING:
+			if (dnumber < 4) {
+				struct usb_string_descriptor * pStringDescr = NULL;
+				if (dnumber == 0) {
+					pStringDescr = &g_lang_desc;
+				}
+				if (dnumber == 1) {
+					pStringDescr = &g_manuf_desc_en;
+				}
+				if (dnumber == 2) {
+					pStringDescr = &g_prod_desc_en;
+				}
+				if (dnumber == 3) {
+					pStringDescr = &g_serial_desc;
+				}
+				desc = pStringDescr;
+				len = pStringDescr->bLength;
+				result = usbd_ack;
+			}
+			break;
+	}
+	*address = desc;
+	*length = len;
+	return result;
+}
+
+static usbd_respond usbSetConf(usbd_device *dev, uint8_t cfg) {
+	usbd_respond result = usbd_fail;
+	switch (cfg) {
+		case 0:
+			//deconfig
+			break;
+		case 1:
+			//set config
+			result = usbd_ack;
+			break;
+	}
+	return result;
+}
+
+static usbd_respond usbControl(usbd_device *dev, usbd_ctlreq *req, usbd_rqc_callback *callback) {
+	//Printing can be done here as long it is buffered. Otherwise it might be too slow
+	if ((req->bmRequestType & (USB_REQ_TYPE | USB_REQ_RECIPIENT)) == (USB_REQ_VENDOR | USB_REQ_DEVICE)) {
+		//use req->bRequest to implement some custom control command
+		//return usbd_ack; if the command was valid
+	}
+	return usbd_fail;
+}
+
+void testUsb(void) {
+	static bool enabled = false;
+	if (enabled == true) {
+		printf("\r\nStopping USB\r\n");
+		usbd_connect(&g_usbDev, false);
+		usbd_enable(&g_usbDev, false);
+		HAL_Delay(10); //let the USB process disconnection interrupts
+		NVIC_DisableIRQ(USB_IRQn); //if this test is called a second time
+		__HAL_RCC_USB_CLK_DISABLE();
+		printf("USB disconnected\r\n");
+		enabled = false;
+		return;
+	}
+	printf("\r\nStarting USB\r\n");
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
+	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
+	HAL_StatusTypeDef result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
+	if (result != HAL_OK) {
+		printf("Error, failed to start 48MHz clock. Error: %u\r\n", (unsigned int)result);
+		return;
+	}
+
+	RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
+	PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
+	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
+		printf("Error, failed to set USB clock source\r\n");
+		return;
+	}
+
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF10_USB_FS;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	__HAL_RCC_PWR_CLK_ENABLE();
+	HAL_PWREx_EnableVddUSB();
+	__HAL_RCC_USB_CLK_ENABLE();
+
+	//now the lib starts
+	usbd_init(&g_usbDev, &usbd_hw, 0x20, g_usbBuffer, sizeof(g_usbBuffer));
+	usbd_reg_config(&g_usbDev, usbSetConf);
+	usbd_reg_control(&g_usbDev, usbControl);
+	usbd_reg_descr(&g_usbDev, usbGetDesc);
+
+	usbd_enable(&g_usbDev, true);
+	uint32_t laneState = usbd_connect(&g_usbDev, true);
+	if (laneState == usbd_lane_unk) {
+		printf("Connection state: Unknown charger\r\n");
+	}
+	if (laneState == usbd_lane_dsc) {
+		printf("Connection state: disconnected\r\n");
+	}
+	if (laneState == usbd_lane_sdp) {
+		printf("Connection state: standard downstream port\r\n");
+	}
+	if (laneState == usbd_lane_cdp) {
+		printf("Connection state: charging downstream port\r\n");
+	}
+	if (laneState == usbd_lane_dcp) {
+		printf("Connection state: dedicated charging port\r\n");
+	}
+
+	NVIC_EnableIRQ(USB_IRQn);
+	enabled = true;
+	HAL_Delay(100);
+	uint32_t info = usbd_getinfo(&g_usbDev);
+	printf("There should now be an USB device connected. Status 0x%x decoding as:\r\n", (unsigned int)info);
+	if (info == USBD_HW_ADDRFST) {
+		printf("  Set address\r\n");
+	}
+	if (info & USBD_HW_BC) {
+		printf("  Battery charging\r\n");
+	}
+	if (info & USBD_HW_ENABLED) {
+		printf("  USB HW enabled\r\n");
+	}
+	if ((info & USBD_HW_ENUMSPEED) == USBD_HW_SPEED_HS) {
+		printf("  USB high speed\r\n"); //not supported anyway
+	} else if ((info & USBD_HW_ENUMSPEED) == USBD_HW_SPEED_FS) {
+		printf("  USB full speed\r\n");
+	} else if ((info & USBD_HW_ENUMSPEED) == USBD_HW_SPEED_LS) {
+		printf("  USB low speed\r\n");
+	} else {
+		printf("  USB not connected\r\n");
+	}
+	printf("The USB traffic is signaled by the red LED. The bogo MIPS should jitter now.\r\n");
+	printf("A second call disconnects again\r\n");
+}
+
 void testCycle(void) {
 	Led2Green();
 	HAL_Delay(250);
@@ -536,11 +766,12 @@ void testCycle(void) {
 		case 'b': checkIr(); break;
 		case 'c': PeripheralPowercycle(); break;
 		case 'd': checkCoprocComm(); break;
-		case 'e': rebootToDfu(); break;
-		case 'f': rebootToNormal(); break;
-		case 'r': NVIC_SystemReset(); break;
-		case 'g': bogomips(); break;
+		case 'e': bogomips(); break;
 		case 'h': mainMenu(); break;
+		case 'u': testUsb(); break;
+		case 'p': rebootToDfu(); break;
+		case 'q': rebootToNormal(); break;
+		case 'r': NVIC_SystemReset(); break;
 		default: break;
 	}
 }
