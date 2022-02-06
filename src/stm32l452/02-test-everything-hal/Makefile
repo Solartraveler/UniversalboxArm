@@ -38,6 +38,7 @@ STM_HAL=$(COMMON)/STM32L4xx_HAL_Driver
 CMSIS=$(COMMON)/CMSIS
 BOXLIB=$(COMMON)/boxlib
 DISPLAYLIB=$(COMMON)/st7735
+USBLIB=$(COMMON)/libusb_stm32
 
 ######################################
 # source
@@ -83,6 +84,8 @@ $(BOXLIB)/ir.c \
 $(BOXLIB)/esp.c \
 $(BOXLIB)/simpleadc.c \
 $(DISPLAYLIB)/st7735.c \
+$(USBLIB)/usbd_core.c \
+$(USBLIB)/usbd_stm32l433_devfs.c \
 testEverything.c
 
 
@@ -148,6 +151,7 @@ C_INCLUDES =  \
 -I$(CMSIS)/Include \
 -I$(COMMON) \
 -I$(VERYCOMMON) \
+-I$(USBLIB) \
 -I.
 
 
