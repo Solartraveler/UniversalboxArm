@@ -27,6 +27,7 @@ License: BSD-3-Clause
 #include "boxlib/peripheral.h"
 #include "boxlib/esp.h"
 #include "boxlib/simpleadc.h"
+#include "boxlib/boxusb.h"
 
 #include "main.h"
 
@@ -44,12 +45,13 @@ void mainMenu(void) {
 	printf("6: Set flash page size to 2^n\r\n");
 	printf("7: Check ESP-01\r\n");
 	printf("8: Toggle LCD backlight\r\n");
-	printf("9: Init and write to the LCD\r\n");
+	printf("9: Init and write to the LCD (128x128 with ST7735))\r\n");
 	printf("a: Write a color pixel to the LCD\r\n");
 	printf("b: Check IR\r\n");
 	printf("c: Peripheral powercycle (RS232, LCD, flash)\r\n");
 	printf("d: Check coprocessor communication\r\n");
 	printf("e: Measure bogomips\r\n");
+	printf("f: Minimize power for 4 seconds\r\n");
 	printf("h: This screen\r\n");
 	printf("u: Init USB device\r\n");
 	printf("p: Reboot to DFU mode\r\n");
@@ -209,13 +211,14 @@ void check32kCrystal(void) {
 	printf("Running\r\n");
 }
 
+static bool g_usingHse = false;
+
 void checkHseCrystal(void) {
 	//parts of the function are copied from the ST cube generator
-	static bool switched = false;
 	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 	HAL_StatusTypeDef result;
-	if (switched) {
+	if (g_usingHse) {
 		printf("\r\nAlready running on external crystal. Switching back.\r\n");
 		RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
 		                             | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
@@ -233,7 +236,7 @@ void checkHseCrystal(void) {
 		RCC_OscInitStruct.HSEState = RCC_HSE_OFF;
 		RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
 		result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
-		switched = false;
+		g_usingHse = false;
 		printf("Back running on HSI\r\n");
 		SystemCoreClockUpdate();
 		return;
@@ -260,7 +263,7 @@ void checkHseCrystal(void) {
 		printf("Error, returned %u\r\n", (unsigned int)result);
 		return;
 	}
-	switched = true;
+	g_usingHse = true;
 	printf("Running with HSE clock source\r\n");
 	SystemCoreClockUpdate();
 }
@@ -374,7 +377,6 @@ void checkEspPrint(const char * buffer) {
 void checkEsp(void) {
 	char inBuffer[1024] = {0};
 	size_t maxBuffer = sizeof(inBuffer);
-	MX_USART3_UART_Init();
 	printf("\r\n==Enabling Esp==\r\n");
 	EspEnable();
 	EspCommand("", inBuffer, maxBuffer, 1000);
@@ -527,9 +529,6 @@ void bogomips(void) {
 
 usbd_device g_usbDev;
 
-//must be 4byte aligned
-uint32_t g_usbBuffer[20];
-
 /* The PID used here is reserved for general test purpose.
 See: https://pid.codes/1209/
 */
@@ -576,9 +575,11 @@ static struct usb_string_descriptor g_manuf_desc_en = USB_STRING_DESC("marwedels
 static struct usb_string_descriptor g_prod_desc_en  = USB_STRING_DESC("UniversalboxARM");
 static struct usb_string_descriptor g_serial_desc   = USB_STRING_DESC("TestEverything");
 
-void USB_IRQHandler(void) {
+void UsbIrqOnEnter(void) {
 	Led1Red();
-	usbd_poll(&g_usbDev);
+}
+
+void UsbIrqOnLeave(void) {
 	Led1Off();
 }
 
@@ -652,53 +653,22 @@ void testUsb(void) {
 	static bool enabled = false;
 	if (enabled == true) {
 		printf("\r\nStopping USB\r\n");
-		usbd_connect(&g_usbDev, false);
-		usbd_enable(&g_usbDev, false);
-		HAL_Delay(10); //let the USB process disconnection interrupts
-		NVIC_DisableIRQ(USB_IRQn); //if this test is called a second time
-		__HAL_RCC_USB_CLK_DISABLE();
+		UsbStop();
 		printf("USB disconnected\r\n");
 		enabled = false;
 		return;
 	}
 	printf("\r\nStarting USB\r\n");
-	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
-	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
-	HAL_StatusTypeDef result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
-	if (result != HAL_OK) {
+	int32_t result = UsbStart(&g_usbDev, &usbSetConf, &usbControl, &usbGetDesc);
+	if (result == -1) {
 		printf("Error, failed to start 48MHz clock. Error: %u\r\n", (unsigned int)result);
 		return;
 	}
-
-	RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
-	PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
-	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
+	if (result == -2) {
 		printf("Error, failed to set USB clock source\r\n");
 		return;
 	}
-
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
-	GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;
-	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	GPIO_InitStruct.Alternate = GPIO_AF10_USB_FS;
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-	__HAL_RCC_PWR_CLK_ENABLE();
-	HAL_PWREx_EnableVddUSB();
-	__HAL_RCC_USB_CLK_ENABLE();
-
-	//now the lib starts
-	usbd_init(&g_usbDev, &usbd_hw, 0x20, g_usbBuffer, sizeof(g_usbBuffer));
-	usbd_reg_config(&g_usbDev, usbSetConf);
-	usbd_reg_control(&g_usbDev, usbControl);
-	usbd_reg_descr(&g_usbDev, usbGetDesc);
-
-	usbd_enable(&g_usbDev, true);
-	uint32_t laneState = usbd_connect(&g_usbDev, true);
+	uint32_t laneState = result;
 	if (laneState == usbd_lane_unk) {
 		printf("Connection state: Unknown charger\r\n");
 	}
@@ -714,8 +684,6 @@ void testUsb(void) {
 	if (laneState == usbd_lane_dcp) {
 		printf("Connection state: dedicated charging port\r\n");
 	}
-
-	NVIC_EnableIRQ(USB_IRQn);
 	enabled = true;
 	HAL_Delay(100);
 	uint32_t info = usbd_getinfo(&g_usbDev);
@@ -740,6 +708,36 @@ void testUsb(void) {
 	}
 	printf("The USB traffic is signaled by the red LED. The bogo MIPS should jitter now.\r\n");
 	printf("A second call disconnects again\r\n");
+}
+
+void minPower(void) {
+	printf("\r\nMinimize power for 4 seconds\r\n");
+	UsbStop();
+	PeripheralPowerOff();
+	AdcStop();
+	Led1Off();
+	Led2Off();
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV64;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+	uint32_t timeout = HAL_GetTick() + 1000 * 4;
+	while (timeout > HAL_GetTick())
+	{
+		__WFI();
+	}
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	if (g_usingHse) {
+		RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+		RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+	} else {
+		RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+		RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	}
+	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+	PeripheralPowerOn();
+	printf("Power back on\r\n");
 }
 
 void testCycle(void) {
@@ -767,6 +765,7 @@ void testCycle(void) {
 		case 'c': PeripheralPowercycle(); break;
 		case 'd': checkCoprocComm(); break;
 		case 'e': bogomips(); break;
+		case 'f': minPower(); break;
 		case 'h': mainMenu(); break;
 		case 'u': testUsb(); break;
 		case 'p': rebootToDfu(); break;

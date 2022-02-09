@@ -83,6 +83,7 @@ $(BOXLIB)/coproc.c \
 $(BOXLIB)/ir.c \
 $(BOXLIB)/esp.c \
 $(BOXLIB)/simpleadc.c \
+$(BOXLIB)/boxusb.c \
 $(DISPLAYLIB)/st7735.c \
 $(USBLIB)/usbd_core.c \
 $(USBLIB)/usbd_stm32l433_devfs.c \

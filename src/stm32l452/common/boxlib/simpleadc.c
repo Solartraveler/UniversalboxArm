@@ -47,3 +47,9 @@ uint16_t AdcGet(uint32_t channel) {
 	uint16_t val = ADC1->DR;
 	return val;
 }
+
+void AdcStop(void) {
+	ADC1->CR &= ~ADC_CR_ADVREGEN;
+	ADC1->CR |= ADC_CR_DEEPPWD;
+	__HAL_RCC_ADC_CLK_DISABLE();
+}

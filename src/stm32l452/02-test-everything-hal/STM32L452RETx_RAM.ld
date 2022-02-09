@@ -61,8 +61,7 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 /* Specify the memory areas */
 MEMORY
 {
-RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 96K
-RAMEXEC (xrw)  : ORIGIN = 0x20018000, LENGTH = 64K
+RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 160K
 FLASH (rx)     : ORIGIN = 0x8000000, LENGTH = 512K
 }
 
@@ -92,7 +91,7 @@ SECTIONS
 
     . = ALIGN(8);
     _etext = .;        /* define a global symbols at end of code */
-  } >RAMEXEC
+  } >RAM
 
   /* Constant data goes into FLASH */
   .rodata :
@@ -101,7 +100,7 @@ SECTIONS
     *(.rodata)         /* .rodata sections (constants, strings, etc.) */
     *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
     . = ALIGN(8);
-  } >RAMEXEC
+  } >RAM
 
   .ARM.extab   :
   {
@@ -115,7 +114,7 @@ SECTIONS
     *(.ARM.exidx*)
     __exidx_end = .;
 	. = ALIGN(8);
-  } >RAMEXEC
+  } >RAM
 
   .preinit_array     :
   {
@@ -134,7 +133,7 @@ SECTIONS
     KEEP (*(.init_array*))
     PROVIDE_HIDDEN (__init_array_end = .);
 	. = ALIGN(8);
-  } >RAMEXEC
+  } >RAM
   .fini_array :
   {
 	. = ALIGN(8);
@@ -143,7 +142,7 @@ SECTIONS
     KEEP (*(.fini_array*))
     PROVIDE_HIDDEN (__fini_array_end = .);
 	. = ALIGN(8);
-  } >RAMEXEC
+  } >RAM
 
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
@@ -158,7 +157,7 @@ SECTIONS
 
     . = ALIGN(8);
     _edata = .;        /* define a global symbol at data end */
-  } >RAM AT> RAMEXEC
+  } >RAM AT> RAM
 
 
   /* Uninitialized data section */

@@ -14,11 +14,13 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include "usart.h"
 
 void EspEnable(void) {
+	MX_USART3_UART_Init();
 	HAL_GPIO_WritePin(EspPower_GPIO_Port, EspPower_Pin, GPIO_PIN_RESET);
 }
 
 void EspDisable(void) {
 	HAL_GPIO_WritePin(EspPower_GPIO_Port, EspPower_Pin, GPIO_PIN_SET);
+	HAL_UART_DeInit(&huart3);
 }
 
 char EspGetChar(void) {
