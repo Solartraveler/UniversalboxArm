@@ -4,7 +4,7 @@
 CMSIS header files from ARM and ST. License: Apache 2.0
 Taken from STM32Cube_FW_L4_V1.16.0
 
-## STM32L4xx_HAL_Driver01-blinky-hal ##
+## STM32L4xx_HAL_Driver ##
 Files from ST. License: BSD 3-Clause.
 Taken from STM32Cube_FW_L4_V1.16.0
 

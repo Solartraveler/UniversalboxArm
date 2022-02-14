@@ -40,19 +40,24 @@ void mainMenu(void) {
 	printf("1: Set LEDs\r\n");
 	printf("2: Set relays\r\n");
 	printf("3: Check 32KHz crystal\r\n");
-	printf("4: Check high speed crystal\r\n");
-	printf("5: Check SPI flash\r\n");
-	printf("6: Set flash page size to 2^n\r\n");
-	printf("7: Check ESP-01\r\n");
-	printf("8: Toggle LCD backlight\r\n");
-	printf("9: Init and write to the LCD (128x128 with ST7735))\r\n");
-	printf("a: Write a color pixel to the LCD\r\n");
-	printf("b: Check IR\r\n");
-	printf("c: Peripheral powercycle (RS232, LCD, flash)\r\n");
-	printf("d: Check coprocessor communication\r\n");
-	printf("e: Measure bogomips\r\n");
-	printf("f: Minimize power for 4 seconds\r\n");
+	printf("4: Check high speed crystal (8MHz)\r\n");
+	printf("5: Increase CPU speed to 32MHz\r\n");
+	printf("6: Increase CPU speed to 64MHz\r\n");
+	printf("7: Toggle MCU flash prefetch\r\n");
+	printf("8: Toggle MCU flash cache\r\n");
+	printf("9: Measure bogomips\r\n");
+	printf("a: Check SPI flash\r\n");
+	printf("b: Set flash page size to 2^n\r\n");
+	printf("c: Check ESP-01\r\n");
+	printf("d: Toggle LCD backlight\r\n");
+	printf("e: Init and write to the LCD (128x128 with ST7735)\r\n");
+	printf("f: Init and write to the LCD (320x240 with ILI9341)\r\n");
+	printf("g: Write a color pixel to the LCD\r\n");
 	printf("h: This screen\r\n");
+	printf("i: Check IR\r\n");
+	printf("j: Peripheral powercycle (RS232, LCD, flash)\r\n");
+	printf("k: Check coprocessor communication\r\n");
+	printf("l: Minimize power for 4 seconds\r\n");
 	printf("u: Init USB device\r\n");
 	printf("p: Reboot to DFU mode\r\n");
 	printf("q: Reboot to normal mode\r\n");
@@ -72,7 +77,7 @@ void testInit(void) {
 	Led1Red();
 	HAL_Delay(100);
 	rs232Init();
-	printf("Test everything 0.3\r\n");
+	printf("Test everything 0.4\r\n");
 	mainMenu();
 }
 
@@ -211,46 +216,60 @@ void check32kCrystal(void) {
 	printf("Running\r\n");
 }
 
-static bool g_usingHse = false;
+static bool g_usingHsi = true;
 
-void checkHseCrystal(void) {
+void ClockToHsi(void) {
 	//parts of the function are copied from the ST cube generator
 	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-	HAL_StatusTypeDef result;
-	if (g_usingHse) {
-		printf("\r\nAlready running on external crystal. Switching back.\r\n");
-		RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-		                             | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-		RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-		//HSI is 16MHz, HSE is 8MHz, so peripheral clocks stays the same with div2
-		RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-		RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-		RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
-		result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
-		if (result != HAL_OK) {
-			printf("Error, returned %u\r\n", (unsigned int)result);
-			return;
-		}
-		RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-		RCC_OscInitStruct.HSEState = RCC_HSE_OFF;
+	if (g_usingHsi == false) {
+		RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+		RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+		RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
 		RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-		result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
-		g_usingHse = false;
-		printf("Back running on HSI\r\n");
-		SystemCoreClockUpdate();
+		HAL_RCC_OscConfig(&RCC_OscInitStruct);
+	}
+	//reconfigure clock source
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+	                             | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+	//HSI is 16MHz, HSE is 8MHz, so peripheral clocks stays the same with div2
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+	HAL_StatusTypeDef result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+	if (result != HAL_OK) {
+		printf("Error, returned %u\r\n", (unsigned int)result);
 		return;
 	}
+	//stop the other clocks
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE | RCC_OSCILLATORTYPE_MSI;
+	RCC_OscInitStruct.HSEState = RCC_HSE_OFF;
+	RCC_OscInitStruct.MSIState = RCC_MSI_OFF;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	HAL_RCC_OscConfig(&RCC_OscInitStruct);
+	g_usingHsi = true;
+	SystemCoreClockUpdate();
+}
+
+void ClockToHse(void) {
+	//parts of the function are copied from the ST cube generator
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+
+	//HSE on
 	printf("\r\nStarting external high speed crystal\r\n");
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
 	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-	result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
+	HAL_StatusTypeDef result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
 	if (result != HAL_OK) {
 		printf("Error, returned %u\r\n", (unsigned int)result);
 		return;
 	}
 	printf("Switching to external crystal\r\n");
+
+	//switch clock source
 	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
 	                             | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
@@ -263,9 +282,153 @@ void checkHseCrystal(void) {
 		printf("Error, returned %u\r\n", (unsigned int)result);
 		return;
 	}
-	g_usingHse = true;
-	printf("Running with HSE clock source\r\n");
+	g_usingHsi = false;
 	SystemCoreClockUpdate();
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK) {
+		return;
+	}
+	printf("Running with HSE clock source\r\n");
+	//stop the other clocks
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_MSI;
+	RCC_OscInitStruct.HSIState = RCC_HSI_OFF;
+	RCC_OscInitStruct.MSIState = RCC_MSI_OFF;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	HAL_RCC_OscConfig(&RCC_OscInitStruct);
+	printf("MSI and HSI turned off\r\n");
+}
+
+void checkHseCrystal(void) {
+	if (g_usingHsi == false) {
+		printf("\r\nAlready running on external crystal. Switching back.\r\n");
+		ClockToHsi();
+		printf("Back running on HSI\r\n");
+		return;
+	}
+	ClockToHse();
+}
+
+//divider = 2 -> 16*8/2=64MHz
+//divider = 4 -> 16*8/4=32MHz
+//divider = 8 -> 16*8/8=16MHz
+void clockWithPll(uint32_t divider) {
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+	//using only 2^n values allows the peripheral clocks to stay the same
+	ClockToHsi();
+	uint32_t latency = FLASH_LATENCY_3; //div 2
+	if (divider == 4) {
+		latency = FLASH_LATENCY_1;
+	}
+	if (divider == 8) {
+		latency = FLASH_LATENCY_0;
+	}
+	//first set new latency
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, latency) != HAL_OK) {
+		printf("Error, failed to set flash latency\r\n");
+		return;
+	}
+
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+	RCC_OscInitStruct.PLL.PLLM = 1;
+	RCC_OscInitStruct.PLL.PLLN = 8;
+	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
+	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+	if (divider == 4) {
+		RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV4;
+		RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV4;
+	}
+	if (divider == 8) {
+		RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV8;
+		RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV8;
+	}
+	HAL_StatusTypeDef result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
+	if (result != HAL_OK) {
+		printf("Error, failed to start PLL, %u\r\n", (unsigned int)result);
+		return;
+	}
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+	                          |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV8; //for divider 2
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV8; //for divider 2
+	if (divider == 4) {
+		RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+		RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV4;
+	}
+	if (divider == 8) {
+		RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+		RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+	}
+	//now set new dividers
+	result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, latency);
+	if (result != HAL_OK) {
+		printf("Error, returned %u\r\n", (unsigned int)result);
+		return;
+	}
+	SystemCoreClockUpdate();
+}
+
+bool g_highSpeed;
+
+void speed32M(void) {
+	if (!g_highSpeed) {
+		printf("\r\nSwitching to 32MHz...\r\n");
+		clockWithPll(4);
+		printf("Now running with 32MHz\r\n");
+		g_highSpeed = true;
+	} else {
+		ClockToHsi();
+		RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+		RCC_OscInitStruct.PLL.PLLState = RCC_PLL_OFF;
+		HAL_RCC_OscConfig(&RCC_OscInitStruct);
+		printf("\r\nBack running with 16MHz\r\n");
+		g_highSpeed = false;
+	}
+}
+
+void speed64M(void) {
+	if (!g_highSpeed) {
+		printf("\r\nSwitching to 64MHz...\r\n");
+		clockWithPll(2);
+		printf("Now running with 64MHz\r\n");
+		g_highSpeed = true;
+	} else {
+		ClockToHsi();
+		RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+		RCC_OscInitStruct.PLL.PLLState = RCC_PLL_OFF;
+		HAL_RCC_OscConfig(&RCC_OscInitStruct);
+		printf("\r\nBack running with 16MHz\r\n");
+		g_highSpeed = false;
+	}
+}
+
+void toggleFlashPrefetch(void) {
+	static bool enabled = false;
+	if (!enabled) {
+		__HAL_FLASH_PREFETCH_BUFFER_ENABLE();
+		printf("\r\nPrefetch enabled\r\n");
+	} else {
+		__HAL_FLASH_PREFETCH_BUFFER_DISABLE();
+		printf("\r\nPrefetch disabled\r\n");
+	}
+	enabled = !enabled;
+}
+
+void toggleFlashCache(void) {
+	static bool enabled = false;
+	if (!enabled) {
+		__HAL_FLASH_INSTRUCTION_CACHE_ENABLE();
+		__HAL_FLASH_DATA_CACHE_ENABLE();
+		printf("\r\nI+D cache enabled\r\n");
+	} else {
+		__HAL_FLASH_INSTRUCTION_CACHE_DISABLE();
+		__HAL_FLASH_DATA_CACHE_DISABLE();
+		printf("\r\nI+D cache disabled\r\n");
+	}
+	enabled = !enabled;
 }
 
 void checkFlash(void) {
@@ -456,6 +619,10 @@ void writeLcd(void) {
 	LcdTestpattern();
 }
 
+void writeLcdBig(void) {
+	printf("\r\nTODO\r\n");
+}
+
 void readSerialLine(char * input, size_t len) {
 	memset(input, 0, len);
 	size_t i = 0;
@@ -485,11 +652,11 @@ void writePixelLcd(void) {
 }
 
 void PeripheralPowercycle(void) {
-	printf("\r\nPower off for 2 sec\r\n");
+	printf("\r\nPower off for 4 sec\r\n");
 	PeripheralPowerOff();
-	HAL_Delay(1000);
+	HAL_Delay(2000);
 	printf("If you see this message, the power off test failed\r\n");
-	HAL_Delay(1000);
+	HAL_Delay(2000);
 	PeripheralPowerOn();
 	printf("Power back on. There should be no message printed between this and the power off message\r\n");
 }
@@ -713,29 +880,49 @@ void testUsb(void) {
 void minPower(void) {
 	printf("\r\nMinimize power for 4 seconds\r\n");
 	UsbStop();
+	Led1Green();
 	PeripheralPowerOff();
 	AdcStop();
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
+	RCC_OscInitStruct.MSIState = RCC_MSI_ON;
+	RCC_OscInitStruct.MSICalibrationValue = 0;
+	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_4; //1MHz
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+		printf("Error, no MSI\r\n");
+		return;
+	}
+
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+	                             | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	HAL_StatusTypeDef result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+	if (result != HAL_OK) {
+		printf("Error, returned %u\r\n", (unsigned int)result);
+		return;
+	}
+	SystemCoreClockUpdate();
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE /*|  RCC_OSCILLATORTYPE_HSI */;
+	RCC_OscInitStruct.HSEState = RCC_HSE_OFF;
+	RCC_OscInitStruct.HSIState = RCC_HSI_OFF;
+	HAL_RCC_OscConfig(&RCC_OscInitStruct);
+	g_usingHsi = false;
+	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE2);
 	Led1Off();
 	Led2Off();
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV64;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
-	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+	//no we are slow with 1MHz
 	uint32_t timeout = HAL_GetTick() + 1000 * 4;
 	while (timeout > HAL_GetTick())
 	{
 		__WFI();
 	}
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	if (g_usingHse) {
-		RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-		RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
-	} else {
-		RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-		RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-	}
-	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
+	ClockToHsi();
 	PeripheralPowerOn();
 	printf("Power back on\r\n");
 }
@@ -755,18 +942,23 @@ void testCycle(void) {
 		case '2': setRelays(); break;
 		case '3': check32kCrystal(); break;
 		case '4': checkHseCrystal(); break;
-		case '5': checkFlash(); break;
-		case '6': setFlashPagesize(); break;
-		case '7': checkEsp(); break;
-		case '8': setLcdBacklight(); break;
-		case '9': writeLcd(); break;
-		case 'a': writePixelLcd(); break;
-		case 'b': checkIr(); break;
-		case 'c': PeripheralPowercycle(); break;
-		case 'd': checkCoprocComm(); break;
-		case 'e': bogomips(); break;
-		case 'f': minPower(); break;
+		case '5': speed32M(); break;
+		case '6': speed64M(); break;
+		case '7': toggleFlashPrefetch(); break;
+		case '8': toggleFlashCache(); break;
+		case '9': bogomips(); break;
+		case 'a': checkFlash(); break;
+		case 'b': setFlashPagesize(); break;
+		case 'c': checkEsp(); break;
+		case 'd': setLcdBacklight(); break;
+		case 'e': writeLcd(); break;
+		case 'f': writeLcdBig(); break;
+		case 'g': writePixelLcd(); break;
 		case 'h': mainMenu(); break;
+		case 'i': checkIr(); break;
+		case 'j': PeripheralPowercycle(); break;
+		case 'k': checkCoprocComm(); break;
+		case 'l': minPower(); break;
 		case 'u': testUsb(); break;
 		case 'p': rebootToDfu(); break;
 		case 'q': rebootToNormal(); break;
