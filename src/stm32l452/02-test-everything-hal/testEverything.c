@@ -77,7 +77,7 @@ void testInit(void) {
 	Led1Red();
 	HAL_Delay(100);
 	rs232Init();
-	printf("Test everything 0.4\r\n");
+	printf("Test everything 0.5\r\n");
 	mainMenu();
 }
 
@@ -219,6 +219,7 @@ void check32kCrystal(void) {
 static bool g_usingHsi = true;
 
 void ClockToHsi(void) {
+	rs232Flush();
 	//parts of the function are copied from the ST cube generator
 	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
@@ -268,7 +269,7 @@ void ClockToHse(void) {
 		return;
 	}
 	printf("Switching to external crystal\r\n");
-
+	rs232Flush();
 	//switch clock source
 	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
 	                             | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
@@ -363,6 +364,7 @@ void clockWithPll(uint32_t divider) {
 		RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 	}
 	//now set new dividers
+	rs232Flush();
 	result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, latency);
 	if (result != HAL_OK) {
 		printf("Error, returned %u\r\n", (unsigned int)result);
@@ -614,7 +616,7 @@ void setLcdBacklight(void) {
 
 void writeLcd(void) {
 	LcdEnable();
-	PeripheralPrescaler(2);
+	PeripheralPrescaler(4);
 	LcdInit();
 	LcdTestpattern();
 }
@@ -653,6 +655,7 @@ void writePixelLcd(void) {
 
 void PeripheralPowercycle(void) {
 	printf("\r\nPower off for 4 sec\r\n");
+	rs232Flush();
 	PeripheralPowerOff();
 	HAL_Delay(2000);
 	printf("If you see this message, the power off test failed\r\n");
@@ -893,7 +896,7 @@ void minPower(void) {
 		printf("Error, no MSI\r\n");
 		return;
 	}
-
+	rs232Flush();
 	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
 	                             | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;

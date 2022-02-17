@@ -74,7 +74,7 @@ SECTIONS
     . = ALIGN(8);
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(8);
-  } >RAMEXEC
+  } >RAM
 
   /* The program code and other data goes into FLASH */
   .text :
@@ -107,7 +107,7 @@ SECTIONS
   . = ALIGN(8);
   *(.ARM.extab* .gnu.linkonce.armextab.*)
   . = ALIGN(8);
-  } >RAMEXEC
+  } >RAM
   .ARM : {
 	. = ALIGN(8);
     __exidx_start = .;
@@ -123,7 +123,7 @@ SECTIONS
     KEEP (*(.preinit_array*))
     PROVIDE_HIDDEN (__preinit_array_end = .);
 	. = ALIGN(8);
-  } >RAMEXEC
+  } >RAM
 
   .init_array :
   {
