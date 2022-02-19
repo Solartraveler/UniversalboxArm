@@ -29,8 +29,13 @@ uint8_t g_NoClockCounter;
 bool g_expectedLevel;
 
 /*
-The clock input seems to swing several times when the level goes from low high.
-This stops after 20µs. So we need to filter those changes out.
+When the 2.0V reference voltage is applied, the signal rises within 1.3µs and
+no swing can be seen.
+
+However, when the 2.0V reference is disabled, the comparator still produces
+a valid output signal, but it swings several times when the level goes from
+low high. This stops after 20µs. So when we filter those changes out,
+communication will even work without the reference voltage.
 
 1. Only accept an interrupt when the new pin state fits to the expected state.
 2. Reset any pending interrupt at the end of the function.
@@ -46,11 +51,9 @@ Conclusion:
 -> 2. The filtering works as long as the ISR can not be processed within less
       than ~20µs. This would be the case if the CPU is clocked with 4MHz or
       more.
-
+The filter here would work to a CPU frequency of about 4MHz.
+But when the reference voltage is enabled, it should work at any frequency.
 */
-#if (F_CPU > 4000000)
-#error "We need more signal filtering at high frequencies"
-#endif
 
 ISR(INT1_vect) {
 	static uint8_t spiCommand = 0;

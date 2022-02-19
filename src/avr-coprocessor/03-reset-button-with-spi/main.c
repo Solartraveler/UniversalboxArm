@@ -89,16 +89,19 @@
 #include "coprocCommands.h"
 
 int main(void) {
-	HardwareInit();
-	TimerInit();
+	HardwareInit(); //this sets the ARM to the reset state
 	LedOn();
-	waitms(1000);
+	TimerInit();
+	waitms(50);
+	ArmRun();
+	waitms(950);
 	LedOff();
 	//otherwise the boot pin may not be set to high if no external
 	//Vcc is applied (battery):
 	ArmBatteryOn();
+	SensorsOn();
 	SpiInit();
-	SpiDataSet(CMD_VERSION, 0x0301); //03 for the program (folder name), 1 for the version
+	SpiDataSet(CMD_VERSION, 0x0302); //03 for the program (folder name), 2 for the version
 	uint8_t pressedLeft = 0, pressedRight = 0;
 	uint8_t resetHold = 0;
 	uint8_t armNormal = 1;
@@ -199,12 +202,8 @@ int main(void) {
 		}
 		//update every 500ms
 		adcCycle++;
-		if (adcCycle == 49) {
-			SensorsOn();
-		}
 		if (adcCycle == 50) {
 			uint16_t vcc = SensorsInputvoltageGet();
-			SensorsOff();
 			SpiDataSet(CMD_VCC, vcc);
 			adcCycle = 0;
 		}

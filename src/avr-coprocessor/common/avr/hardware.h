@@ -14,10 +14,17 @@
 
 #define PWM_MAX 65
 
+/* The .init3 section is done after the stack has been set up, but before
+the bss section is copied. So we can not rely on any global variables,
+but we are faster after startup with settings the pins correctly.
+HardwareInit may set the same pins again with the same values.
+*/
+void HardwareInitEarly(void) __attribute__ ((naked)) __attribute__ ((section (".init3")));
+
 static inline void HardwareInit(void) {
 	DDRA = (1<<7) | (1<<1);
 	DDRB = (1<<1) | (1<<3) | (1<<4);
-	PORTA = 0;
+	PORTA = (1<<7); //start in ARM reset state, but no bootloader
 	PORTB = (1<<2) | (1<<6); //pullup for the two buttons
 	//save some power
 	PRR = (1<<PRUSI);

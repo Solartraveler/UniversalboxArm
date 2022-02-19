@@ -77,7 +77,9 @@ int main(void) {
 	PinsInit();
 	TimerInit();
 	LedOn();
-	waitms(1000);
+	waitms(50);
+	ArmRun();
+	waitms(950);
 	LedOff();
 	//otherwise the boot pin may not be set to high if no external
 	//Vcc is applied (battery):

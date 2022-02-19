@@ -219,6 +219,7 @@ int main(void) {
 	print_p(g_tests[0].name);
 	uint8_t testSelected = 0;
 	uint8_t pressedLeft = 0, pressedRight = 0, pressedRepeatRight = 0;
+	ArmRun();
 	for (;;) { //Main loop
 		if (KeyPressedLeft()) {
 			pressedLeft = 1;

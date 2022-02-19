@@ -3,6 +3,7 @@
 
 #include <avr/io.h>
 
+//important, because it defines some parameters for HardwareInitEarly
 #include "hardware.h"
 
 #if (F_CPU <= 300000)
@@ -36,6 +37,12 @@
 #endif
 
 
+void HardwareInitEarly(void) {
+	DDRA = (1<<7) | (1<<1); //bootloader and reset pin
+	PORTA = (1<<7); //start in ARM reset state, but no bootloader
+	DDRB = (1<<1); //make LED pin an output
+	LedOn();
+}
 
 /*
 Voltage divider calculation:
