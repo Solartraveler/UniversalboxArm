@@ -18,9 +18,9 @@ void EspEnable(void) {
 	HAL_GPIO_WritePin(EspPower_GPIO_Port, EspPower_Pin, GPIO_PIN_RESET);
 }
 
-void EspDisable(void) {
-	HAL_GPIO_WritePin(EspPower_GPIO_Port, EspPower_Pin, GPIO_PIN_SET);
+void EspStop(void) {
 	HAL_UART_DeInit(&huart3);
+	HAL_GPIO_WritePin(EspPower_GPIO_Port, EspPower_Pin, GPIO_PIN_SET);
 }
 
 char EspGetChar(void) {

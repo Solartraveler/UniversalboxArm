@@ -24,11 +24,13 @@ void PeripheralPowerOn(void) {
 	state.Pull = GPIO_PULLDOWN;
 	state.Pin = PeripheralNPower_Pin;
 	HAL_GPIO_Init(PeripheralNPower_GPIO_Port, &state);
+	HAL_SPI_MspInit(&hspi2);
 }
 
 void PeripheralPowerOff(void) {
 	LcdDisable();
 	FlashDisable();
+	HAL_SPI_MspDeInit(&hspi2);
 	//disables the LCD, external flash and RS232
 	GPIO_InitTypeDef state = {0};
 	state.Mode = GPIO_MODE_INPUT;

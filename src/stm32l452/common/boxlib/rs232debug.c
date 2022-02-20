@@ -24,15 +24,21 @@ char g_uartBuffer[UARTBUFFERLEN];
 volatile uint16_t g_uartBufferReadIdx;
 volatile uint16_t g_uartBufferWriteIdx;
 
-void rs232Init(void) {
+void Rs232Init(void) {
 	PeripheralPowerOn();
 	g_uartBufferReadIdx = 0;
 	g_uartBufferWriteIdx = 0;
+	MX_USART1_UART_Init();
 	NVIC_EnableIRQ(USART1_IRQn);
 }
 
+void Rs232Stop(void) {
+	NVIC_DisableIRQ(USART1_IRQn);
+	HAL_UART_MspDeInit(&huart1);
+}
+
 //sending fifo get
-char rs232WriteGetChar(void) {
+char Rs232WriteGetChar(void) {
 	char out = 0;
 	if (g_uartBufferReadIdx != g_uartBufferWriteIdx) {
 		uint8_t ri = g_uartBufferReadIdx;
@@ -46,7 +52,7 @@ char rs232WriteGetChar(void) {
 
 //sending fifo put
 //returns true if the char could be put into the queue
-bool rs232WritePutChar(char out) {
+bool Rs232WritePutChar(char out) {
 	bool succeed = false;
 	UART_HandleTypeDef * phuart = &huart1;
 	uint8_t writeThis = g_uartBufferWriteIdx;
@@ -64,27 +70,29 @@ bool rs232WritePutChar(char out) {
 	return succeed;
 }
 
-void rs232Flush(void) {
+void Rs232Flush(void) {
 	/* The countdown is needed, should an interrupt or other thread fill the FIFO
 	   always to the top. Without the countdown, the Flush could wait endless in
 	   this case.
 	*/
 	uint16_t countdown = UARTBUFFERLEN;
 	uint16_t lastIndex = g_uartBufferReadIdx;
-	while ((g_uartBufferReadIdx != g_uartBufferWriteIdx) && (countdown))
-	{
-		if (lastIndex != g_uartBufferReadIdx)
-		{
-			lastIndex = g_uartBufferReadIdx;
+	uint16_t nextIndex = nextIndex;
+	while ((nextIndex != g_uartBufferWriteIdx) && (countdown)) {
+		nextIndex = g_uartBufferReadIdx;
+		if (lastIndex != nextIndex) {
+			lastIndex = nextIndex;
 			countdown--;
 		}
 	}
+	//There can be one byte in the shift register, needing ~0.5ms to be sent
+	HAL_Delay(1);
 }
 
 void USART1_IRQHandler(void) {
 	UART_HandleTypeDef * phuart = &huart1;
 	if (__HAL_UART_GET_FLAG(phuart, UART_FLAG_TXE) == SET) {
-		char c = rs232WriteGetChar();
+		char c = Rs232WriteGetChar();
 		if (c) {
 			phuart->Instance->TDR = c;
 		} else {
@@ -97,12 +105,12 @@ void USART1_IRQHandler(void) {
 
 
 int putchar(int c) {
-	while (rs232WritePutChar(c) == false);
+	while (Rs232WritePutChar(c) == false);
 	return c;
 }
 
 //returns as soon as all data are in the FIFO. Use for normal prints
-void rs232WriteString(const char * str) {
+void Rs232WriteString(const char * str) {
 	while (*str) {
 		putchar(*str);
 		str++;
@@ -111,9 +119,9 @@ void rs232WriteString(const char * str) {
 
 //tries to put the chars to the FIFO. If the fifo is full, they are discarded
 //Use for prints from within an interrupt routine
-void rs232WriteStringNoWait(const char * str) {
+void Rs232WriteStringNoWait(const char * str) {
 	while (*str) {
-		if (rs232WritePutChar(*str) == false) {
+		if (Rs232WritePutChar(*str) == false) {
 			break;
 		}
 		str++;
@@ -121,8 +129,8 @@ void rs232WriteStringNoWait(const char * str) {
 }
 
 int puts(const char * string) {
-	rs232WriteString(string);
-	rs232WriteString("\n");
+	Rs232WriteString(string);
+	Rs232WriteString("\n");
 	return 0;
 }
 
@@ -132,7 +140,7 @@ int printf(const char * format, ...) {
 	char buffer[256];
 	int params = vsnprintf(buffer, sizeof(buffer), format, args);
 	va_end(args);
-	rs232WriteString(buffer);
+	Rs232WriteString(buffer);
 	return params;
 }
 
@@ -142,11 +150,11 @@ int printfNowait(const char * format, ...) {
 	char buffer[256];
 	int params = vsnprintf(buffer, sizeof(buffer), format, args);
 	va_end(args);
-	rs232WriteStringNoWait(buffer);
+	Rs232WriteStringNoWait(buffer);
 	return params;
 }
 
-char rs232GetChar(void) {
+char Rs232GetChar(void) {
 	char val = 0;
 	if ((USART1->ISR) & USART_ISR_RXNE) {
 		val = (char)(USART1->RDR);

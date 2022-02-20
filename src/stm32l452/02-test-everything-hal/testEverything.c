@@ -58,10 +58,12 @@ void mainMenu(void) {
 	printf("j: Peripheral powercycle (RS232, LCD, flash)\r\n");
 	printf("k: Check coprocessor communication\r\n");
 	printf("l: Minimize power for 4 seconds\r\n");
-	printf("u: Init USB device\r\n");
-	printf("p: Reboot to DFU mode\r\n");
-	printf("q: Reboot to normal mode\r\n");
-	printf("r: Reboot without coprocessor\r\n");
+	printf("r: Reboot with reset controller\r\n");
+	printf("s: Jump to DFU bootloader\r\n");
+	printf("t: Reboot to normal mode (needs coprocessor)\r\n");
+	printf("u: Init USB device. 2. call disables again.\r\n");
+	printf("z: Reboot to DFU mode (needs coprocessor)\r\n");
+
 }
 
 void printHex(const uint8_t * data, size_t len) {
@@ -76,8 +78,8 @@ void printHex(const uint8_t * data, size_t len) {
 void testInit(void) {
 	Led1Red();
 	HAL_Delay(100);
-	rs232Init();
-	printf("Test everything 0.5\r\n");
+	Rs232Init();
+	printf("Test everything 0.6\r\n");
 	mainMenu();
 }
 
@@ -152,7 +154,7 @@ void setLeds() {
 	static bool state[4] = {false, false, false, false};
 	do {
 		valid = false;
-		c = rs232GetChar();
+		c = Rs232GetChar();
 		uint8_t i = c - '1';
 		if ((i >= 0) && (i <= 3)) {
 			valid = true;
@@ -188,7 +190,7 @@ void setRelays() {
 	static bool state[4] = {false, false, false, false};
 	do {
 		valid = false;
-		c = rs232GetChar();
+		c = Rs232GetChar();
 		uint8_t i = c - '1';
 		if ((i >= 0) && (i <= 3)) {
 			valid = true;
@@ -219,7 +221,7 @@ void check32kCrystal(void) {
 static bool g_usingHsi = true;
 
 void ClockToHsi(void) {
-	rs232Flush();
+	Rs232Flush();
 	//parts of the function are copied from the ST cube generator
 	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
@@ -269,7 +271,7 @@ void ClockToHse(void) {
 		return;
 	}
 	printf("Switching to external crystal\r\n");
-	rs232Flush();
+	Rs232Flush();
 	//switch clock source
 	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
 	                             | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
@@ -364,13 +366,47 @@ void clockWithPll(uint32_t divider) {
 		RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 	}
 	//now set new dividers
-	rs232Flush();
+	Rs232Flush();
 	result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, latency);
 	if (result != HAL_OK) {
 		printf("Error, returned %u\r\n", (unsigned int)result);
 		return;
 	}
 	SystemCoreClockUpdate();
+}
+
+//debug prints may not work after changing. As the prescalers are not recalculated
+bool clockToMsi(uint32_t clockRange) {
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
+	RCC_OscInitStruct.MSIState = RCC_MSI_ON;
+	RCC_OscInitStruct.MSICalibrationValue = 0;
+	RCC_OscInitStruct.MSIClockRange = clockRange; //1MHz
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+		printf("Error, no MSI\r\n");
+		return false;
+	}
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+	                             | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	Rs232Flush();
+	HAL_StatusTypeDef result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+	if (result != HAL_OK) {
+		printf("Error, returned %u\r\n", (unsigned int)result);
+		return false;
+	}
+	SystemCoreClockUpdate();
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE | RCC_OSCILLATORTYPE_HSI;
+	RCC_OscInitStruct.HSEState = RCC_HSE_OFF;
+	RCC_OscInitStruct.HSIState = RCC_HSI_OFF;
+	HAL_RCC_OscConfig(&RCC_OscInitStruct);
+	g_usingHsi = false;
+	return true;
 }
 
 bool g_highSpeed;
@@ -511,7 +547,7 @@ void setFlashPagesize(void) {
 	printf("\r\nEnter p to set the page size to 512byte\r\n");
 	char input = 0;
 	do {
-		input = rs232GetChar();
+		input = Rs232GetChar();
 		if (input == 'p') {
 			printf("Ok...\r\n");
 			FlashPagesizePowertwo();
@@ -571,7 +607,7 @@ void checkEsp(void) {
 	} else {
 		printf("Error, no valid answer from ESP detected\r\n");
 	}
-	EspDisable();
+	EspStop();
 	printf("\r\n==Esp disabled==\r\n");
 }
 
@@ -580,7 +616,7 @@ void checkIr(void) {
 	printf("\r\nIR enabled, signal low will be printed every second until a key is pressed\r\n");
 	char input = 0;
 	do {
-		input = rs232GetChar();
+		input = Rs232GetChar();
 		uint32_t timeEnd = HAL_GetTick() + 1000;
 		float sig = 0;
 		float noSig = 0;
@@ -629,7 +665,7 @@ void readSerialLine(char * input, size_t len) {
 	memset(input, 0, len);
 	size_t i = 0;
 	while (i < (len - 1)) {
-		char c = rs232GetChar();
+		char c = Rs232GetChar();
 		if (c != 0) {
 			input[i] = c;
 			i++;
@@ -655,7 +691,7 @@ void writePixelLcd(void) {
 
 void PeripheralPowercycle(void) {
 	printf("\r\nPower off for 4 sec\r\n");
-	rs232Flush();
+	Rs232Flush();
 	PeripheralPowerOff();
 	HAL_Delay(2000);
 	printf("If you see this message, the power off test failed\r\n");
@@ -684,6 +720,59 @@ void rebootToDfu(void) {
 
 void rebootToNormal(void) {
 	CoprocWriteReboot(1); //1 for normal boot
+}
+
+typedef void (ptrFunction_t)(void);
+
+//See https://stm32f4-discovery.net/2017/04/tutorial-jump-system-memory-software-stm32/
+void jumpDfu(void) {
+	Led1Green();
+	printf("\r\nDirectly jump to the DFU bootloader\r\n");
+	volatile uint32_t * pStackTop = (uint32_t *)0x1FFF0000;
+	volatile uint32_t * pProgramStart = (uint32_t *)0x1FFF0004;
+	printf("This function is at 0x%x. New stack will be at 0x%x\r\n", (unsigned int)&jumpDfu, (unsigned int)(*pStackTop));
+	printf("Program start will be at 0x%x\r\n", (unsigned int)(*pProgramStart));
+	/*The bootloader seems not to reset the GPIO ports, so we can lock the pin for
+	  SPI2 MISO and prevent it becoming a high level output
+	  but to use our peripherals again, we might need a system reset or at least
+	  a GPIO port reset
+	*/
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	GPIO_InitStruct.Pin = PerSpiMiso_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	HAL_GPIO_Init(PerSpiMiso_GPIO_Port, &GPIO_InitStruct);
+	HAL_GPIO_LockPin(PerSpiMiso_GPIO_Port, PerSpiMiso_Pin);
+
+	Led2Off();
+	//first all peripheral clocks should be disabled
+	UsbStop(); //stops USB clock
+	EspStop(); //stops UART3 clock
+	AdcStop(); //stops ADC clock
+	Rs232Flush();
+	PeripheralPowerOff(); //stops SPI2 clock, also RS232 level converter will stop
+	Rs232Stop(); //stops UART1 clock
+	HAL_RCC_DeInit();
+	Led2Green();
+	SysTick->CTRL = 0;
+	SysTick->LOAD = 0;
+	SysTick->VAL = 0;
+	__disable_irq();
+	__DSB();
+	__HAL_SYSCFG_REMAPMEMORY_SYSTEMFLASH();
+	__DSB();
+	__ISB();
+	__HAL_RCC_SPI2_FORCE_RESET();
+	__HAL_RCC_USART1_FORCE_RESET();
+	__HAL_RCC_USART3_FORCE_RESET();
+	__HAL_RCC_SPI2_RELEASE_RESET();
+	__HAL_RCC_USART1_RELEASE_RESET();
+	__HAL_RCC_USART3_RELEASE_RESET();
+	Led1Off();
+	__set_MSP(*pStackTop);
+	ptrFunction_t * pDfu = (ptrFunction_t *)(*pProgramStart);
+	pDfu();
 }
 
 void bogomips(void) {
@@ -819,13 +908,14 @@ static usbd_respond usbControl(usbd_device *dev, usbd_ctlreq *req, usbd_rqc_call
 	return usbd_fail;
 }
 
+bool g_usbEnabled;
+
 void testUsb(void) {
-	static bool enabled = false;
-	if (enabled == true) {
+	if (g_usbEnabled == true) {
 		printf("\r\nStopping USB\r\n");
 		UsbStop();
 		printf("USB disconnected\r\n");
-		enabled = false;
+		g_usbEnabled = false;
 		return;
 	}
 	printf("\r\nStarting USB\r\n");
@@ -854,7 +944,7 @@ void testUsb(void) {
 	if (laneState == usbd_lane_dcp) {
 		printf("Connection state: dedicated charging port\r\n");
 	}
-	enabled = true;
+	g_usbEnabled = true;
 	HAL_Delay(100);
 	uint32_t info = usbd_getinfo(&g_usbDev);
 	printf("There should now be an USB device connected. Status 0x%x decoding as:\r\n", (unsigned int)info);
@@ -883,38 +973,14 @@ void testUsb(void) {
 void minPower(void) {
 	printf("\r\nMinimize power for 4 seconds\r\n");
 	UsbStop();
+	g_usbEnabled = false;
 	Led1Green();
 	PeripheralPowerOff();
 	AdcStop();
-	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
-	RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-	RCC_OscInitStruct.MSICalibrationValue = 0;
-	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_4; //1MHz
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-		printf("Error, no MSI\r\n");
+	EspStop();
+	if (!clockToMsi(RCC_MSIRANGE_4)) { //1MHz
 		return;
 	}
-	rs232Flush();
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-	                             | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-	HAL_StatusTypeDef result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
-	if (result != HAL_OK) {
-		printf("Error, returned %u\r\n", (unsigned int)result);
-		return;
-	}
-	SystemCoreClockUpdate();
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE /*|  RCC_OSCILLATORTYPE_HSI */;
-	RCC_OscInitStruct.HSEState = RCC_HSE_OFF;
-	RCC_OscInitStruct.HSIState = RCC_HSI_OFF;
-	HAL_RCC_OscConfig(&RCC_OscInitStruct);
-	g_usingHsi = false;
 	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE2);
 	Led1Off();
 	Led2Off();
@@ -935,7 +1001,7 @@ void testCycle(void) {
 	HAL_Delay(250);
 	Led2Off();
 	HAL_Delay(250);
-	char input = rs232GetChar();
+	char input = Rs232GetChar();
 	if (input) {
 		printf("%c", input);
 	}
@@ -962,10 +1028,11 @@ void testCycle(void) {
 		case 'j': PeripheralPowercycle(); break;
 		case 'k': checkCoprocComm(); break;
 		case 'l': minPower(); break;
-		case 'u': testUsb(); break;
-		case 'p': rebootToDfu(); break;
-		case 'q': rebootToNormal(); break;
 		case 'r': NVIC_SystemReset(); break;
+		case 's': jumpDfu(); break;
+		case 't': rebootToNormal(); break;
+		case 'u': testUsb(); break;
+		case 'z': rebootToDfu(); break;
 		default: break;
 	}
 }

@@ -5,7 +5,7 @@
 
 void EspEnable(void);
 
-void EspDisable(void);
+void EspStop(void);
 
 char EspGetChar(void);
 
