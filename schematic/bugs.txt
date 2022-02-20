@@ -9,7 +9,7 @@ Bugs in Version 1.0:
    Cut PB0 before it goes to TH20 and then make a connection of PB0 (again from J20) to the anode pad of D24.
    Next version: Switch PB5 and PB0.
 3 == R31 needs to be a diode ==
-   Otherwise the low resistance of U2 will drop the level of Q23 and Q24 to low ending in those fets to be always on
+   Otherwise the low resistance of U2 will drop the level of Q23 and Q24 to low, ending in those FETs to be always on.
    So the ARM could not be switched off while on battery power.
    A diode in a 0805 case can be soldered on the R31 easily
    Next version: Really add a diode here
@@ -20,17 +20,40 @@ Bugs in Version 1.0:
    The "only H7" description is next to C64, but should be next to C71
    Next version: Move description
 6. == TL431B is difficult to get in low quantities ==
-   Next version: Change footprint to use TS431B instead
+   No workaround planned
 7. == Reset of LCD needs a pullup ==
    If JP50 is left open (no control by GPIO), the reset needs a pull up to the PerEnablePower signal.
    Workaround: Add a 10k pull up on the J50 connecter. Or close JP50 and use the GPIO.
-   Next version: Allow adding a pullup resiter.
+   Next version: Allow adding a pullup resistor.
 8. == Low and high speed crystals are switched ==
    Workaround: Solder a low speed crystal at the footprint of the highspeed crystal (Y60).
    And a high speed crystal at Y61.
    Next version: Fix footprint and reorder crystals.
 9. == ESD Protection for some pins is not complete ==
    The ESD protection is for 5V inputs. But PA3 and PA4 only support an input of 3.3V.
-
-
-
+10.== The ARM bootloader sets pins PA6, PB9 and PB14 as output with a high level ==
+   = PB14 =
+   PB14 drives then the IC U50 while its shut off, violating the maximum input voltage. The same would be true
+   for a display with MISO pin.
+   Several workarounds are possible, *one* needs to be selected:
+   A: Never execute the DFU bootloader directly. The DFU bootloader may be called from a user program, with PB14 locked
+      as input.
+   B: If no display with a MISO pin is used (the 128x128 has none) and flash speed is not important,
+      R53 can be replaced by a diode and the internal pullup for PB14 can be activated.
+      Positive: Easy, no fixes on the PCB needed
+      Negative: The SPI frequency for the flash is limited to approximately 250...500kHz.
+      This workaround is integrated into the schematic.
+      B1: Using option B and add some pull-down resistor to receive higher speeds. 4.7kΩ should work.
+   C: The peripheral can always be supplied with power by adding a closed connection between pins 2 and 3 of Q50.
+   D: Using option B, but cut the MISO pin on the display away
+   B: Using option B, cut the PCB track and add another diode.
+   Next version: Add two diodes in the MISO line and a pull-down resistor.
+   = PB9 =
+   Workaround: Add a resistor in the line between PB9 and D63. Can be done easily at the back side of the PCB.
+   = PA6 =
+   Take care what is connected at J62.
+11.== Pin description for the LEDs is wrong on the PCB ==
+   B12 needs to be A13
+   D2  needs to be A14
+   A13 needs to be B8
+   A14 needs to be D2
