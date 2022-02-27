@@ -53,6 +53,7 @@ void mainMenu(void) {
 	printf("e: Init and write to the LCD (128x128 with ST7735)\r\n");
 	printf("f: Init and write to the LCD (320x240 with ILI9341)\r\n");
 	printf("g: Write a color pixel to the LCD\r\n");
+	printf("m: Manual write data to the LCD\r\n");
 	printf("h: This screen\r\n");
 	printf("i: Check IR\r\n");
 	printf("j: Peripheral powercycle (RS232, LCD, flash)\r\n");
@@ -63,7 +64,6 @@ void mainMenu(void) {
 	printf("t: Reboot to normal mode (needs coprocessor)\r\n");
 	printf("u: Init USB device. 2. call disables again.\r\n");
 	printf("z: Reboot to DFU mode (needs coprocessor)\r\n");
-
 }
 
 void printHex(const uint8_t * data, size_t len) {
@@ -79,13 +79,13 @@ void testInit(void) {
 	Led1Red();
 	HAL_Delay(100);
 	Rs232Init();
-	printf("Test everything 0.6\r\n");
+	printf("Test everything 0.7\r\n");
 	mainMenu();
 }
 
 #define CHANNELS 19
 
-	const char * g_adcNames[CHANNELS] = {
+const char * g_adcNames[CHANNELS] = {
 	"Ref",
 	"PC0",
 	"PC1",
@@ -653,12 +653,15 @@ void setLcdBacklight(void) {
 void writeLcd(void) {
 	LcdEnable();
 	PeripheralPrescaler(4);
-	LcdInit();
+	LcdInit(ST7735);
 	LcdTestpattern();
 }
 
 void writeLcdBig(void) {
-	printf("\r\nTODO\r\n");
+	LcdEnable();
+	PeripheralPrescaler(4);
+	LcdInit(ILI9341);
+	LcdTestpattern();
 }
 
 void readSerialLine(char * input, size_t len) {
@@ -687,6 +690,28 @@ void writePixelLcd(void) {
 	PeripheralPrescaler(2);
 	LcdWritePixel(x, y, color);
 	printf("Written(%u,%u) = 0x%x\r\n", x, y, color);
+}
+
+void manualLcdCmd(void) {
+	printf("\r\nFormat (hex): Parameters command data1, data2, data3, data4, data5, data6, data7, data8\r\n");
+	char buffer[128];
+	readSerialLine(buffer, sizeof(buffer));
+	printf("\r\n");
+	unsigned int vars[10] = {0};
+	sscanf(buffer, "%x %x %x %x %x %x %x %x %x %x",
+	       vars, vars+1, vars+2, vars+3, vars+4, vars+5, vars+6, vars+7, vars+8, vars+9);
+	size_t len = vars[0];
+	if (len > 8) {
+		return;
+	}
+	uint8_t parameters[8];
+	uint8_t readback[8];
+	for (uint32_t i = 0; i < 8; i++) {
+		parameters[i] = vars[i+2];
+	}
+	LcdCommandData(vars[1], parameters, readback, len);
+	printHex(readback, len);
+	printf("Done\r\n");
 }
 
 void PeripheralPowercycle(void) {
@@ -1028,6 +1053,7 @@ void testCycle(void) {
 		case 'j': PeripheralPowercycle(); break;
 		case 'k': checkCoprocComm(); break;
 		case 'l': minPower(); break;
+		case 'm': manualLcdCmd(); break;
 		case 'r': NVIC_SystemReset(); break;
 		case 's': jumpDfu(); break;
 		case 't': rebootToNormal(); break;

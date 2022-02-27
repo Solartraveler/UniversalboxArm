@@ -37,7 +37,8 @@ VERYCOMMON=../../common
 STM_HAL=$(COMMON)/STM32L4xx_HAL_Driver
 CMSIS=$(COMMON)/CMSIS
 BOXLIB=$(COMMON)/boxlib
-DISPLAYLIB=$(COMMON)/st7735
+DISPLAYLIB1=$(COMMON)/st7735
+DISPLAYLIB2=$(COMMON)/ili9341
 USBLIB=$(COMMON)/libusb_stm32
 
 ######################################
@@ -84,7 +85,8 @@ $(BOXLIB)/ir.c \
 $(BOXLIB)/esp.c \
 $(BOXLIB)/simpleadc.c \
 $(BOXLIB)/boxusb.c \
-$(DISPLAYLIB)/st7735.c \
+$(DISPLAYLIB1)/st7735.c \
+$(DISPLAYLIB2)/ili9341.c \
 $(USBLIB)/usbd_core.c \
 $(USBLIB)/usbd_stm32l433_devfs.c \
 testEverything.c
