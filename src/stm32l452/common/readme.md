@@ -44,3 +44,11 @@ License: Apache 2.0
 
 Files taken from
 [Libusb_stm32](https://github.com/dmitrystu/libusb_stm32) commit #fd58c2b
+
+# lwip #
+Just for md5sum calculation.
+
+Files taken from [LwIP}(https://savannah.nongnu.org/projects/lwip/) version 2.1.3.
+
+License: BSD 3-Clause
+
