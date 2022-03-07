@@ -15,8 +15,15 @@ SPDX-License-Identifier: BSD-3-Clause
 
 usbd_device * g_pUsbDev;
 
+
+//If another size is needed, define it at main.h
+//8 byte are used for control data, everything else is user data
+#ifndef USB_BUFFERSIZE_BYTES
+#define USB_BUFFERSIZE_BYTES 50
+#endif
+
 //must be 4byte aligned
-uint32_t g_usbBuffer[20];
+uint32_t g_usbBuffer[USB_BUFFERSIZE_BYTES / sizeof(uint32_t)];
 
 __weak void UsbIrqOnEnter(void) {
 }
@@ -30,7 +37,6 @@ void USB_IRQHandler(void) {
 	UsbIrqOnLeave();
 }
 
-
 int32_t UsbStart(usbd_device * usbDev, usbd_cfg_callback configCallback,
  usbd_ctl_callback controlCallback, usbd_dsc_callback descriptorCallback) {
 	g_pUsbDev = usbDev;
@@ -41,14 +47,13 @@ int32_t UsbStart(usbd_device * usbDev, usbd_cfg_callback configCallback,
 	if (result != HAL_OK) {
 		return -1;
 	}
-
 	RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
 	PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
 	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
 		return -2;
 	}
-
+	//TODO: Enable HSI48 clock recovery system
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 	GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -62,7 +67,8 @@ int32_t UsbStart(usbd_device * usbDev, usbd_cfg_callback configCallback,
 	__HAL_RCC_USB_CLK_ENABLE();
 
 	//now the lib starts
-	usbd_init(g_pUsbDev, &usbd_hw, 0x20, g_usbBuffer, sizeof(g_usbBuffer));
+	//the maximum data size is sizeof(g_usbBuffer) - 8 byte
+	usbd_init(g_pUsbDev, &usbd_hw, USB_MAX_PACKET_SIZE, g_usbBuffer, sizeof(g_usbBuffer));
 	if (configCallback) {
 		usbd_reg_config(g_pUsbDev, configCallback);
 	}

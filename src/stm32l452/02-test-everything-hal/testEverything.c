@@ -28,6 +28,7 @@ License: BSD-3-Clause
 #include "boxlib/esp.h"
 #include "boxlib/simpleadc.h"
 #include "boxlib/boxusb.h"
+#include "boxlib/mcu.h"
 
 #include "main.h"
 
@@ -376,31 +377,13 @@ void clockWithPll(uint32_t divider) {
 }
 
 //debug prints may not work after changing. As the prescalers are not recalculated
-bool clockToMsi(uint32_t clockRange) {
+bool clockToMsi(uint32_t frequency) {
 	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
-	RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-	RCC_OscInitStruct.MSICalibrationValue = 0;
-	RCC_OscInitStruct.MSIClockRange = clockRange; //1MHz
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+	Rs232Flush();
+	if (McuClockToMsi(frequency, RCC_HCLK_DIV1) == false) {
 		printf("Error, no MSI\r\n");
 		return false;
 	}
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-	                             | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-	Rs232Flush();
-	HAL_StatusTypeDef result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
-	if (result != HAL_OK) {
-		printf("Error, returned %u\r\n", (unsigned int)result);
-		return false;
-	}
-	SystemCoreClockUpdate();
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE | RCC_OSCILLATORTYPE_HSI;
 	RCC_OscInitStruct.HSEState = RCC_HSE_OFF;
 	RCC_OscInitStruct.HSIState = RCC_HSI_OFF;
@@ -751,10 +734,11 @@ typedef void (ptrFunction_t)(void);
 
 //See https://stm32f4-discovery.net/2017/04/tutorial-jump-system-memory-software-stm32/
 void jumpDfu(void) {
+	uint32_t dfuStart = 0x1FFF0000;
 	Led1Green();
 	printf("\r\nDirectly jump to the DFU bootloader\r\n");
-	volatile uint32_t * pStackTop = (uint32_t *)0x1FFF0000;
-	volatile uint32_t * pProgramStart = (uint32_t *)0x1FFF0004;
+	volatile uint32_t * pStackTop = (uint32_t *)dfuStart;
+	volatile uint32_t * pProgramStart = (uint32_t *)(dfuStart + 4);
 	printf("This function is at 0x%x. New stack will be at 0x%x\r\n", (unsigned int)&jumpDfu, (unsigned int)(*pStackTop));
 	printf("Program start will be at 0x%x\r\n", (unsigned int)(*pProgramStart));
 	/*The bootloader seems not to reset the GPIO ports, so we can lock the pin for
@@ -762,13 +746,7 @@ void jumpDfu(void) {
 	  but to use our peripherals again, we might need a system reset or at least
 	  a GPIO port reset
 	*/
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
-	GPIO_InitStruct.Pin = PerSpiMiso_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	HAL_GPIO_Init(PerSpiMiso_GPIO_Port, &GPIO_InitStruct);
-	HAL_GPIO_LockPin(PerSpiMiso_GPIO_Port, PerSpiMiso_Pin);
+	McuLockCriticalPins();
 
 	Led2Off();
 	//first all peripheral clocks should be disabled
@@ -778,26 +756,7 @@ void jumpDfu(void) {
 	Rs232Flush();
 	PeripheralPowerOff(); //stops SPI2 clock, also RS232 level converter will stop
 	Rs232Stop(); //stops UART1 clock
-	HAL_RCC_DeInit();
-	Led2Green();
-	SysTick->CTRL = 0;
-	SysTick->LOAD = 0;
-	SysTick->VAL = 0;
-	__disable_irq();
-	__DSB();
-	__HAL_SYSCFG_REMAPMEMORY_SYSTEMFLASH();
-	__DSB();
-	__ISB();
-	__HAL_RCC_SPI2_FORCE_RESET();
-	__HAL_RCC_USART1_FORCE_RESET();
-	__HAL_RCC_USART3_FORCE_RESET();
-	__HAL_RCC_SPI2_RELEASE_RESET();
-	__HAL_RCC_USART1_RELEASE_RESET();
-	__HAL_RCC_USART3_RELEASE_RESET();
-	Led1Off();
-	__set_MSP(*pStackTop);
-	ptrFunction_t * pDfu = (ptrFunction_t *)(*pProgramStart);
-	pDfu();
+	McuStartOtherProgram((void *)dfuStart, true); //usually does not return
 }
 
 void bogomips(void) {
@@ -1003,7 +962,7 @@ void minPower(void) {
 	PeripheralPowerOff();
 	AdcStop();
 	EspStop();
-	if (!clockToMsi(RCC_MSIRANGE_4)) { //1MHz
+	if (!clockToMsi(1000000)) { //1MHz
 		return;
 	}
 	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE2);

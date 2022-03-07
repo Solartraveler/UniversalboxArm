@@ -85,6 +85,7 @@ $(BOXLIB)/ir.c \
 $(BOXLIB)/esp.c \
 $(BOXLIB)/simpleadc.c \
 $(BOXLIB)/boxusb.c \
+$(BOXLIB)/mcu.c \
 $(DISPLAYLIB1)/st7735.c \
 $(DISPLAYLIB2)/ili9341.c \
 $(USBLIB)/usbd_core.c \
@@ -212,7 +213,6 @@ $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
 $(BUILD_DIR)/$(TARGET)-ram.elf: $(OBJECTS) Makefile
 	$(CC) $(OBJECTS) $(LDFLAGSRAM) -o $@
 	$(SZ) $@
-
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(HEX) $< $@
