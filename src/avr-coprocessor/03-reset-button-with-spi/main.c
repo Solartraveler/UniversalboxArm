@@ -101,7 +101,7 @@ int main(void) {
 	ArmBatteryOn();
 	SensorsOn();
 	SpiInit();
-	SpiDataSet(CMD_VERSION, 0x0302); //03 for the program (folder name), 2 for the version
+	SpiDataSet(CMD_VERSION, 0x0303); //03 for the program (folder name), 3 for the version
 	uint8_t pressedLeft = 0, pressedRight = 0;
 	uint8_t resetHold = 0;
 	uint8_t armNormal = 1;
@@ -110,6 +110,8 @@ int main(void) {
 	uint8_t ledFlashOnSpiCommand = 1;
 	uint8_t adcCycle = 49;
 	uint8_t reinitSpiDelay = 0;
+	uint16_t watchdogHighest = 0; // 0 = disabled
+	uint16_t watchdogCurrent = 0;
 	for (;;) { //Main loop, we run every 10ms
 		if (KeyPressedLeft()) {
 			if (pressedLeft < 255) {
@@ -185,6 +187,20 @@ int main(void) {
 				}
 			} else if (command == CMD_LED) {
 				ledFlashOnSpiCommand = parameter & 1;
+			} else if (command == CMD_WATCHDOG_CTRL) {
+				watchdogHighest = parameter;
+				watchdogCurrent = watchdogHighest;
+			} else if ((command == CMD_WATCHDOG_RESET) && (parameter == 0x42)) {
+				watchdogCurrent = watchdogHighest;
+			}
+		}
+		if (watchdogCurrent) {
+			if (watchdogCurrent > 10) {
+				watchdogCurrent -= 10;
+			} else {
+				watchdogCurrent = 0;
+				ArmReset();
+				resetHold = 20; //to be released in 200ms
 			}
 		}
 		//update every 100ms

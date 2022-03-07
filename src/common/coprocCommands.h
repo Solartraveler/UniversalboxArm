@@ -5,6 +5,7 @@
 
   Each SPI transaction consists of 3 bytes.
   The following SPI commands are supported: x = bits are ignored
+  Parameters are transmitted as highest byte first
   Command:            In:            Out:
   Test read           0x01 xx xx     00 F0 55 (Test pattern)
   Read version        0x02 xx xx     00 03 01 (program and version)
@@ -13,6 +14,10 @@
   Reboot              0x80 A6 01     00 00 00 (resets with program bootmode)
   Reboot              0x80 A6 02     00 00 00 (resets with bootloader bootmode)
   Signal LED          0x81 xx 0y     00 00 00 (if y == 1 each command lets the LED flash once)
+  Watchdog control    0x82 xx xx     00 00 00 (yyyy = timeout in ms. 0 = disabled.
+                                               The watchdog supports 10ms granularity.)
+  Watchdog reset      0x83 00 42     00 00 00 (Resets the counter of the watchdog)
+
 
 For the ARM (master), the meaning of in and out is switched.
 SPI Mode is 0:
@@ -31,6 +36,9 @@ of 200ms until a new transfer is started.
 #define CMD_VCC      0x3
 
 //write commands
-#define CMD_REBOOT   0x80
-#define CMD_LED      0x81
+#define CMD_REBOOT         0x80
+#define CMD_LED            0x81
+#define CMD_WATCHDOG_CTRL  0x82
+#define CMD_WATCHDOG_RESET 0x83
+
 

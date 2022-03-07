@@ -80,3 +80,10 @@ void CoprocWriteReboot(uint8_t mode) {
 	CoprocSendCommand(CMD_REBOOT, 0xA600 | mode);
 }
 
+void CoprocWatchdogCtrl(uint16_t timeout) {
+	CoprocSendCommand(CMD_WATCHDOG_CTRL, timeout);
+}
+
+void CoprocWatchdogReset(void) {
+	CoprocSendCommand(CMD_WATCHDOG_RESET, 0x0042);
+}
