@@ -4,7 +4,6 @@
 #include <stdbool.h>
 
 #include "usbd_core.h"
-#include "usb.h"
 
 //for some reason 64 does not work. 8, 16 and 32 does
 #define USB_MAX_PACKET_SIZE 32
