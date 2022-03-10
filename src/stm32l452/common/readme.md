@@ -52,3 +52,8 @@ Files taken from [LwIP}(https://savannah.nongnu.org/projects/lwip/) version 2.1.
 
 License: BSD 3-Clause
 
+# fatfs #
+Fat filesystem from (http://elm-chan.org/fsw/ff/00index_e.html) version 0.14b.
+
+License: BSD 1-Clause
+
