@@ -10,11 +10,20 @@
 #include "ff.h"			/* Obtains integer types */
 #include "diskio.h"		/* Declarations of disk functions */
 
-/* Definitions of physical drive number for each drive */
-#define DEV_RAM		0	/* Example: Map Ramdisk to physical drive 0 */
-#define DEV_MMC		1	/* Example: Map MMC/SD card to physical drive 1 */
-#define DEV_USB		2	/* Example: Map USB MSD to physical drive 2 */
+#include "boxlib/flash.h"
 
+/* Definitions of physical drive number for each drive */
+#define DEV_EXTFLASH 0
+
+#define PAGESIZE FLASHPAGESIZE
+
+//must be at least 512 byte, so the value from FlashBlocksizeGet() can not be used
+#define BLOCKSIZE 512
+
+//let the first 4K for testing other non FS data
+#define RESERVEDOFFSET 4096
+
+uint8_t g_diskState[FF_VOLUMES] = {STA_NOINIT};
 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
@@ -24,30 +33,9 @@ DSTATUS disk_status (
 	BYTE pdrv		/* Physical drive nmuber to identify the drive */
 )
 {
-	DSTATUS stat;
-	int result;
-
 	switch (pdrv) {
-	case DEV_RAM :
-		result = RAM_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_MMC :
-		result = MMC_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_USB :
-		result = USB_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
+	case DEV_EXTFLASH :
+		return g_diskState[DEV_EXTFLASH];
 	}
 	return STA_NOINIT;
 }
@@ -58,39 +46,23 @@ DSTATUS disk_status (
 /* Inidialize a Drive                                                    */
 /*-----------------------------------------------------------------------*/
 
+//FlashEnable must be called before
 DSTATUS disk_initialize (
 	BYTE pdrv				/* Physical drive nmuber to identify the drive */
 )
 {
-	DSTATUS stat;
-	int result;
-
 	switch (pdrv) {
-	case DEV_RAM :
-		result = RAM_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_MMC :
-		result = MMC_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_USB :
-		result = USB_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
+	case DEV_EXTFLASH :
+		if (g_diskState[DEV_EXTFLASH] & STA_NOINIT) {
+			if ((FlashReady()) && (FlashPagesizePowertwoGet()) &&
+			    (FlashBlocksizeGet() <= BLOCKSIZE)) {
+				g_diskState[DEV_EXTFLASH] = 0;
+			}
+		}
+		return g_diskState[DEV_EXTFLASH];
 	}
 	return STA_NOINIT;
 }
-
-
 
 /*-----------------------------------------------------------------------*/
 /* Read Sector(s)                                                        */
@@ -103,42 +75,16 @@ DRESULT disk_read (
 	UINT count		/* Number of sectors to read */
 )
 {
-	DRESULT res;
-	int result;
-
 	switch (pdrv) {
-	case DEV_RAM :
-		// translate the arguments here
-
-		result = RAM_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_MMC :
-		// translate the arguments here
-
-		result = MMC_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_USB :
-		// translate the arguments here
-
-		result = USB_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
+	case DEV_EXTFLASH:
+		if (FlashRead(RESERVEDOFFSET + sector * BLOCKSIZE, buff, count * BLOCKSIZE)) {
+			return RES_OK;
+		} else {
+			return RES_ERROR;
+		}
 	}
-
 	return RES_PARERR;
 }
-
-
 
 /*-----------------------------------------------------------------------*/
 /* Write Sector(s)                                                       */
@@ -153,38 +99,14 @@ DRESULT disk_write (
 	UINT count			/* Number of sectors to write */
 )
 {
-	DRESULT res;
-	int result;
-
 	switch (pdrv) {
-	case DEV_RAM :
-		// translate the arguments here
-
-		result = RAM_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_MMC :
-		// translate the arguments here
-
-		result = MMC_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_USB :
-		// translate the arguments here
-
-		result = USB_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
+	case DEV_EXTFLASH:
+		if (FlashWrite(RESERVEDOFFSET + sector * BLOCKSIZE, buff, count * BLOCKSIZE)) {
+			return RES_OK;
+		} else {
+			return RES_ERROR;
+		}
 	}
-
 	return RES_PARERR;
 }
 
@@ -201,29 +123,29 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
-	DRESULT res;
-	int result;
-
 	switch (pdrv) {
-	case DEV_RAM :
-
-		// Process of the command for the RAM drive
-
-		return res;
-
-	case DEV_MMC :
-
-		// Process of the command for the MMC/SD card
-
-		return res;
-
-	case DEV_USB :
-
-		// Process of the command the USB drive
-
-		return res;
+	case DEV_EXTFLASH:
+		if ((cmd == CTRL_SYNC) || (cmd == CTRL_TRIM)) {
+			return RES_OK;
+		}
+		if (cmd == GET_SECTOR_COUNT) {
+			uint32_t sectors = (FlashSizeGet() - RESERVEDOFFSET) / BLOCKSIZE;
+			*((LBA_t*)buff) = sectors;
+			return RES_OK;
+		}
+		if (cmd == GET_SECTOR_SIZE) {
+			*((WORD*)buff) = BLOCKSIZE;
+			return RES_OK;
+		}
+		if (cmd == GET_BLOCK_SIZE) {
+			*(DWORD*)buff = BLOCKSIZE;
+			return RES_OK;
+		}
 	}
-
 	return RES_PARERR;
 }
 
+DWORD get_fattime(void)
+{
+	return 1; //TODO
+}
