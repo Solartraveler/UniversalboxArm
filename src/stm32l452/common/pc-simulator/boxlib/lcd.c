@@ -18,7 +18,8 @@ eDisplay_t g_LcdType;
 uint32_t g_LcdWidth;
 uint32_t g_LcdHeight;
 
-void LcdEnable(void) {
+void LcdEnable(uint32_t clockPrescaler) {
+	(void)clockPrescaler;
 	PeripheralPowerOn();
 	g_LcdEnabled = true;
 }

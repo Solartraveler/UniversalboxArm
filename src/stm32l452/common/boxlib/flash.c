@@ -13,7 +13,11 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include "main.h"
 
+//some devices use 512 byte!
+#define FLASHPAGESIZE 256
+
 bool g_FlashInit;
+uint32_t g_flashPrescaler;
 
 static void FlashCsOn(void) {
 	if (g_FlashInit) {
@@ -27,12 +31,13 @@ static void FlashCsOff(void) {
 	}
 }
 
-void FlashEnable(void) {
+void FlashEnable(uint32_t clockPrescaler) {
 	GPIO_InitTypeDef state = {0};
 	state.Pin = FlashCs_Pin;
 	state.Mode = GPIO_MODE_OUTPUT_PP;
 	state.Pull = GPIO_NOPULL;
 	state.Speed = GPIO_SPEED_FREQ_HIGH;
+	g_flashPrescaler = clockPrescaler;
 	HAL_GPIO_Init(FlashCs_GPIO_Port, &state);
 	g_FlashInit = true;
 	HAL_Delay(1);
@@ -60,6 +65,7 @@ static void FlashTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len)
 uint16_t FlashGetStatus(void) {
 	uint8_t out[3] = {0xD7, 0, 0};
 	uint8_t in[3] = {0};
+	PeripheralPrescaler(g_flashPrescaler);
 	FlashTransfer(out, in, sizeof(out));
 	return (in[1] << 8) | in[2];
 }
@@ -67,6 +73,7 @@ uint16_t FlashGetStatus(void) {
 void FlashGetId(uint8_t * manufacturer, uint16_t * device) {
 	uint8_t out[5] = {0x9F, 0, 0};
 	uint8_t in[5] = {0};
+	PeripheralPrescaler(g_flashPrescaler);
 	FlashTransfer(out, in, sizeof(out));
 	if (manufacturer) {
 		*manufacturer = in[1];
@@ -76,7 +83,7 @@ void FlashGetId(uint8_t * manufacturer, uint16_t * device) {
 	}
 }
 
-void FlashWaitNonBusy(void) {
+static void FlashWaitNonBusy(void) {
 	uint8_t out[2] = {0xD7, 0};
 	uint8_t in[2] = {0};
 	do {
@@ -85,11 +92,21 @@ void FlashWaitNonBusy(void) {
 	} while (((in[1] & 0x80) == 0) && (in[1] != 0));
 }
 
-void FlashPagesizePowertwo(void) {
+void FlashPagesizePowertwoSet(void) {
+	PeripheralPrescaler(g_flashPrescaler);
 	FlashWaitNonBusy();
 	uint8_t out[4] = {0x3D, 0x2A, 0x80, 0xA6};
 	uint8_t in[4] = {0};
 	FlashTransfer(out, in, sizeof(out));
+}
+
+bool FlashPagesizePowertwoGet(void) {
+	uint16_t status = FlashGetStatus();
+	uint16_t pageSizeB = (status >> 8) & 1;
+	if (pageSizeB) {
+		return true;
+	}
+	return false;
 }
 
 bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
@@ -99,6 +116,7 @@ bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
 	out[2] = (address >> 8) & 0xFF;
 	out[3] = address & 0xFF;
 	if (g_FlashInit) {
+		PeripheralPrescaler(g_flashPrescaler);
 		FlashWaitNonBusy();
 		FlashCsOn();
 		PeripheralTransfer(out, NULL, sizeof(out));
@@ -126,7 +144,7 @@ static bool FlashWritePage(uint32_t address, const uint8_t * buffer) {
 	out[3] = 0x0;
 	FlashCsOn();
 	PeripheralTransfer(out, NULL, sizeof(out));
-	PeripheralTransfer(buffer, NULL, AT45PAGESIZE);
+	PeripheralTransfer(buffer, NULL, FLASHPAGESIZE);
 	FlashCsOff();
 	//3. write data to flash
 	FlashWaitNonBusy();
@@ -140,19 +158,20 @@ static bool FlashWritePage(uint32_t address, const uint8_t * buffer) {
 }
 
 bool FlashWrite(uint32_t address, const uint8_t * buffer, size_t len) {
-	if ((address % AT45PAGESIZE) || (len % AT45PAGESIZE)) {
+	if ((address % FLASHPAGESIZE) || (len % FLASHPAGESIZE)) {
 		return false;
 	}
 	if (!g_FlashInit) {
 		return false;
 	}
+	PeripheralPrescaler(g_flashPrescaler);
 	while (len) {
 		if (!FlashWritePage(address, buffer)) {
 			return false;
 		}
-		address += AT45PAGESIZE;
-		buffer += AT45PAGESIZE;
-		len -= AT45PAGESIZE;
+		address += FLASHPAGESIZE;
+		buffer += FLASHPAGESIZE;
+		len -= FLASHPAGESIZE;
 	}
 	return true;
 }
@@ -161,6 +180,7 @@ bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len) {
 	if (!g_FlashInit) {
 		return false;
 	}
+	PeripheralPrescaler(g_flashPrescaler);
 	FlashWaitNonBusy();
 	uint8_t out[4];
 	out[0] = 0xD1; //read buffer 1 at low frequency
@@ -174,3 +194,30 @@ bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len) {
 	return true;
 }
 
+uint32_t FlashSizeGet(void) {
+	uint8_t manufacturer;
+	uint16_t device;
+	FlashGetId(&manufacturer, &device);
+	uint8_t density2 = (device >> 8) & 0x1F;
+	if (density2 == 0x7) {
+		return (4 * 1024 * 1024);
+	}
+	if (density2 == 0x8) {
+		return (8 * 1024 * 1024);
+	}
+	return 0;
+}
+
+uint32_t FlashBlocksizeGet(void) {
+	return FLASHPAGESIZE;
+}
+
+bool FlashReady(void) {
+	uint16_t status = FlashGetStatus();
+	uint16_t error = (status >> 5) & 1;
+	uint16_t ready = (status >> 15) & 1;
+	if ((ready) && (error == 0)) {
+		return true;
+	}
+	return false;
+}

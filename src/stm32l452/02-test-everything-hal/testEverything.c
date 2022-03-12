@@ -452,9 +452,10 @@ void toggleFlashCache(void) {
 	enabled = !enabled;
 }
 
+#define BLOCKSIZE_MAX 512
+
 void checkFlash(void) {
-	FlashEnable();
-	PeripheralPrescaler(128);
+	FlashEnable(128);
 	uint16_t status = FlashGetStatus();
 	uint16_t density = (status >> 10) & 0xF;
 	uint16_t comp = (status >> 14) & 1;
@@ -476,31 +477,32 @@ void checkFlash(void) {
 		if (family == 0x1) {
 			printf("  -> AT45D. Looks good\r\n");
 			uint8_t density2 = (device >> 8) & 0x1F;
-			if (((density2 == 0x7) && (AT45PAGESIZE == 512)) ||
-			    ((density2 == 0x8) && (AT45PAGESIZE == 256)))
+			uint32_t blocksize = FlashBlocksizeGet();
+			if (((density2 == 0x7) && (blocksize == 512)) ||
+			    ((density2 == 0x8) && (blocksize == 256)))
 			{
 				uint32_t timestamp = HAL_GetTick();
-				uint8_t bufferOut[AT45PAGESIZE] = {0};
-				uint8_t bufferIn[AT45PAGESIZE] = {0};
+				uint8_t bufferOut[BLOCKSIZE_MAX] = {0};
+				uint8_t bufferIn[BLOCKSIZE_MAX] = {0};
 				memcpy(bufferOut, &timestamp, sizeof(uint32_t));
-				for (uint32_t i = 4; i < AT45PAGESIZE; i++) {
+				for (uint32_t i = 4; i < blocksize; i++) {
 					bufferOut[i] = i;
 				}
-				FlashWrite(0, bufferOut, sizeof(bufferOut));
-				FlashRead(0, bufferIn, sizeof(bufferIn));
+				FlashWrite(0, bufferOut, blocksize);
+				FlashRead(0, bufferIn, blocksize);
 				uint32_t timestamp2 = HAL_GetTick();
 				uint32_t delta = timestamp2 - timestamp;
-				if (memcmp(bufferOut, bufferIn, sizeof(bufferOut)) == 0) {
-					printf("Writing and reading back %ubyte successful\r\n", AT45PAGESIZE);
+				if (memcmp(bufferOut, bufferIn, blocksize) == 0) {
+					printf("Writing and reading back %ubyte successful\r\n", (unsigned int)blocksize);
 					printf("Write+Read took %ums\r\n", (unsigned int)delta);
 					for (uint32_t i = 128; i >= 2; i /= 2) {
-						PeripheralPrescaler(i);
-						memset(bufferIn, 0, sizeof(bufferIn));
+						FlashEnable(i);
+						memset(bufferIn, 0, blocksize);
 						timestamp = HAL_GetTick();
-						FlashRead(0, bufferIn, sizeof(bufferIn));
+						FlashRead(0, bufferIn, blocksize);
 						timestamp2 = HAL_GetTick();
 						delta = timestamp2 - timestamp;
-						if (memcmp(bufferOut, bufferIn, sizeof(bufferOut)) == 0) {
+						if (memcmp(bufferOut, bufferIn, blocksize) == 0) {
 							printf("Reading with prescaler %u succeed. Time %ums\r\n", (unsigned int)i, (unsigned int)delta);
 						} else {
 							printf("Reading with prescaler %u failed\r\n", (unsigned int)i);
@@ -509,11 +511,11 @@ void checkFlash(void) {
 					}
 				} else {
 					printf("Error, read back data mismatched:\r\n");
-					printHex(bufferIn, sizeof(bufferIn));
+					printHex(bufferIn, blocksize);
 					printf("And the sram buffer:\r\n");
-					memset(bufferIn, 0, sizeof(bufferIn));
-					FlashReadBuffer1(bufferIn, 0, sizeof(bufferIn));
-					printHex(bufferIn, sizeof(bufferIn));
+					memset(bufferIn, 0, blocksize);
+					FlashReadBuffer1(bufferIn, 0, blocksize);
+					printHex(bufferIn, blocksize);
 				}
 			} else {
 				printf("Error, device ID does not fit to the pagesize\r\n");
@@ -533,7 +535,7 @@ void setFlashPagesize(void) {
 		input = Rs232GetChar();
 		if (input == 'p') {
 			printf("Ok...\r\n");
-			FlashPagesizePowertwo();
+			FlashPagesizePowertwoSet();
 			printf("Done\r\n");
 		}
 	} while (input == 0);
@@ -634,15 +636,13 @@ void setLcdBacklight(void) {
 }
 
 void writeLcd(void) {
-	LcdEnable();
-	PeripheralPrescaler(4);
+	LcdEnable(4);
 	LcdInit(ST7735);
 	LcdTestpattern();
 }
 
 void writeLcdBig(void) {
-	LcdEnable();
-	PeripheralPrescaler(4);
+	LcdEnable(4);
 	LcdInit(ILI9341);
 	LcdTestpattern();
 }

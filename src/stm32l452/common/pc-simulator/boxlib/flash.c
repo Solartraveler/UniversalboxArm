@@ -14,14 +14,17 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #define FILENAME "emulatedFlash.bin"
 
+#define FLASHPAGESIZE 256
+
 uint8_t * g_flashData;
 size_t g_flashDataSize;
 uint32_t g_flashLastTransferred;
 
-void FlashEnable(void) {
+void FlashEnable(uint32_t clockPrescaler) {
+	(void)clockPrescaler;
 	//load from file
 	if (!g_flashData) {
-		g_flashDataSize = (1024 * 1024 *8);
+		g_flashDataSize = (1024 * 1024 * 8);
 		g_flashData = (uint8_t*)malloc(g_flashDataSize);
 		if (g_flashData) {
 			memset(g_flashData, 0xFF, g_flashDataSize);
@@ -61,7 +64,11 @@ void FlashGetId(uint8_t * manufacturer, uint16_t * device) {
 void FlashWaitNonBusy(void) {
 }
 
-void FlashPagesizePowertwo(void) {
+void FlashPagesizePowertwoSet(void) {
+}
+
+bool FlashPagesizePowertwoGet(void) {
+	return true;
 }
 
 bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
@@ -73,7 +80,7 @@ bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
 }
 
 bool FlashWrite(uint32_t address, const uint8_t * buffer, size_t len) {
-	if ((address % AT45PAGESIZE) || (len % AT45PAGESIZE)) {
+	if ((address % FLASHPAGESIZE) || (len % FLASHPAGESIZE)) {
 		return false;
 	}
 	if (!g_flashData) {
@@ -93,3 +100,17 @@ bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len) {
 	return false;
 }
 
+uint32_t FlashSizeGet(void) {
+	return g_flashDataSize;
+}
+
+uint32_t FlashBlocksizeGet(void) {
+	return FLASHPAGESIZE;
+}
+
+bool FlashReady(void) {
+	if (g_flashData) {
+		return true;
+	}
+	return false;
+}

@@ -21,6 +21,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include "ili9341/ili9341.h"
 
 bool g_LcdEnabled;
+bool g_lcdPrescaler;
 eDisplay_t g_LcdType;
 
 //write to chip
@@ -49,7 +50,8 @@ static void LcdA0Off(void) {
 	}
 }
 
-void LcdEnable(void) {
+void LcdEnable(uint32_t clockPrescaler) {
+	g_lcdPrescaler = clockPrescaler;
 	PeripheralPowerOn();
 	g_LcdEnabled = true;
 	LcdCsOff();
@@ -82,7 +84,11 @@ static void LcdTransfer(const uint8_t * dataOut, size_t len) {
 }
 
 void LcdInit(eDisplay_t lcdType) {
+	if (!g_LcdEnabled) {
+		return;
+	}
 	g_LcdType = lcdType;
+	PeripheralPrescaler(g_lcdPrescaler);
 	if (g_LcdType == ST7735) {
 		st7735_Init();
 	}
@@ -92,6 +98,7 @@ void LcdInit(eDisplay_t lcdType) {
 }
 
 void LcdWritePixel(uint16_t x, uint16_t y, uint16_t color) {
+	PeripheralPrescaler(g_lcdPrescaler);
 	if (g_LcdType == ST7735) {
 		st7735_WritePixel(x, y, color);
 	}
@@ -101,6 +108,7 @@ void LcdWritePixel(uint16_t x, uint16_t y, uint16_t color) {
 }
 
 void LcdDrawHLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {
+	PeripheralPrescaler(g_lcdPrescaler);
 	if (g_LcdType == ST7735) {
 		st7735_DrawHLine(color, x, y, length);
 	}
@@ -110,6 +118,7 @@ void LcdDrawHLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {
 }
 
 void LcdDrawVLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {
+	PeripheralPrescaler(g_lcdPrescaler);
 	if (g_LcdType == ST7735) {
 		st7735_DrawVLine(color, x, y, length);
 	}
@@ -182,7 +191,6 @@ void LCD_Delay(uint32_t delay) {
 
 //only used by ILI9341
 void LcdCommandData(uint8_t command, const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
-	LcdEnable();
 	LcdCsOn();
 	LCD_IO_WriteReg(command); //the command, leaves A0 on -> data next
 	PeripheralTransfer(dataOut, dataIn, len);

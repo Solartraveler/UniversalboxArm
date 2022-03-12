@@ -1,14 +1,14 @@
 #pragma once
 
 /* Init sequence:
-  LcdEnable();
+  LcdEnable(4);
   LcdBacklightOn();
   LcdInit();
   then call LcdWritePixel or LcdTestpattern
   LcdBacklightOn can be reordered to any position in the sequence
 */
 
-void LcdEnable(void);
+void LcdEnable(uint32_t clockPrescaler);
 
 void LcdDisable(void);
 
