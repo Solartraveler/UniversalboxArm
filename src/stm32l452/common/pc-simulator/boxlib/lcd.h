@@ -8,7 +8,7 @@
   LcdBacklightOn can be reordered to any position in the sequence
 */
 
-void LcdEnable(void);
+void LcdEnable(uint32_t clockPrescaler);
 
 void LcdDisable(void);
 
