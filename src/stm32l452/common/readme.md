@@ -57,3 +57,12 @@ Fat filesystem from (http://elm-chan.org/fsw/ff/00index_e.html) version 0.14b.
 
 License: BSD 1-Clause
 
+# algorightm #
+Useful platform independend algorithm by the author of this project.
+
+License: BSD 3-Clause
+
+# jsmn #
+Json parser from (https://github.com/zserge/jsmn) version 1.1.0
+
+License: MIT
