@@ -25,6 +25,9 @@ bool TarFileStartGet(const char * filename, uint8_t * tarData, size_t tarLen,  u
 		//printf("%s - %s - %u\n", name, (char *)tarData + 124, len);
 		tarData += BLOCKSIZE;
 		tarLen -= BLOCKSIZE;
+		if (tarLen < len) { //wrong format, the resulting file would be out of bounds
+			return false;
+		}
 		if (strcmp(filename, name) == 0) {
 			*startAddress = tarData;
 			*fileLen = len;
