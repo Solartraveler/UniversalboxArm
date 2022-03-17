@@ -18,6 +18,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include "peripheral.h"
 
+//Minimum allowed value is 2
 #define UARTBUFFERLEN 256
 
 char g_uartBuffer[UARTBUFFERLEN];
