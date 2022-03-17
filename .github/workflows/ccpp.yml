@@ -12,7 +12,7 @@ jobs:
     - name: Install Dependencies
       run: |
         sudo apt update
-        sudo apt install -y gcc-arm-none-eabi make freeglut3-dev gcc-avr avr-libc kicad xfig
+        sudo apt install -y gcc-arm-none-eabi make freeglut3-dev gcc-avr avr-libc kicad xfig jq
     - name: make Coprocessor
       run: make -C src/avr-coprocessor
     - name: make STM32L452
@@ -26,3 +26,5 @@ jobs:
           src/avr-coprocessor/*/pc-simulator/pcSimulate
           src/stm32l452/*/build/*.bin
           src/stm32l452/*/build/*.elf
+          src/stm32l452/*/build/*.tar
+          src/stm32l452/*/pc-simulator/pcSimulate

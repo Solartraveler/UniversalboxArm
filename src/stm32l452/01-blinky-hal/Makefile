@@ -13,8 +13,40 @@
 ######################################
 # target
 ######################################
-TARGET = blinky-stm32l452
 
+#Name of this application
+NAME     = Blinky
+#Version of this application, to be used in the metadata
+VERSION  = 1.0.0
+#Author of this application, to be used in the metadata
+AUTHOR   = Malte Marwedel
+#Use the spdx notation here, to be used in the metadata
+LICENSE  = BSD-3-Clause
+#The MCU, this binary is compiled for, to be used in the metadata
+CHIP     = stm32l452
+#Watchdog in [ms]. 0 disables, maximum is 65535
+WATCHDOG = 10000
+
+#If the name is not readme.md, --transform needs to be used to adjust the name
+TARREADME = readme.md
+#Add a bitmap image to the tar file. Can be left empty.
+TARIMAGE =
+
+TARGET = $(NAME)-$(CHIP)
+TARGETRAM = $(TARGET)-ram
+TARGETFLASH = $(TARGET)-flash
+
+#The final name needs to be application.bin
+TARBINARY = --transform='flags=r;s|$(TARGETRAM)|application|' --directory=$(BUILD_DIR) $(TARGETRAM).bin
+#The name should not be changed
+TARMETA = metadata.json
+
+#Date to be used in the metadata
+DATE=`date +'%F'`
+#Md5sum of the application
+MD5SUM=`md5sum $(BUILD_DIR)/$(TARGETRAM).bin | cut -d ' ' -f 1`
+#Start address where the program should be loaded to. Needs to be compatible with the used linking addresses.
+STARTADDR=`grep "_Code_Start.=" $(LDSCRIPTRAM) | cut -d " " -f3 | sed 's/[;\r]//g'`
 
 ######################################
 # building variables
@@ -133,17 +165,18 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPT = STM32L452RETx_FLASH.ld
+LDSCRIPTFLASH = STM32L452RETx_FLASH.ld
 LDSCRIPTRAM = STM32L452RETx_RAM.ld
 
 # libraries
 LIBS = -lc -lm -lnosys
 LIBDIR =
-LDFLAGS =    $(MCU) -specs=nano.specs -T$(LDSCRIPT)    $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
-LDFLAGSRAM = $(MCU) -specs=nano.specs -T$(LDSCRIPTRAM) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
+LDFLAGS = $(MCU) -specs=nano.specs $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
+LDFLAGSRAM =   $(LDFLAGS) -T$(LDSCRIPTRAM)
+LDFLAGSFLASH = $(LDFLAGS) -T$(LDSCRIPTFLASH)
 # default action: build all
-all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin $(BUILD_DIR)/$(TARGET)-ram.bin
+all: $(BUILD_DIR)/$(TARGETFLASH).elf $(BUILD_DIR)/$(TARGETFLASH).hex $(BUILD_DIR)/$(TARGETFLASH).bin $(BUILD_DIR)/$(TARGETRAM).tar
 
 
 #######################################
@@ -162,12 +195,18 @@ $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
 	$(AS) -c $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
-	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+$(BUILD_DIR)/$(TARGETFLASH).elf: $(OBJECTS) Makefile
+	$(CC) $(OBJECTS) $(LDFLAGSFLASH) -o $@
 	$(SZ) $@
 
-$(BUILD_DIR)/$(TARGET)-ram.elf: $(OBJECTS) Makefile
+$(BUILD_DIR)/$(TARGETRAM).elf: $(OBJECTS) Makefile
 	$(CC) $(OBJECTS) $(LDFLAGSRAM) -o $@
+
+$(BUILD_DIR)/metadata.json: $(BUILD_DIR)/$(TARGETRAM).bin Makefile
+	jq -n --arg date $(DATE) --arg checksum $(MD5SUM) --arg startaddr $(STARTADDR) '{"name":"$(NAME)", "compiled":$$date, "version": "$(VERSION)", "author": "$(AUTHOR)", "license": "$(LICENSE)", "mcu":"$(CHIP)", "md5sum":$$checksum, "watchdog":"$(WATCHDOG)", "appaddr":$$startaddr}' > $@
+
+$(BUILD_DIR)/$(TARGETRAM).tar: $(BUILD_DIR)/$(TARGETRAM).bin $(BUILD_DIR)/metadata.json Makefile
+	tar --create -f $@ --blocking-factor=1 --owner=0 --group=0 $(TARREADME) $(TARIMAGE) $(TARBINARY) $(TARMETA)
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(HEX) $< $@

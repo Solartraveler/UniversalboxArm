@@ -71,7 +71,8 @@ SECTIONS
   /* The startup code goes first into FLASH */
   .isr_vector :
   {
-    . = ALIGN(8);
+    . = ALIGN(512);  /* Used for VTOR. Requires 512byte alignment */
+    _isrVectorTableAddress = .;
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(8);
   } >FLASH
@@ -102,8 +103,8 @@ SECTIONS
     . = ALIGN(8);
   } >FLASH
 
-  .ARM.extab   : 
-  { 
+  .ARM.extab   :
+  {
   . = ALIGN(8);
   *(.ARM.extab* .gnu.linkonce.armextab.*)
   . = ALIGN(8);
@@ -124,7 +125,7 @@ SECTIONS
     PROVIDE_HIDDEN (__preinit_array_end = .);
 	. = ALIGN(8);
   } >FLASH
-  
+
   .init_array :
   {
 	. = ALIGN(8);
@@ -148,7 +149,7 @@ SECTIONS
   _sidata = LOADADDR(.data);
 
   /* Initialized data sections goes into RAM, load LMA copy after code */
-  .data : 
+  .data :
   {
     . = ALIGN(8);
     _sdata = .;        /* create a global symbol at data start */
@@ -159,7 +160,7 @@ SECTIONS
     _edata = .;        /* define a global symbol at data end */
   } >RAM AT> FLASH
 
-  
+
   /* Uninitialized data section */
   . = ALIGN(4);
   .bss :
@@ -187,7 +188,7 @@ SECTIONS
     . = ALIGN(8);
   } >RAM
 
-  
+
 
   /* Remove information from the standard libraries */
   /DISCARD/ :

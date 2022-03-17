@@ -58,25 +58,29 @@ _estack = 0x20028000;    /* end of RAM */
 _Min_Heap_Size = 0x200;      /* required amount of heap  */
 _Min_Stack_Size = 0x400; /* required amount of stack */
 
+/* Extracted by the makefile for the metadata.json */
+_Code_Start = 0x20000000;
+
 /* Specify the memory areas */
 MEMORY
 {
-RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 160K
+RAM (xrw)      : ORIGIN = _Code_Start, LENGTH = 160K
 FLASH (rx)     : ORIGIN = 0x8000000, LENGTH = 512K
 }
 
 /* Define output sections */
 SECTIONS
 {
-  /* The startup code goes first into FLASH */
+  /* The startup code goes first into RAM */
   .isr_vector :
   {
-    . = ALIGN(8);
+    . = ALIGN(512);  /* Used for VTOR. Requires 512byte alignment */
+    _isrVectorTableAddress = .;
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(8);
   } >RAM
 
-  /* The program code and other data goes into FLASH */
+  /* The program code and other data goes into RAM */
   .text :
   {
     . = ALIGN(8);
@@ -93,7 +97,7 @@ SECTIONS
     _etext = .;        /* define a global symbols at end of code */
   } >RAM
 
-  /* Constant data goes into FLASH */
+  /* Constant data goes into RAM */
   .rodata :
   {
     . = ALIGN(8);
