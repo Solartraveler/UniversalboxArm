@@ -11,8 +11,6 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
-//#include <sys/ioctl.h>
-//#include <stropts.h>
 
 #include <poll.h>
 
