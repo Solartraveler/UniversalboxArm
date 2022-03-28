@@ -39,6 +39,7 @@ void FlashEnable(uint32_t clockPrescaler) {
 
 void FlashDisable(void) {
 	if (g_flashData) {
+		printf("Saving simulated flash\n");
 		//save to file
 		FILE * f = fopen(FILENAME, "wb");
 		if (f) {
