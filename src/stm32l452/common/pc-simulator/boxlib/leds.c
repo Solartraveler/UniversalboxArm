@@ -7,35 +7,31 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include "leds.h"
 
 
-void Led1Red(void) {
-	//TODO
+/* Non weak function can be found in lcd.c
+   so the LEDs will be only visualized if an LCD is initialized.
+   Of course, the real hardware would display the LEDs without a LCD.
+*/
+
+__attribute__((weak)) void Led1Red(void) {
 }
 
-void Led1Green(void) {
-	//TODO
+__attribute__((weak)) void Led1Green(void) {
 }
 
-void Led1Yellow(void) {
-	//TODO
+__attribute__((weak)) void Led1Yellow(void) {
 }
 
-void Led1Off(void) {
-	//TODO
+__attribute__((weak)) void Led1Off(void) {
 }
 
-void Led2Red(void) {
-	//TODO
+__attribute__((weak)) void Led2Red(void) {
 }
 
-void Led2Green(void) {
-	//TODO
+__attribute__((weak)) void Led2Green(void) {
 }
 
-void Led2Yellow(void) {
-	//TODO
+__attribute__((weak)) void Led2Yellow(void) {
 }
 
-void Led2Off(void) {
-	//TODO
+__attribute__((weak)) void Led2Off(void) {
 }
-

@@ -1,5 +1,11 @@
 #pragma once
 
+#include "lcd.h"
+
+/* The LEDs are simulated by the LCD on the PC, but leds.c provides a dummy
+   implementation as weak functions
+*/
+
 void Led1Red(void);
 
 void Led1Green(void);
