@@ -148,7 +148,7 @@ $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 $(BUILD_DIR)/$(TARGET): $(OBJECTS) Makefile
-	$(CC) $(OBJECTS) -lpthread -o $@
+	$(CC) $(OBJECTS) -lpthread -lGL -lglut -lm -o $@
 
 $(BUILD_DIR):
 	mkdir $@
