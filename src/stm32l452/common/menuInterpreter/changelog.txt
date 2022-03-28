@@ -1,0 +1,125 @@
+2020-05-03: Version 2.0
+
+2020-05-02:
+  * Bugfix: Have a proper color for the scrollbar of a list element when using colors.
+
+2020-04-20:
+  * Bugfix: Don't crash if a GFX with RAM storage selected has a NULL pointer in the menu_gfxdata array.
+
+2020-04-12:
+  * License change: Change required library files from GPL version 2.0 or later to MPL version 2. As source under MPLv2 is considered compatible with GPL version 2.0 or later, this should have no impact to existing projects and samples.
+  * Replace font 8x15 pixel font by an own created better looking one. The height of this font is always reported as 15pixels, regardless if underlined or not. As the older font
+    was under the Apache version 2.0 license, which according to several sources is considered to be compatible with GPL version 3 but not GPL version 2, this would have prevented the usage togehter with sources under GPL version 2.0 only (without the "or later" text).
+
+2020-03-20:
+  * Bugfix: Only show the first line of a list. This avoids serveral seconds of GUI blocking (close to unusable) when large lists (~2000 lines) are drawn out of the visible area.
+
+2020-02-24:
+  * Feature: Action can now be an 8 bit type, reducing bytecode size and interpreter size. The list index change action might not be backward compatible in some cases.
+
+2020-02-09:
+  * Feature: Add transparency to objects with text
+
+2020-02-03:
+  * Feature: Use variable sized SCREENCOLOR datatype instead of unsigned char for all colors.
+  * Feature: Configure colors of various elements
+  * Feature: Replace fixed bit RGB support by completely flexible 1-24bit RGB supported
+  * Feature: Use char instead of unsigned char for text. Avoids typecasts when using text together with common sprintf functions.
+  * Feature: Replace all integer types by uint*_t variants
+
+2019-12-08:
+  * Feature: Add image RGB 8Bit support
+
+2019-12-02: Version 1.9
+
+2019-12-01:
+  * Feature: Add support, converting 4Bit greyscale bitmaps to 1 and 8Bit outputs. Update mouse demo to do proper resizing
+
+2019-11-21:
+  * Feature: Add support for 4Bit displays and update the sample applications.
+
+2019-11-16:
+  * Optimization: Make several functions static in order to allow inlining and save space and improve performance
+
+2016-08-06:
+  * Bugfix: Make sure multi-image works together with multi-language in menuedit
+
+2016-06-25: Version 1.8
+  * Bugfix: Make UTF-8 rendering work on some 64bit platforms.
+
+2016-06-19:
+  * Feature: UTF-8 support in text renderer. Add 8x15 font renderer.
+
+2014-04-13: Version 1.7
+  * Optimize: Avoid compiler warnings, clean up #ifdefs, optimize SubMenus out if not used
+
+2012-12-08: Version 1.6
+  * Feature: Multi-image support
+
+2012-01-29: Version 1.5
+  * Feature: Multi-language support
+  * Bug fixed: Interperter failed completely if labels were used together with 3byte adresses
+
+2010-08-26: Version 1.4
+
+2010-07-09
+  * Bug fix: Compiler warnings resolved
+
+2010-06-18
+  * Feature: Mouse support (Except for the List) (Extension requested and paid by GTE Industrieelektronik), OpenGL test application for mouse support
+
+2010-05-15
+  * Bug fix: Labels were not printed on the right side on the screen. They could overflow to the left too.
+
+2009-12-16: Version 1.3
+
+2009-12-10
+  * Feature: Automatically remove code if objects are not used
+
+2009-11-10
+  * Bug fix: Even more listbox scrolling improvements and support for > 255 lines now working
+
+2009-11-09
+  * Bug fix: Several listbox scrolling improvements
+
+2009-10-11
+  * Bug fix: Typo: menu_cheboxstate -> menu_checkboxstate
+  * Checkbox value toggles between 0 and 1 now. Was 0 and 0xFF previous
+
+2009-09-09: Version 1.2
+
+2009-09-09
+  * Feature: Large screen support
+  * Bug fix: Listbox could not handle more than 255 lines
+
+2009-08-07: Version 1.1
+
+2009-08-06
+  * Feature: menu_action now expects a return value, to decide if a redraw is needed.
+    Return 0 to get the old behaviour.
+  * Bug fix: Scrollbar of listbox draw out of the list box if
+    there were fewer elements than the listbox could show.
+  * Feature: Listbox draw automatically corrects list index to the last element +1
+    if out of bound. Allowing to get a valid element with one 'prev' key press.
+
+2009-08-05
+  * Binary changes: Return from subwindow must be now encoded as Window switch, not as Action.
+  * Feature: Add Actions for List Index change events.
+
+2009-07-26
+  * Feature: Implement global shortcuts.
+
+2009-07-24
+  * Now Checkboxes Radiobutons and Lists are updated before their
+    corresponding action is called, not afterwards.
+  * Bug fix: After a window switch, the old key was searched
+    and executed if it was defined as shortcut on the new screen.
+  * The background is now cleared on every redraw() and not only
+    on a window switch.
+  * Bug fix: Shortcuts in Subwindows were not working.
+  * Bug fix: Radiobuttons read their state for drawing either
+    from group 0 or 4
+  * Bug fix: Underline font draws without gaps.
+  * Bug fix: Fixing wrong drawing of shrinked fonts.
+
+2009-06-09: Version 1.0
