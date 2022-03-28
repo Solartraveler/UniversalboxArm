@@ -12,9 +12,12 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include "mcu.h"
 
+#include "simulated.h"
+
 
 void McuStartOtherProgram(void * startAddress, bool ledSignalling) {
 	printf("Would start program with first instruction at %p. But we just exit now.\n", startAddress);
+	SimulatedDeinit();
 	exit(0);
 }
 
