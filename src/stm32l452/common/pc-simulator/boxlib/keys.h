@@ -2,7 +2,7 @@
 
 #include <stdbool.h>
 
-bool KeyRighPressed(void);
+bool KeyRightPressed(void);
 
 bool KeyLeftPressed(void);
 

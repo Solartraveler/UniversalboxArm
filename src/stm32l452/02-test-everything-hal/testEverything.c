@@ -109,7 +109,7 @@ const char * g_adcNames[CHANNELS] = {
 };
 
 void readSensors() {
-	bool right = KeyRighPressed();
+	bool right = KeyRightPressed();
 	bool left = KeyLeftPressed();
 	bool up = KeyUpPressed();
 	bool down = KeyDownPressed();
@@ -637,7 +637,7 @@ void setLcdBacklight(void) {
 
 void writeLcd(void) {
 	LcdEnable(4);
-	LcdInit(ST7735);
+	LcdInit(ST7735_128);
 	LcdTestpattern();
 }
 

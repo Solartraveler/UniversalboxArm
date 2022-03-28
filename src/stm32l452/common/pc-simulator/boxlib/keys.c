@@ -8,24 +8,23 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include "keys.h"
 
-#include "main.h"
+/* Non weak function can be found in lcd.c
+   so the keys will be only visualized if an LCD is initialized.
+   Of course, the real hardware can use the keys without a LCD.
+*/
 
-bool KeyRighPressed(void) {
-	//TODO
+__attribute__((weak)) bool KeyRightPressed(void) {
 	return false;
 }
 
-bool KeyLeftPressed(void) {
-	//TODO
+__attribute__((weak)) bool KeyLeftPressed(void) {
 	return false;
 }
 
-bool KeyUpPressed(void) {
-	//TODO
+__attribute__((weak)) bool KeyUpPressed(void) {
 	return false;
 }
 
-bool KeyDownPressed(void) {
-	//TODO
+__attribute__((weak)) bool KeyDownPressed(void) {
 	return false;
 }

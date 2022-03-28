@@ -72,13 +72,13 @@ void LcdBacklightOff(void) {
 }
 
 static void LcdTransfer(const uint8_t * dataOut, size_t len) {
-	if (g_LcdType == ST7735) {
+	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
 		LcdCsOn();
 	}
 	if (g_LcdEnabled) {
 		HAL_SPI_Transmit(&hspi2, (uint8_t*)dataOut, len, 100);
 	}
-	if (g_LcdType == ST7735) {
+	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
 		LcdCsOff();
 	}
 }
@@ -89,7 +89,7 @@ void LcdInit(eDisplay_t lcdType) {
 	}
 	g_LcdType = lcdType;
 	PeripheralPrescaler(g_lcdPrescaler);
-	if (g_LcdType == ST7735) {
+	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
 		st7735_Init();
 	}
 	if (g_LcdType == ILI9341) {
@@ -99,7 +99,7 @@ void LcdInit(eDisplay_t lcdType) {
 
 void LcdWritePixel(uint16_t x, uint16_t y, uint16_t color) {
 	PeripheralPrescaler(g_lcdPrescaler);
-	if (g_LcdType == ST7735) {
+	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
 		st7735_WritePixel(x, y, color);
 	}
 	if (g_LcdType == ILI9341) {
@@ -107,9 +107,23 @@ void LcdWritePixel(uint16_t x, uint16_t y, uint16_t color) {
 	}
 }
 
+void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint8_t * data, size_t len) {
+	if (!g_LcdEnabled) {
+		return;
+	}
+	PeripheralPrescaler(g_lcdPrescaler);
+	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
+		st7735_SetDisplayWindow(x, y, width, height);
+		LCD_IO_WriteMultipleData(data, len);
+	}
+	if (g_LcdType == ILI9341) {
+		//TODO
+	}
+}
+
 void LcdDrawHLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {
 	PeripheralPrescaler(g_lcdPrescaler);
-	if (g_LcdType == ST7735) {
+	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
 		st7735_DrawHLine(color, x, y, length);
 	}
 	if (g_LcdType == ILI9341) {
@@ -119,7 +133,7 @@ void LcdDrawHLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {
 
 void LcdDrawVLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {
 	PeripheralPrescaler(g_lcdPrescaler);
-	if (g_LcdType == ST7735) {
+	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
 		st7735_DrawVLine(color, x, y, length);
 	}
 	if (g_LcdType == ILI9341) {
@@ -131,7 +145,7 @@ void LcdDrawVLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {
 void LcdTestpattern(void) {
 	uint16_t height = 0;
 	uint16_t width = 0;
-	if (g_LcdType == ST7735) {
+	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
 		height = st7735_GetLcdPixelHeight();
 		width = st7735_GetLcdPixelWidth();
 	}
