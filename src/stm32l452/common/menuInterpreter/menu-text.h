@@ -17,7 +17,7 @@
 #include <stdint.h>
 
 #include "menu-interpreter.h"
-/* menu_draw_char does a rane check of posx and posy before drawing. So even
+/* menu_draw_char does a range check of posx and posy before drawing. So even
 negative values would be no problem.
 transparency: if 0, background pixels are overwritten with the background color
               if 1, no modification of background pixels is done.
