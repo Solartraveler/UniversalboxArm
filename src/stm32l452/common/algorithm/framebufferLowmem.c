@@ -83,6 +83,12 @@ void menu_screen_set(SCREENPOS x, SCREENPOS y, SCREENCOLOR color) {
 		uint32_t index = x / 8 + y * FB_BYTES_X;
 		uint32_t shift = x % 8;
 		uint32_t indexBlock = (x / FB_COLOR_RES_X) + (y / FB_COLOR_RES_Y * FB_BLOCKS_X);
+		if (sizeof(SCREENCOLOR) == 2) {
+			color = (color << 8) | (color >> 8);
+		}
+		if (sizeof(SCREENCOLOR) == 3) {
+			color = ((color & 0xFF) << 16) | (color >> 16) | (color & 0xFF00);
+		}
 		if (bright >= FB_FRONT_LEVEL) {
 			g_fbFrontPixel[index] |= (1<<shift);
 			g_fbFront[indexBlock] = color;
@@ -94,6 +100,7 @@ void menu_screen_set(SCREENPOS x, SCREENPOS y, SCREENCOLOR color) {
 }
 
 void menu_screen_flush(void) {
+	//TODO: Limit to actual screen size. Then send more than one line at a time.
 	FB_COLOR_TYPE line[FB_SIZE_X];
 	uint32_t colorIdxBase = 0;
 	uint32_t colorIdxCntY = 0;

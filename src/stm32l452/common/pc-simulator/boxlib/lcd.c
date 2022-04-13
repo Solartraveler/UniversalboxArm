@@ -323,6 +323,8 @@ void LcdInit(eDisplay_t lcdType) {
 }
 
 void LcdWritePixel(uint16_t x, uint16_t y, uint16_t color) {
+		//the physical LCD needs the colors in msb first, so we have to convert back here
+		color = (color << 8) | (color >> 8);
 		if ((x < LCD_SCREEN_MAX_X) && (y < LCD_SCREEN_MAX_Y)) {
 		float r = 0.0, g = 0.0, b = 0.0;
 		uint32_t ri = (color & LCD_COLOR_OUT_RED_MASK) >> LCD_COLOR_OUT_RED_LSB_POS;
@@ -389,25 +391,25 @@ void LcdTestpattern(void) {
 	}
 	//next to it a red sqare
 	for (uint16_t y = 0; y < 48; y++) {
-		LcdDrawHLine(0xF800, 48, y, 16);
+		LcdDrawHLine(0x00F8, 48, y, 16);
 	}
 	//a green one
 	for (uint16_t y = 0; y < 48; y++) {
-		LcdDrawHLine(0x07E0, 64, y, 16);
+		LcdDrawHLine(0xE007, 64, y, 16);
 	}
 	//a blue one
 	for (uint16_t y = 0; y < 48; y++) {
-		LcdDrawHLine(0x001F, 80, y, 16);
+		LcdDrawHLine(0x1F00, 80, y, 16);
 	}
 	//	white-dark green border marks the outer layer
 	LcdDrawHLine(0xFFFF, 0, 0, width);
 	LcdDrawHLine(0xFFFF, 0, height - 1, width);
 	LcdDrawVLine(0xFFFF, 0, 0, height);
 	LcdDrawVLine(0xFFFF, width - 1, 0, height);
-	LcdDrawHLine(0x07E0, 1, 1, width - 2);
-	LcdDrawHLine(0x07E0, 1, height - 2, width - 2);
-	LcdDrawVLine(0x07E0, 1, 1, height - 2);
-	LcdDrawVLine(0x07E0, width - 2, 1, height - 2);
+	LcdDrawHLine(0xE007, 1, 1, width - 2);
+	LcdDrawHLine(0xE007, 1, height - 2, width - 2);
+	LcdDrawVLine(0xE007, 1, 1, height - 2);
+	LcdDrawVLine(0xE007, width - 2, 1, height - 2);
 }
 
 static void GuiNotifyChange(void) {

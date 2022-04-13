@@ -38,6 +38,19 @@ void LcdCsOff(void) {
 	}
 }
 
+#ifndef LcdReset_GPIO_Port
+#define LcdReset_GPIO_Port GPIOC
+#define LcdReset_Pin GPIO_PIN_1
+#endif
+
+void LcdResetOff(void) {
+	HAL_GPIO_WritePin(LcdReset_GPIO_Port, LcdReset_Pin, GPIO_PIN_SET);
+}
+
+void LcdResetOn(void) {
+	HAL_GPIO_WritePin(LcdReset_GPIO_Port, LcdReset_Pin, GPIO_PIN_RESET);
+}
+
 static void LcdA0On(void) {
 	if (g_LcdEnabled) {
 		HAL_GPIO_WritePin(LcdA0_GPIO_Port, LcdA0_Pin, GPIO_PIN_SET);
@@ -52,12 +65,26 @@ static void LcdA0Off(void) {
 
 void LcdEnable(uint32_t clockPrescaler) {
 	g_lcdPrescaler = clockPrescaler;
+
 	PeripheralPowerOn();
+
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	GPIO_InitStruct.Pin = LcdReset_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(LcdReset_GPIO_Port, &GPIO_InitStruct);
+
+	LcdResetOn();
 	g_LcdEnabled = true;
 	LcdCsOff();
+	HAL_Delay(50);
+	LcdResetOff();
+	HAL_Delay(50);
 }
 
 void LcdDisable(void) {
+	HAL_GPIO_WritePin(LcdReset_GPIO_Port, LcdReset_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LcdCs_GPIO_Port, LcdCs_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LcdA0_GPIO_Port, LcdA0_Pin, GPIO_PIN_RESET);
 	g_LcdEnabled = false;
@@ -113,11 +140,29 @@ void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const
 	}
 	PeripheralPrescaler(g_lcdPrescaler);
 	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
-		st7735_SetDisplayWindow(x, y, width, height);
-		LCD_IO_WriteMultipleData(data, len);
+		uint16_t h = st7735_GetLcdPixelHeight();
+		uint16_t w = st7735_GetLcdPixelWidth();
+		if ((y + height) < h) {
+			if (width > w) {
+				width = w;
+			}
+			st7735_SetDisplayWindow(x, y, width, 1);
+			LCD_IO_WriteReg(LCD_REG_44);
+			LCD_IO_WriteMultipleData(data, width * 2);
+		}
 	}
 	if (g_LcdType == ILI9341) {
-		//TODO
+		//TODO increase speed
+			for (uint32_t yi = y; yi < (y + height); yi++) {
+				for (uint32_t xi = x; xi < (x + width); xi++) {
+					uint16_t color = (*data) + ((*(data + 1)) << 8);
+					LcdWritePixel(xi, yi, color);
+					if (len >= 2) {
+						data += 2;
+						len -= 2;
+					}
+				}
+			}
 	}
 }
 
@@ -163,25 +208,25 @@ void LcdTestpattern(void) {
 	}
 	//next to it a red sqare
 	for (uint16_t y = 0; y < 48; y++) {
-		LcdDrawHLine(0xF800, 48, y, 16);
+		LcdDrawHLine(0x00F8, 48, y, 16);
 	}
 	//a green one
 	for (uint16_t y = 0; y < 48; y++) {
-		LcdDrawHLine(0x07E0, 64, y, 16);
+		LcdDrawHLine(0xE007, 64, y, 16);
 	}
 	//a blue one
 	for (uint16_t y = 0; y < 48; y++) {
-		LcdDrawHLine(0x001F, 80, y, 16);
+		LcdDrawHLine(0x1F00, 80, y, 16);
 	}
 	//	white-dark green border marks the outer layer
 	LcdDrawHLine(0xFFFF, 0, 0, width);
 	LcdDrawHLine(0xFFFF, 0, height - 1, width);
 	LcdDrawVLine(0xFFFF, 0, 0, height);
 	LcdDrawVLine(0xFFFF, width - 1, 0, height);
-	LcdDrawHLine(0x07E0, 1, 1, width - 2);
-	LcdDrawHLine(0x07E0, 1, height - 2, width - 2);
-	LcdDrawVLine(0x07E0, 1, 1, height - 2);
-	LcdDrawVLine(0x07E0, width - 2, 1, height - 2);
+	LcdDrawHLine(0xE007, 1, 1, width - 2);
+	LcdDrawHLine(0xE007, 1, height - 2, width - 2);
+	LcdDrawVLine(0xE007, 1, 1, height - 2);
+	LcdDrawVLine(0xE007, width - 2, 1, height - 2);
 }
 
 //Interface implemenation of st7735.c
