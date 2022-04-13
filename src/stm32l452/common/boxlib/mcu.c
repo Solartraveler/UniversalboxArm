@@ -48,7 +48,7 @@ void McuStartOtherProgram(void * startAddress, bool ledSignalling) {
 	__HAL_RCC_USART2_RELEASE_RESET();
 	__HAL_RCC_USART3_RELEASE_RESET();
 	__HAL_RCC_USB_RELEASE_RESET();
-	//Is there a generic maximum interrupt number definde somewhere?
+	//Is there a generic maximum interrupt number defined somewhere?
 	for (uint32_t i = 0; i <= I2C4_ER_IRQn; i++) {
 		NVIC_DisableIRQ(i);
 		NVIC_ClearPendingIRQ(i);
@@ -57,9 +57,18 @@ void McuStartOtherProgram(void * startAddress, bool ledSignalling) {
 	if (ledSignalling) {
 		Led1Off();
 	}
-	__set_MSP(*pStackTop);
-	ptrFunction_t * pDfu = (ptrFunction_t *)(*pProgramStart);
-	pDfu();
+	/* Writing the stack change as C code is a bad idea, because the compiler
+	   can insert stack changeing code before the function call. And in fact, it
+	   does with some optimization. So
+	       __set_MSP(*pStackTop);
+	       ptrFunction_t * pDfu = (ptrFunction_t *)(*pProgramStart);
+	       pDfu();
+	   would work with -Og optimization, but not with -Os optimization.
+	   Instead we use two commands of assembly, where the compiler can't add code
+	   inbetween.
+*/
+	asm("msr msp, %[newStack]\n bx %[newProg]"
+	     : : [newStack]"r"(*pStackTop), [newProg]"r"(*pProgramStart));
 }
 
 //debug prints may not work after changing. As the prescalers are not recalculated
