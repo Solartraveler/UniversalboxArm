@@ -391,25 +391,34 @@ void LcdTestpattern(void) {
 	}
 	//next to it a red sqare
 	for (uint16_t y = 0; y < 48; y++) {
-		LcdDrawHLine(0x00F8, 48, y, 16);
+		LcdDrawHLine(0xF800, 48, y, 16);
 	}
 	//a green one
 	for (uint16_t y = 0; y < 48; y++) {
-		LcdDrawHLine(0xE007, 64, y, 16);
+		LcdDrawHLine(0x07E0, 64, y, 16);
 	}
 	//a blue one
 	for (uint16_t y = 0; y < 48; y++) {
-		LcdDrawHLine(0x1F00, 80, y, 16);
+		LcdDrawHLine(0x001F, 80, y, 16);
 	}
-	//	white-dark green border marks the outer layer
+	//fading bars
+	for (uint16_t i = 0; i < 64; i++) {
+		uint16_t r = (i >> 1) << 11; //5bit red
+		uint16_t g = (i >> 0) << 5; //6bit green
+		uint16_t b = (i >> 1); //5bit red
+		LcdDrawVLine(r, 2 + i, 48, 4);
+		LcdDrawVLine(g, 2 + i, 52, 4);
+		LcdDrawVLine(b, 2 + i, 56, 4);
+	}
+	//white-dark green border marks the outer layer
 	LcdDrawHLine(0xFFFF, 0, 0, width);
 	LcdDrawHLine(0xFFFF, 0, height - 1, width);
 	LcdDrawVLine(0xFFFF, 0, 0, height);
 	LcdDrawVLine(0xFFFF, width - 1, 0, height);
-	LcdDrawHLine(0xE007, 1, 1, width - 2);
-	LcdDrawHLine(0xE007, 1, height - 2, width - 2);
-	LcdDrawVLine(0xE007, 1, 1, height - 2);
-	LcdDrawVLine(0xE007, width - 2, 1, height - 2);
+	LcdDrawHLine(0x07E0, 1, 1, width - 2);
+	LcdDrawHLine(0x07E0, 1, height - 2, width - 2);
+	LcdDrawVLine(0x07E0, 1, 1, height - 2);
+	LcdDrawVLine(0x07E0, width - 2, 1, height - 2);
 }
 
 static void GuiNotifyChange(void) {
