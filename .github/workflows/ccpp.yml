@@ -13,6 +13,8 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y gcc-arm-none-eabi make freeglut3-dev gcc-avr avr-libc kicad xfig jq
+    - name: make Tools
+      run: make -C src/utilities/ppm2menuimage
     - name: make Coprocessor
       run: make -C src/avr-coprocessor
     - name: make STM32L452
@@ -28,3 +30,4 @@ jobs:
           src/stm32l452/*/build/*.elf
           src/stm32l452/*/build/*.tar
           src/stm32l452/*/pc-simulator/pcSimulate
+          src/utilities/ppm2menuimage/build/ppm2menuimage
