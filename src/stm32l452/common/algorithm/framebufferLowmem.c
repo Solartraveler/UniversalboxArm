@@ -10,14 +10,13 @@ block.
 
 This code implements the callbacks from menu-interpreter.h and forwards the
 result to boxlib/lcd.h.
+But other graphic libraries than then menu-enterpreter can be used.
 */
 
 #include <string.h>
 #include <stdint.h>
 
 #include "framebufferLowmem.h"
-
-#include "menu-interpreter.h"
 
 #include "boxlib/lcd.h"
 
@@ -40,14 +39,21 @@ In fact, this function starts saving memory when
 The integer type used for the color. Like uint16_t
 FB_COLOR_TYPE
 
-Number of bits for red color information
-FB_RED_BITS
-FB_GREEN_BITS
-FB_BLUE_BITS
+The integer type used for the coordinates. Like uint16_t
+FB_SCREENPOS_TYPE
 
-Level until the sum of red + green + blue, shifted to the left to give an 8
-bit value, is considered as front color. So anything in the range of 1 to 765
-might give the best results.
+Number of bits for red, green and blue color information, coming in
+FB_RED_IN_BITS
+FB_GREEN_IN_BITS
+FB_BLUE_IN_BITS
+
+Number of bits for red, green and blue color information, going out
+FB_RED_OUT_BITS
+FB_GREEN_OUT_BITS
+FB_BLUE_OUT_BITS
+
+
+The default level between background and front color
 FB_FRONT_LEVEL
 */
 
@@ -56,68 +62,107 @@ FB_FRONT_LEVEL
 #define FB_BLOCKS_X ((FB_SIZE_X + FB_COLOR_RES_X - 1) / FB_COLOR_RES_X)
 #define FB_BLOCKS_Y ((FB_SIZE_Y + FB_COLOR_RES_Y - 1) / FB_COLOR_RES_Y)
 
-#define FB_MISSINGRED (8 - FB_RED_BITS)
-#define FB_MISSINGGREEN (8 - FB_GREEN_BITS)
-#define FB_MISSINGBLUE (8 - FB_BLUE_BITS)
-
-#define FB_REDMASK ((1<< FB_RED_BITS) - 1)
-#define FB_GREENMASK ((1<< FB_GREEN_BITS) - 1)
-#define FB_BLUEMASK ((1<< FB_GREEN_BITS) - 1)
-
-#define FB_GETRED(color)    (color                                   & (FB_REDMASK   << FB_MISSINGRED))
-#define FB_GETGREEN(color) ((color >> (FB_RED_BITS))                 & (FB_GREENMASK << FB_MISSINGGREEN))
-#define FB_GETBLUE(color)  ((color >> (FB_RED_BITS + FB_GREEN_BITS)) & (FB_BLUEMASK  << FB_MISSINGBLUE))
-
 #define FB_BYTES_X ((FB_SIZE_X + 7) / 8)
 
-uint8_t g_fbFrontPixel[FB_BYTES_X * FB_SIZE_Y];
-FB_COLOR_TYPE g_fbFront[FB_BLOCKS_X * FB_BLOCKS_Y];
-FB_COLOR_TYPE g_fbBack[FB_BLOCKS_X * FB_BLOCKS_Y];
+#define FB_MISSINGRED_IN   (8 - FB_RED_IN_BITS)
+#define FB_MISSINGGREEN_IN (8 - FB_GREEN_IN_BITS)
+#define FB_MISSINGBLUE_IN  (8 - FB_BLUE_IN_BITS)
 
-void menu_screen_set(SCREENPOS x, SCREENPOS y, SCREENCOLOR color) {
+#define FB_REDMASK_IN   ((1<< FB_RED_IN_BITS) - 1)
+#define FB_GREENMASK_IN ((1<< FB_GREEN_IN_BITS) - 1)
+#define FB_BLUEMASK_IN  ((1<< FB_BLUE_IN_BITS) - 1)
+
+#define FB_GETRED_IN(color)    ((color                                         & (FB_REDMASK_IN))   << FB_MISSINGRED_IN)
+#define FB_GETGREEN_IN(color) (((color >> (FB_RED_IN_BITS))                    & (FB_GREENMASK_IN)) << FB_MISSINGGREEN_IN)
+#define FB_GETBLUE_IN(color)  (((color >> (FB_RED_IN_BITS + FB_GREEN_IN_BITS)) & (FB_BLUEMASK_IN))  << FB_MISSINGBLUE_IN)
+
+#define FB_COLOR_IN_BITS_USED (FB_RED_IN_BITS + FB_GREEN_IN_BITS + FB_BLUE_IN_BITS)
+
+#if (FB_COLOR_IN_BITS_USED * 2 <= 8)
+typedef uint8_t fb_DoubleColor_t;
+#elif (FB_COLOR_IN_BITS_USED * 2 <= 16)
+typedef uint16_t fb_DoubleColor_t;
+#elif ((FB_COLOR_IN_BITS_USED * 2) <= 32)
+typedef uint32_t fb_DoubleColor_t;
+#elif ((FB_COLOR_IN_BITS_USED * 2) <= 64)
+typedef uint64_t fb_DoubleColor_t;
+#else
+#error "Input color bits not supported"
+#endif
+
+#define FB_DOUBLECOLOR_BACK_MASK ((1 << FB_COLOR_IN_BITS_USED) - 1)
+#define FB_DOUBLECOLOR_FRONT_MASK (FB_DOUBLECOLOR_BACK_MASK << FB_COLOR_IN_BITS_USED)
+
+#define FB_MISSINGRED_OUT   (8 - FB_RED_OUT_BITS)
+#define FB_MISSINGGREEN_OUT (8 - FB_GREEN_OUT_BITS)
+#define FB_MISSINGBLUE_OUT  (8 - FB_BLUE_OUT_BITS)
+
+#define FB_SETRED_OUT(color) (color >> FB_MISSINGRED_OUT)
+#define FB_SETGREEN_OUT(color) ((color >> FB_MISSINGGREEN_OUT) << (FB_RED_OUT_BITS))
+#define FB_SETBLUE_OUT(color) ((color >> FB_MISSINGBLUE_OUT) << (FB_GREEN_OUT_BITS + FB_RED_OUT_BITS))
+
+uint8_t g_fbFrontPixel[FB_BYTES_X * FB_SIZE_Y];
+fb_DoubleColor_t g_fbColor[FB_BLOCKS_X * FB_BLOCKS_Y];
+FB_SCREENPOS_TYPE g_fbUseX = FB_SIZE_X;
+FB_SCREENPOS_TYPE g_fbUseY = FB_SIZE_Y;
+uint16_t g_fbFrontLevel = FB_FRONT_LEVEL;
+
+void menu_screen_set(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y, FB_COLOR_IN_TYPE color) {
 	if ((x < FB_SIZE_X) && (y < FB_SIZE_Y)) {
-		uint8_t r = FB_GETRED(color);
-		uint8_t g = FB_GETGREEN(color);
-		uint8_t b = FB_GETBLUE(color);
+		uint8_t r = FB_GETRED_IN(color);
+		uint8_t g = FB_GETGREEN_IN(color);
+		uint8_t b = FB_GETBLUE_IN(color);
 		uint32_t bright = r + g + b;
 		uint32_t index = x / 8 + y * FB_BYTES_X;
 		uint32_t shift = x % 8;
 		uint32_t indexBlock = (x / FB_COLOR_RES_X) + (y / FB_COLOR_RES_Y * FB_BLOCKS_X);
-		if (sizeof(SCREENCOLOR) == 2) {
-			color = (color << 8) | (color >> 8);
-		}
-		if (sizeof(SCREENCOLOR) == 3) {
-			color = ((color & 0xFF) << 16) | (color >> 16) | (color & 0xFF00);
-		}
-		if (bright >= FB_FRONT_LEVEL) {
+		if (bright >= g_fbFrontLevel) {
 			g_fbFrontPixel[index] |= (1<<shift);
-			g_fbFront[indexBlock] = color;
+			g_fbColor[indexBlock] = (color << FB_COLOR_IN_BITS_USED) | (g_fbColor[indexBlock] & FB_DOUBLECOLOR_BACK_MASK);
 		} else {
 			g_fbFrontPixel[index] &= ~(1<<shift);
-			g_fbBack[indexBlock] = color;
+			g_fbColor[indexBlock] = color | (g_fbColor[indexBlock] & FB_DOUBLECOLOR_FRONT_MASK);
 		}
 	}
 }
 
 void menu_screen_flush(void) {
-	//TODO: Limit to actual screen size. Then send more than one line at a time.
-	FB_COLOR_TYPE line[FB_SIZE_X];
+	FB_COLOR_OUT_TYPE line[FB_SIZE_X];
 	uint32_t colorIdxBase = 0;
 	uint32_t colorIdxCntY = 0;
-	for (uint32_t y = 0; y < FB_SIZE_Y; y++) {
+	for (uint32_t y = 0; y < g_fbUseY; y++) {
 		uint32_t bitmapIdxBase = y * FB_BYTES_X;
 		uint32_t bitmapMask = 1;
 		uint32_t bitmapIdxOffset = 0;
 		uint32_t colorIdxOffset = 0;
 		uint32_t colorIdxCntX = 0;
-		for (uint32_t x = 0; x < FB_SIZE_X; x++) {
+		for (uint32_t x = 0; x < g_fbUseX; x++) {
 			uint32_t colorIdx = colorIdxBase + colorIdxOffset;
 			uint8_t pixel8 = g_fbFrontPixel[bitmapIdxBase + bitmapIdxOffset];
+			FB_COLOR_IN_TYPE colorIn;
 			if (pixel8 & bitmapMask) {
-				line[x] = g_fbFront[colorIdx];
+				colorIn = g_fbColor[colorIdx] >> FB_COLOR_IN_BITS_USED;
 			} else {
-				line[x] = g_fbBack[colorIdx];
+				colorIn = g_fbColor[colorIdx] & FB_DOUBLECOLOR_BACK_MASK;
 			}
+			uint8_t r = FB_GETRED_IN(colorIn);
+			uint8_t g = FB_GETGREEN_IN(colorIn);
+			uint8_t b = FB_GETBLUE_IN(colorIn);
+			if (r & 0x80) {
+				r |= ((1<<FB_MISSINGRED_IN) - 1);
+			}
+			if (g & 0x80) {
+				g |= ((1<<FB_MISSINGGREEN_IN) - 1);
+			}
+			if (b & 0x80) {
+				b |= ((1<<FB_MISSINGBLUE_IN) - 1);
+			}
+			line[x] = (FB_SETRED_OUT(r)) | (FB_SETGREEN_OUT(g)) | (FB_SETBLUE_OUT(b));
+			//due to little endian, we need to swap the bytes for the transfer later.
+			if (sizeof(FB_COLOR_OUT_TYPE) == 2) {
+				line[x] = (line[x] >> 8) | (line[x] << 8);
+			}
+			//TODO: How do we need to swap for 3byte output data?
 			bitmapMask <<= 1;
 			if (bitmapMask == 0x100) {
 				bitmapMask = 1;
@@ -129,7 +174,7 @@ void menu_screen_flush(void) {
 				colorIdxCntX = 0;
 			}
 		}
-		LcdWriteRect(0, y, FB_SIZE_X, 1, (const uint8_t*)line, sizeof(line));
+		LcdWriteRect(0, y, g_fbUseX, 1, (const uint8_t*)line, sizeof(line));
 		colorIdxCntY++;
 		if (colorIdxCntY == FB_COLOR_RES_Y) {
 			colorIdxCntY = 0;
@@ -138,8 +183,16 @@ void menu_screen_flush(void) {
 	}
 }
 
+void menu_screen_size(SCREENPOS x, SCREENPOS y) {
+	g_fbUseX = x;
+	g_fbUseY = y;
+}
+
+void menu_screen_frontlevel(uint16_t level) {
+	g_fbFrontLevel = level;
+}
+
 void menu_screen_clear(void) {
 	memset(g_fbFrontPixel, 0xFF, (FB_BYTES_X * FB_SIZE_Y) * sizeof(uint8_t));
-	memset(g_fbFront, 0xFF, (FB_BLOCKS_X * FB_BLOCKS_Y) * sizeof(FB_COLOR_TYPE));
-	memset(g_fbBack, 0, FB_BLOCKS_X * FB_BLOCKS_Y  * sizeof(FB_COLOR_TYPE));
+	memset(g_fbColor, 0xFF, (FB_BLOCKS_X * FB_BLOCKS_Y) * sizeof(fb_DoubleColor_t));
 }
