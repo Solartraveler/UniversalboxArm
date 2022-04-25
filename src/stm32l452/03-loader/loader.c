@@ -36,7 +36,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "utility.h"
 #include "tarextract.h"
-#include "jsmn.h"
+
+#include "json.h"
+#include "gui.h"
+
+#define AUTOSTARTFILE "/etc/autostart.json"
 
 #define USB_STRING_MANUF 1
 #define USB_STRING_PRODUCT 2
@@ -115,7 +119,7 @@ uint8_t g_DeviceConfiguration[] = {
 
 /* The dfu-util can not load to address 0. So we give an offset as workaround
    the same offset must be encoded in the g_target_desc, g_exttarget_desc and
-   dfu-upload-ram.sh scripts
+   dfu-upload.sh scripts
 */
 
 #define DFU_FAKEOFFSET 0x1000
@@ -126,12 +130,10 @@ static struct usb_string_descriptor g_prod_desc_en  = USB_STRING_DESC("Universal
 static struct usb_string_descriptor g_serial_desc   = USB_STRING_DESC("Loader");
 
 //the g encodes: read + write + eraseable
-static struct usb_string_descriptor g_target_desc   = USB_STRING_DESC("@Internal RAM/0x1000/0064*0002Kg");
-static struct usb_string_descriptor g_exttarget_desc   = USB_STRING_DESC("@External flash/0x1000/0064*0002Kg");
+static struct usb_string_descriptor g_target_desc      = USB_STRING_DESC("@Internal RAM/0x1000/0128*0001Kg");
+static struct usb_string_descriptor g_exttarget_desc   = USB_STRING_DESC("@External flash/0x1000/0128*0001Kg");
 
 usbd_device g_usbDev;
-
-bool g_usbEnabled;
 
 #define DFU_STATUS_OK 0
 
@@ -176,6 +178,25 @@ dfuState_t g_dfuState = {0, 0, 0, DFU_STATE_DFUIDLE, DFU_STATUS_OK,  0, false};
 
 FATFS g_fatfs;
 
+#define TARFILENAME_MAX 64
+
+typedef struct {
+	bool usbEnabled;
+	uint32_t downloadedLast;
+	uint32_t ledCycle;
+
+	uint8_t * memStart; //always equivalent to g_DfuMem,
+	size_t memSize; //maximum allowed size, equivalent to g_DfuMemSize
+	size_t tarSize;
+	bool savedToDisk;
+	bool inFile;
+	char filename[TARFILENAME_MAX];
+	bool watchdogEnforced;
+	bool watchdogEnabled;
+} loaderState_t;
+
+//Only functions starting with Loader shall use this global variable directly
+loaderState_t g_loaderState;
 
 
 //================== code for USB DFU ==============
@@ -261,11 +282,12 @@ void DfuGetStatus(uint8_t * out) {
 	out[4] = g_dfuState.state; //state after this command
 	out[5] = 0; //status descriptor index
 	//more or less the call of GetStatus should execute the current state, so
-	//the call des the transition to the next state.
+	//the call does the transition to the next state.
 	if (g_dfuState.state == DFU_STATE_DNBUSY) {
 		g_dfuState.state = DFU_STATE_DFUIDLE;
 	}
 	if (g_dfuState.state == DFU_STATE_MANIFEST_SYNC) {
+		//printfNowait("Start prog\r\n");
 		g_dfuState.state = DFU_STATE_MANIFEST;
 		g_dfuState.commStartProgram = true;
 	}
@@ -355,7 +377,7 @@ void DfuDownloadBlock(const uint8_t * data, size_t dataLen, uint32_t wValue) {
 			}
 		}
 		if (data[0] == 0x91) { //read unprotected. Not called by dfu-upload
-			printfNowait("read unprotected\r\n");
+			//printfNowait("read unprotected\r\n");
 		}
 	}
 }
@@ -424,8 +446,13 @@ void mainMenu(void) {
 	printf("l: List flash content\r\n");
 	printf("h: This screen\r\n");
 	printf("r: Reboot with reset controller\r\n");
-	printf("s: Jump to DFU bootloader\r\n");
+	printf("b: Jump to ST DFU bootloader\r\n");
 	printf("u: Toggle USB device\r\n");
+	printf("i: Configure to use 128x128 ST7735 as display\r\n");
+	printf("j: Configure to use 160x128 ST7735 as display\r\n");
+	printf("k: Configure to not use a display\r\n");
+	printf("n: Configure to use 320x240 ILI9341 as display\r\n");
+	printf("wasd: Control input keys in menu\r\n");
 }
 
 void printHex(const uint8_t * data, size_t len) {
@@ -437,17 +464,30 @@ void printHex(const uint8_t * data, size_t len) {
 	}
 }
 
-void loaderInit(void) {
-	Led1Red();
-	PeripheralPowerOff();
-	HAL_Delay(500);
-	PeripheralPowerOn();
-	Rs232Init();
-	printf("Loader 0.2\r\n");
-	FlashEnable(64); //250kHz
-	FRESULT fres = f_mount(&g_fatfs, "0", 1);
-	if (fres == FR_NO_FILESYSTEM) {
-		printf("No filesystem, formatting...\r\n");
+void LoaderUpdateFsGui(void) {
+	DWORD freeclusters;
+	FATFS * pff = NULL;
+	if (f_getfree("0", &freeclusters, &pff) == FR_OK) {
+		uint32_t clustersize = pff->csize;
+		uint32_t freesectors = freeclusters * clustersize;
+		uint32_t totalsectors = (pff->n_fatent - 2) * clustersize;
+		uint32_t freeB = freesectors * FF_MIN_SS;
+		uint32_t totalB = totalsectors * FF_MIN_SS;
+		GuiShowFsData(totalB, freeB, totalsectors, clustersize * FF_MIN_SS);
+	}
+}
+
+//this call assumes an unmounted filesystem
+bool LoaderMountFormat(bool formatForce) {
+	FRESULT fres;
+	if (formatForce == false) {
+		fres = f_mount(&g_fatfs, "0", 1);
+		if (fres == FR_NO_FILESYSTEM) {
+			printf("No filesystem, formatting...\r\n");
+			formatForce = true;
+		}
+	}
+	if (formatForce) {
 		uint32_t buffer[512];
 		fres = f_mkfs ("0", NULL, &buffer, sizeof(buffer));
 		if (fres == FR_OK) {
@@ -470,18 +510,53 @@ void loaderInit(void) {
 			       (unsigned int)totalsectors, (unsigned int)totalkib,
 			       (unsigned int)freesectors,  (unsigned int)freekib, (unsigned int)clustersize);
 		}
+		FILINFO fi;
+		if (f_stat("/bin", &fi) == FR_NO_FILE) {
+			f_mkdir("/bin");
+		}
+		if (f_stat("/etc", &fi) == FR_NO_FILE) {
+			f_mkdir("/etc");
+		}
+		return true;
 	} else {
 		printf("Error, mounting returned %u\r\n", (unsigned int)fres);
+		return false;
 	}
-	FILINFO fi;
-	if (f_stat("/bin", &fi) == FR_NO_FILE) {
-		f_mkdir("/bin");
+}
+
+bool LoaderFormat(void) {
+	f_unmount("0");
+	bool success = LoaderMountFormat(true);
+	GuiUpdateFilelist();
+	LoaderUpdateFsGui();
+	return success;
+}
+
+void LoaderInit(void) {
+	Led1Yellow();
+	PeripheralPowerOff();
+	HAL_Delay(1000);
+	PeripheralPowerOn();
+	Rs232Init();
+	printf("\r\nLoader %s\r\n", APPVERSION);
+	FlashEnable(64); //250kHz
+	LoaderMountFormat(false);
+	g_loaderState.memStart = g_DfuMem;
+	g_loaderState.memSize = g_DfuMemSize;
+	char autostartName[TARFILENAME_MAX];
+	if (LoaderAutostartGet(autostartName, TARFILENAME_MAX)) {
+		if (strlen(autostartName) > 3) {
+			if ((KeyUpPressed() == false) && (Rs232GetChar() != 'w')) {
+				printf("Autostart for %s. 'w' (RS232) or 'up' key interrupts.\r\n", autostartName);
+				if (LoaderTarLoad(autostartName)) {
+					LoaderProgramStart();
+				}
+			}
+		}
 	}
-	//LcdEnable();
-	//LcdBacklightOn();
-	//LcdInit(ST7735);
-	//LcdInit(ILI9341);
-	printf("\r\nStarting USB\r\n");
+	GuiInit();
+	LoaderUpdateFsGui();
+	printf("Starting USB\r\n");
 	int32_t result = UsbStart(&g_usbDev, &usbSetConf, &usbControl, &usbGetDesc);
 	if (result == -1) {
 		printf("Error, failed to start 48MHz clock. Error: %u\r\n", (unsigned int)result);
@@ -490,8 +565,10 @@ void loaderInit(void) {
 		printf("Error, failed to set USB clock source\r\n");
 	}
 	if (result >= 0) {
-		g_usbEnabled = true;
+		g_loaderState.usbEnabled = true;
 	}
+	Led1Green();
+	printf("Ready. Press h for available commands\r\n");
 }
 
 void listFiles(const char * path) {
@@ -513,6 +590,7 @@ void listFiles(const char * path) {
 void listStorage(void) {
 	listFiles("/");
 	listFiles("/bin");
+	listFiles("/etc");
 }
 
 void readSerialLine(char * input, size_t len) {
@@ -537,6 +615,7 @@ void PrepareOtherProgam(void) {
 	//first all peripheral clocks should be disabled
 	UsbStop(); //stops USB clock
 	AdcStop(); //stops ADC clock
+	LcdBacklightOff();
 	Rs232Flush();
 	PeripheralPowerOff(); //stops SPI2 clock, also RS232 level converter will stop
 	Rs232Stop(); //stops UART1 clock
@@ -553,38 +632,28 @@ void JumpDfu(void) {
 	McuStartOtherProgram((void *)dfuStart, true); //usually does not return
 }
 
-bool JsonValueGet(uint8_t * jsonStart, size_t jsonLen, const char * key, char * valueOut, size_t valueMax) {
-	jsmn_parser p;
-	jsmntok_t t[32];
-	jsmn_init(&p);
-	int elems = jsmn_parse(&p, (char *)jsonStart, jsonLen, t, sizeof(t) / sizeof(t[0]));
-	if (elems < 0) {
-		printf("Error, parsing json failed. Code: %i\r\n", elems);
-		return false;
-	}
-	size_t keyLen = strlen(key);
-	for (int i = 1; i < elems; i += 2) {
-		size_t elemLen = t[i].end - t[i].start;
-		if ((t[i].type == JSMN_STRING) && (elemLen == keyLen)) {
-			if (memcmp(jsonStart + t[i].start, key, keyLen) == 0) {
-				size_t valueLen = t[i + 1].end - t[i + 1].start;
-				if (valueLen < valueMax) {
-					memcpy(valueOut, jsonStart + t[i + 1].start, valueLen);
-					valueOut[valueLen] = '\0';
-					return true;
-				}
-			}
-		}
-	}
-	return false;
-}
-
 bool MetaNameGet(uint8_t * jsonStart, size_t jsonLen, char * nameOut, size_t nameMax) {
 	return JsonValueGet(jsonStart, jsonLen, "name", nameOut, nameMax);
 }
 
 bool MetaMcuGet(uint8_t * jsonStart, size_t jsonLen, char * mcuOut, size_t mcuMax) {
 	return JsonValueGet(jsonStart, jsonLen, "mcu", mcuOut, mcuMax);
+}
+
+bool MetaVersionGet(uint8_t * jsonStart, size_t jsonLen, char * nameOut, size_t nameMax) {
+	return JsonValueGet(jsonStart, jsonLen, "version", nameOut, nameMax);
+}
+
+bool MetaDateGet(uint8_t * jsonStart, size_t jsonLen, char * nameOut, size_t nameMax) {
+	return JsonValueGet(jsonStart, jsonLen, "compiled", nameOut, nameMax);
+}
+
+bool MetaLicenseGet(uint8_t * jsonStart, size_t jsonLen, char * nameOut, size_t nameMax) {
+	return JsonValueGet(jsonStart, jsonLen, "license", nameOut, nameMax);
+}
+
+bool MetaAuthorGet(uint8_t * jsonStart, size_t jsonLen, char * nameOut, size_t nameMax) {
+	return JsonValueGet(jsonStart, jsonLen, "author", nameOut, nameMax);
 }
 
 bool MetaWatchdogGet(uint8_t * jsonStart, size_t jsonLen, uint16_t * watchdogOut) {
@@ -633,15 +702,15 @@ bool TarNameGet(uint8_t * tarStart, size_t tarLen, char * nameOut, size_t nameMa
 	return false;
 }
 
-void ProgTarStart(void * tarStart, size_t tarLen) {
+void ProgTarStart(void * tarStart, size_t tarLen, bool watchdogEnforced, bool watchdogEnabled) {
 	uint8_t * fileStart;
 	size_t fileLen;
 	uint8_t * metaStart;
 	size_t metaLen;
-	uint16_t watchdog = 0;
+	uint16_t watchdogTimeout = 0;
 	uintptr_t programStart = 0;
 	if (TarFileStartGet("metadata.json", tarStart, tarLen, &metaStart, &metaLen, NULL)) {
-		if (!MetaWatchdogGet(metaStart, metaLen, &watchdog)) {
+		if (!MetaWatchdogGet(metaStart, metaLen, &watchdogTimeout)) {
 			printf("Warning, no watchdog value present\r\n");
 		}
 		if (!MetaProgramStartGet(metaStart, metaLen, &programStart)) {
@@ -664,9 +733,18 @@ void ProgTarStart(void * tarStart, size_t tarLen) {
 			printf("Starting program with size %u. Md5sum:\r\n", (unsigned int)fileLen);
 			printHex(md5sum, sizeof(md5sum));
 			Led1Green();
-			if (watchdog) {
-				CoprocWatchdogCtrl(watchdog);
-				printf("Watchdog enabled. Timeout %ums\r\n", (unsigned int)watchdog);
+			if (watchdogEnforced) {
+				if (watchdogEnabled) {
+					if (watchdogTimeout == 0) {
+						watchdogTimeout = 5000;
+					}
+				} else {
+					watchdogTimeout = 0;
+				}
+			}
+			if (watchdogTimeout) {
+				CoprocWatchdogCtrl(watchdogTimeout);
+				printf("Watchdog enabled. Timeout %ums\r\n", (unsigned int)watchdogTimeout);
 			}
 			volatile uint32_t * pProgramStart = (uint32_t *)((uintptr_t)ramStart + 0x4);
 			printf("Program start will be at 0x%x\r\n", (unsigned int)(*pProgramStart));
@@ -682,12 +760,14 @@ bool ProgTarCheck(void * tarStart, size_t tarLen) {
 	size_t fileLen = 0;
 	uint8_t * metaStart;
 	size_t metaLen;
-	if (!TarFileStartGet("application.bin", tarStart, tarLen, &fileStart, &fileLen, NULL)) {
-		printf("Error, no application found\r\n");
-		return false;
-	}
 	uint8_t md5sum1[16];
 	uint8_t md5sum2[16];
+	if (!TarFileStartGet("application.bin", tarStart, tarLen, &fileStart, &fileLen, NULL)) {
+		printf("Error, no application found. Tar len: %u\r\n", (unsigned int)tarLen);
+		md5(tarStart, tarLen, md5sum1);
+		printHex(md5sum1, sizeof(md5sum1));
+		return false;
+	}
 	md5(fileStart, fileLen, md5sum1);
 	if (!TarFileStartGet("metadata.json", tarStart, tarLen, &metaStart, &metaLen, NULL)) {
 		printf("Error, no metadata found\r\n");
@@ -717,28 +797,279 @@ bool ProgTarCheck(void * tarStart, size_t tarLen) {
 	return true;
 }
 
-void toggleUsb(void) {
-	if (g_usbEnabled == true) {
+void ToggleUsb(void) {
+	if (g_loaderState.usbEnabled == true) {
 		printf("\r\nStopping USB\r\n");
 		UsbStop();
 		printf("USB disconnected\r\n");
-		g_usbEnabled = false;
+		g_loaderState.usbEnabled = false;
 	} else {
 		printf("\r\nRestarting USB\r\n");
 		int32_t result = UsbStart(&g_usbDev, &usbSetConf, &usbControl, &usbGetDesc);
 		printf("Result: %i\r\n", (int)result);
-		g_usbEnabled = true;
+		g_loaderState.usbEnabled = true;
 	}
 }
 
-void loaderCycle(void) {
-	static uint32_t downloadedLast = 0;
-	static uint32_t size;
+void loaderMemLock(void) {
+	g_dfuState.commMainProcessing = true;
+	__sync_synchronize();
+}
 
-	Led2Green();
-	HAL_Delay(250);
-	Led2Off();
-	HAL_Delay(250);
+void loaderMemUnlock(void) {
+	__sync_synchronize();
+	g_dfuState.commMainProcessing = false; //now the ISR may access again
+	__sync_synchronize();
+}
+
+void LoaderProgramStart(void) {
+	loaderMemLock();
+	if (ProgTarCheck(g_loaderState.memStart, g_loaderState.tarSize)) {
+		ProgTarStart(g_loaderState.memStart, g_loaderState.tarSize,
+		  g_loaderState.watchdogEnforced, g_loaderState.watchdogEnabled); //usually does not return
+	}
+	__disable_irq();
+	g_dfuState.commStartProgram = false;
+	loaderMemUnlock();
+	__enable_irq();
+}
+
+bool LoaderAutostartSet(bool enabled) {
+	bool success = false;
+	char buffer[TARFILENAME_MAX + 64];
+	const char * autostart = "";
+	FIL f;
+	if (enabled) {
+		autostart = g_loaderState.filename;
+	}
+	snprintf(buffer, sizeof(buffer), "{\n  \"filename\": \"%s\"\n}\n", autostart);
+	if (FR_OK == f_open(&f, AUTOSTARTFILE, FA_WRITE | FA_CREATE_ALWAYS)) {
+		UINT written = 0;
+		FRESULT res = f_write(&f, buffer, strlen(buffer), &written);
+		if (res == FR_OK) {
+			success = true;
+			printf("New autostart value set to \"%s\"\r\n", autostart);
+		}
+		f_close(&f);
+		LoaderUpdateFsGui();
+	}
+	return success;
+}
+
+bool LoaderAutostartGet(char * filenameOut, size_t bufferLen) {
+	bool success = false;
+	uint8_t buffer[TARFILENAME_MAX + 64] = {0};
+	FIL f;
+	UINT r = 0;
+	if (FR_OK == f_open(&f, AUTOSTARTFILE, FA_READ)) {
+		FRESULT res = f_read(&f, buffer, sizeof(buffer) - 1, &r);
+		if (res == FR_OK) {
+			if (JsonValueGet(buffer, r, "filename", filenameOut, bufferLen)) {
+				success = true;
+			}
+		} else {
+			printf("Warning, could not read autostart file\r\n");
+		}
+		f_close(&f);
+	}
+	return success;
+}
+
+bool LoaderWatchdogEnforce(bool enabled) {
+	g_loaderState.watchdogEnforced = true;
+	g_loaderState.watchdogEnabled = enabled;
+	return true;
+}
+
+#define TEXT_MAX 20
+
+bool ProgUpdateGui(uint8_t * tarStart, size_t tarLen, const char * filename,
+                   bool inFile, bool watchdogEnforced, bool watchdogEnabled) {
+	uint8_t * metaStart;
+	size_t metaLen;
+	if (!TarFileStartGet("metadata.json", tarStart, tarLen, &metaStart, &metaLen, NULL)) {
+		printf("Error, no metadata found\r\n");
+		return false;
+	}
+	char name[TEXT_MAX] = "\0";
+	char version[TEXT_MAX] = "\0";
+	char author[TEXT_MAX] = "\0";
+	char license[TEXT_MAX] = "\0";
+	char date[TEXT_MAX] = "\0";
+	MetaNameGet(metaStart, metaLen, name, TEXT_MAX);
+	MetaVersionGet(metaStart, metaLen, version, TEXT_MAX);
+	MetaAuthorGet(metaStart, metaLen, author, TEXT_MAX);
+	MetaLicenseGet(metaStart, metaLen, license, TEXT_MAX);
+	MetaDateGet(metaStart, metaLen, date, TEXT_MAX);
+	uint16_t watchdogTimeout = 0;
+	bool watchdog = false;
+	MetaWatchdogGet(metaStart, metaLen, &watchdogTimeout);
+	if (watchdogEnforced) {
+		if (watchdogEnabled) {
+			watchdog = true;
+		}
+	} else if (watchdogTimeout) {
+		watchdog = true;
+	}
+	bool autostart = false;
+	char autostartfile[TARFILENAME_MAX];
+	if ((inFile) && (LoaderAutostartGet(autostartfile, sizeof(autostartfile)))) {
+		if (strcmp(filename, autostartfile) == 0) {
+			autostart = true;
+		}
+	}
+	GuiShowBinData(name, version, author, license, date, watchdog, autostart, inFile);
+	//the data might be missing
+	uint8_t * readmeStart;
+	size_t readmeLen;
+	if (TarFileStartGet("readme.md", tarStart, tarLen, &readmeStart, &readmeLen, NULL)) {
+		GuiShowInfoData((const char *)readmeStart, readmeLen);
+	} else {
+		GuiShowInfoData("No data in tar", 14);
+	}
+	return true;
+}
+
+void LoaderGfxUpdate(void) {
+	uint16_t sx, sy;
+	GuiScreenResolutionGet(&sx, &sy);
+	uint8_t * tarStart = g_loaderState.memStart;
+	size_t tarLen = g_loaderState.tarSize;
+	uint8_t * imageStart = NULL;
+	uint16_t ix = 0;
+	uint16_t iy = 0;
+	size_t imageLen = 0;
+	loaderMemLock();
+	if (ProgTarCheck(tarStart, tarLen)) {
+		if ((sx >= 320) && (sy >= 240)) {
+			if (TarFileStartGet("image320x240.bin", tarStart, tarLen, &imageStart, &imageLen, NULL)) {
+				ix = 320;
+				iy = 240;
+			}
+		}
+		if ((ix == 0) && (sx >= 160) && (sy >= 128)) {
+			if (TarFileStartGet("image160x128.bin", tarStart, tarLen, &imageStart, &imageLen, NULL)) {
+				ix = 160;
+				iy = 128;
+			}
+		}
+		if ((ix == 0) && (sx >= 128) && (sy >= 128)) {
+			if (TarFileStartGet("image128x128.bin", tarStart, tarLen, &imageStart, &imageLen, NULL)) {
+				ix = 128;
+				iy = 128;
+			}
+		}
+		if (ix) {
+			printf("Image found\r\n");
+			GuiShowGfxData(imageStart, imageLen, ix, iy);
+		}
+	}
+	loaderMemUnlock();
+	if (ix == 0) {
+		printf("No image present\r\n");
+		uint8_t fourPixel = ((4-1)<<3) | 0x7; //compressed 4 pixel, white color
+		GuiShowGfxData(&fourPixel, sizeof(fourPixel), 2, 2);
+	}
+}
+
+bool LoaderUpdateGui(void) {
+	return ProgUpdateGui(g_loaderState.memStart, g_loaderState.tarSize,
+	 g_loaderState.filename, g_loaderState.inFile, g_loaderState.watchdogEnforced,
+	 g_loaderState.watchdogEnabled);
+}
+
+bool LoaderTarLoad(const char * filename) {
+	bool success = false;
+	FIL f;
+	if (FR_OK == f_open(&f, filename, FA_READ)) {
+		loaderMemLock();
+		UINT r = 0;
+		FRESULT res = f_read(&f, g_loaderState.memStart, g_loaderState.memSize, &r);
+		if (res == FR_OK) {
+			if (r == g_loaderState.memSize) {
+				printf("Warning, file most likely too large to load\r\n");
+			}
+			strncpy(g_loaderState.filename, filename, TARFILENAME_MAX - 1);
+			g_loaderState.inFile = true;
+			g_loaderState.watchdogEnforced = false;
+			//we let tar do the file size check
+			g_loaderState.tarSize = r;
+			if (ProgTarCheck(g_loaderState.memStart, g_loaderState.tarSize)) {
+				success = LoaderUpdateGui();
+			}
+		}
+		loaderMemUnlock();
+		f_close(&f);
+	} else {
+		printf("Error, could not open %s\r\n", filename);
+	}
+	if (!success) {
+		GuiShowBinData("Load failed", "?", "?", "?", "?", false, false, false);
+	}
+	return success;
+}
+
+bool LoaderTarSave(void) {
+	bool success = false;
+	FIL f;
+	if (strlen(g_loaderState.filename) < 3) {
+		printf("Error, no valid filename to save data\r\n");
+		return false;
+	}
+	if (FR_OK == f_open(&f, g_loaderState.filename, FA_WRITE | FA_CREATE_ALWAYS)) {
+		UINT written = 0;
+		FRESULT res = f_write(&f, g_loaderState.memStart, g_loaderState.tarSize, &written);
+		if (res == FR_OK) {
+			printf("File %s written to disk\r\n", g_loaderState.filename);
+			g_loaderState.inFile = true;
+			success = true;
+		} else {
+			printf("Error, could not write %s. Error %u\r\n", g_loaderState.filename, (unsigned int)res);
+		}
+		f_close(&f);
+		GuiUpdateFilelist();
+		LoaderUpdateFsGui();
+	} else {
+		printf("Error, could not open %s\r\n", g_loaderState.filename);
+	}
+	return success;
+}
+
+bool LoaderTarDelete(void) {
+	bool success = false;
+	if (f_unlink(g_loaderState.filename) == FR_OK) {
+		printf("File %s deleted\r\n", g_loaderState.filename);
+		success = true;
+	}
+	g_loaderState.inFile = false;
+	GuiUpdateFilelist();
+	LoaderUpdateFsGui();
+	return success;
+}
+
+bool LoaderTarSaveDelete(void) {
+	bool success;
+	if (g_loaderState.inFile) {
+		success = LoaderTarDelete();
+	} else {
+		success = LoaderTarSave();
+	}
+	LoaderUpdateGui();
+	return success;
+}
+
+void LoaderCycle(void) {
+	//led flash
+	if (g_loaderState.ledCycle < 25) {
+		Led2Green();
+	} else {
+		Led2Off();
+	}
+	if (g_loaderState.ledCycle >= 50) {
+		g_loaderState.ledCycle = 0;
+	}
+	g_loaderState.ledCycle++;
+
 	char input = Rs232GetChar();
 	if (input) {
 		printf("%c", input);
@@ -747,13 +1078,18 @@ void loaderCycle(void) {
 		case 'l': listStorage(); break;
 		case 'h': mainMenu(); break;
 		case 'r': NVIC_SystemReset(); break;
-		case 's': JumpDfu(); break;
-		case 'u': toggleUsb(); break;
+		case 'b': JumpDfu(); break;
+		case 'u': ToggleUsb(); break;
+		case 'i': GuiLcdSet(ST7735_128); break;
+		case 'j': GuiLcdSet(ST7735_160); break;
+		case 'k': GuiLcdSet(NONE); break;
+		case 'n': GuiLcdSet(ILI9341); break;
 		default: break;
 	}
 	uint32_t downloaded = g_dfuState.bytesDownloaded;
-	if (downloaded != downloadedLast) {
-		downloadedLast = downloaded;
+	if ((downloaded != g_loaderState.downloadedLast) && (downloaded > 0)) {
+		GuiTransferStart();
+		g_loaderState.downloadedLast = downloaded;
 		printf("\rDownloading... %u\r", (unsigned int)downloaded);
 		Rs232Flush(); //needed for PC emulation
 	}
@@ -762,56 +1098,37 @@ void loaderCycle(void) {
 	//startProgram can be set in an other cycle than transferDone becomes true
 	bool startProgram = g_dfuState.commStartProgram;
 	if (transferDone) {
-		g_dfuState.commMainProcessing = true;
+		loaderMemLock();
 	}
 	__enable_irq();
-
 	if (transferDone) {
-		size = g_dfuState.commFileSize;
+		GuiTransferDone();
+		g_loaderState.tarSize = g_dfuState.commFileSize;
+		g_loaderState.watchdogEnforced = false;
 		bool toFlash = g_dfuState.commToFlash;
-		printf("Program with %ubytes transferred\r\n", (unsigned int)size);
-		if (ProgTarCheck(g_DfuMem, size)) {
+		printf("Program with %ubytes transferred\r\n", (unsigned int)g_loaderState.tarSize);
+		if (ProgTarCheck(g_loaderState.memStart, g_loaderState.tarSize)) {
+			g_loaderState.inFile = false;
 			if (toFlash) {
 				char name[32];
-				char filename[64];
-				if (TarNameGet(g_DfuMem, size, name, sizeof(name))) {
-					snprintf(filename, sizeof(filename), "/bin/%s.tar", name);
-					FIL f;
-					if (FR_OK == f_open(&f, filename, FA_WRITE | FA_CREATE_ALWAYS)) {
-						UINT written = 0;
-						FRESULT res = f_write(&f, g_DfuMem, size, &written);
-						if (res == FR_OK) {
-							printf("File %s written to disk\r\n", filename);
-						} else {
-							printf("Error, could not write %s. Error %u\r\n", filename, (unsigned int)res);
-						}
-						f_close(&f);
-					} else {
-						printf("Error, could not open %s\r\n", filename);
-					}
+				if (TarNameGet(g_loaderState.memStart, g_loaderState.tarSize, name, sizeof(name))) {
+					snprintf(g_loaderState.filename, TARFILENAME_MAX, "/bin/%s.tar", name);
+					LoaderTarSave();
 				} else {
 					printf("Error, could not get program name\r\n");
 				}
 			} else {
 				printf("Valid program in RAM. Awaiting action\r\n");
 			}
+			LoaderUpdateGui();
+			GuiJumpBinScreen();
 		}
 		g_dfuState.commTransferDone = false;
-		__sync_synchronize();
-		g_dfuState.commMainProcessing = false; //now the ISR may access again
-		__sync_synchronize();
+		loaderMemUnlock();
 	}
 	if (startProgram) {
-		__sync_synchronize();
-		g_dfuState.commMainProcessing = true; //no access anylonger
-		__sync_synchronize();
-		if (ProgTarCheck(g_DfuMem, size)) {
-			ProgTarStart(g_DfuMem, size); //usually does not return
-		}
-		__disable_irq();
-		g_dfuState.commStartProgram = false;
-		g_dfuState.commMainProcessing = false;
-		__sync_synchronize();
-		__enable_irq();
+		LoaderProgramStart();
 	}
+	GuiCycle(input);
+	HAL_Delay(10); //call this loop ~100x per second
 }

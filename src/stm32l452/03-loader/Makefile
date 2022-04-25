@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Loader
 #Version of this application, to be used in the metadata
-VERSION  = 0.2.0
+VERSION  = 0.4.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -54,7 +54,7 @@ STARTADDR=`grep "_Code_Start.=" $(LDSCRIPTRAM) | cut -d " " -f3 | sed 's/[;\r]//
 # debug build?
 DEBUG = 1
 # optimization
-OPT = -Og
+OPT = -Os
 
 
 #######################################
@@ -76,6 +76,7 @@ LWIPLIB=$(COMMON)/lwip
 FATFS=$(COMMON)/fatfs
 ALGORITHM=$(COMMON)/algorithm
 JSMN=$(COMMON)/jsmn
+MENUINTERPRETER=$(COMMON)/menuInterpreter
 
 ######################################
 # source
@@ -128,7 +129,12 @@ $(FATFS)/ff.c \
 $(FATFS)/ffunicode.c \
 $(FATFS)/diskio.c \
 $(ALGORITHM)/tarextract.c \
-loader.c
+$(ALGORITHM)/framebufferLowmem.c \
+$(MENUINTERPRETER)/menu-interpreter.c \
+$(MENUINTERPRETER)/menu-text.c \
+loader.c \
+json.c \
+gui.c \
 
 
 # ASM sources
@@ -178,7 +184,8 @@ AS_DEFS =
 # C defines
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
--DSTM32L452xx
+-DSTM32L452xx \
+-DAPPVERSION=\"$(VERSION)\"
 
 
 # AS includes
@@ -198,6 +205,7 @@ C_INCLUDES =  \
 -I$(FATFS) \
 -I$(ALGORITHM) \
 -I$(JSMN)\
+-I$(MENUINTERPRETER)\
 -I.
 
 
@@ -250,17 +258,17 @@ $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
 	$(AS) -c $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/$(TARGETFLASH).elf: $(OBJECTS) Makefile
+$(BUILD_DIR)/$(TARGETFLASH).elf: $(OBJECTS) Makefile | $(BUILD_DIR)
 	$(CC) $(OBJECTS) $(LDFLAGSFLASH) -o $@
 	$(SZ) $@
 
-$(BUILD_DIR)/$(TARGETRAM).elf: $(OBJECTS) Makefile
+$(BUILD_DIR)/$(TARGETRAM).elf: $(OBJECTS) Makefile | $(BUILD_DIR)
 	$(CC) $(OBJECTS) $(LDFLAGSRAM) -o $@
 
 $(BUILD_DIR)/metadata.json: $(BUILD_DIR)/$(TARGETRAM).bin Makefile
 	jq -n --arg date $(DATE) --arg checksum $(MD5SUM) --arg startaddr $(STARTADDR) '{"name":"$(NAME)", "compiled":$$date, "version": "$(VERSION)", "author": "$(AUTHOR)", "license": "$(LICENSE)", "mcu":"$(CHIP)", "md5sum":$$checksum, "watchdog":"$(WATCHDOG)", "appaddr":$$startaddr}' > $@
 
-$(BUILD_DIR)/$(TARGETRAM).tar: $(BUILD_DIR)/$(TARGETRAM).bin $(BUILD_DIR)/metadata.json Makefile
+$(BUILD_DIR)/$(TARGETRAM).tar: $(BUILD_DIR)/$(TARGETRAM).bin $(BUILD_DIR)/metadata.json Makefile | $(BUILD_DIR)
 	tar --create -f $@ --blocking-factor=1 --owner=0 --group=0 $(TARREADME) $(TARIMAGE) $(TARBINARY) $(TARMETA)
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)

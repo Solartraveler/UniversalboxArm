@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MenuConfig Xsize="320" Ysize="240" compact="-1" multilang="0" languages="1" utf8="1" mousesupport="0" fileformat="2" colorFormatRed1="1" colorFormatRed2="5" colorFormatRed3="8" colorFormatGreen1="1" colorFormatGreen2="6" colorFormatGreen3="8" colorFormatBlue1="1" colorFormatBlue2="5" colorFormatBlue3="8" backgroundcolor="16777215" bordercolor="0" textcolor="0" subwindowBordercolor="0" subwindowBackgroundcolor="16777215" displaytype="4" projectinfo="Loader for 128x128, 160x128 and 320x240 LCD" graphviz="0">
+  <window number="1" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="Loading">
+    <label number="1" Xpos="0" Ypos="0" font="4" storagemethod="0" text="Loading..." multilang="0" transparency="0"/>
+    <shortcut number="2" shortcutkey="100" action="" screen="window 2"/>
+    <shortcut number="3" shortcutkey="101" action="" screen="window 3"/>
+    <shortcut number="4" shortcutkey="102" action="" screen="window 4"/>
+  </window>
+  <window number="2" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="select 128x128">
+    <list number="1" Xpos="0" Ypos="0" focusable="-1" rectangle="-1" Xsize="128" Ysize="128" font="4" fontfocus="6" text="BINLIST" storagemethod="1" checkname="BININDEX" action="BINLOAD" screen="window 8" upkey="3" downkey="4" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <shortcut number="2" shortcutkey="103" action="" screen="subwindow 5"/>
+    <shortcut number="3" shortcutkey="2" action="" screen="window 17"/>
+    <shortcut number="4" shortcutkey="104" action="" screen="window 8"/>
+  </window>
+  <window number="3" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="select 160x128">
+    <list number="1" Xpos="0" Ypos="0" focusable="-1" rectangle="-1" Xsize="160" Ysize="128" font="4" fontfocus="6" text="BINLIST" storagemethod="1" checkname="BININDEX" action="BINLOAD" screen="window 9" upkey="3" downkey="4" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <shortcut number="2" shortcutkey="103" action="" screen="subwindow 6"/>
+    <shortcut number="3" shortcutkey="2" action="" screen="window 18"/>
+    <shortcut number="4" shortcutkey="104" action="" screen="window 9"/>
+  </window>
+  <window number="4" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="select 320x240">
+    <list number="1" Xpos="0" Ypos="0" focusable="-1" rectangle="-1" Xsize="320" Ysize="240" font="4" fontfocus="6" text="BINLIST" storagemethod="1" checkname="BININDEX" action="BINLOAD" screen="window 10" upkey="3" downkey="4" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <shortcut number="2" shortcutkey="103" action="" screen="subwindow 7"/>
+    <shortcut number="3" shortcutkey="2" action="" screen="window 19"/>
+    <shortcut number="4" shortcutkey="104" action="" screen="window 10"/>
+  </window>
+  <subwindow number="5" Xpos="16" Ypos="40" Xsize="96" Ysize="48" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="transfer 128x128">
+    <label number="1" Xpos="24" Ypos="57" font="4" storagemethod="0" text="DFU transfer..." multilang="0" transparency="-1"/>
+    <shortcut number="2" shortcutkey="50" action="IMAGELEAVE" screen="RET"/>
+  </subwindow>
+  <subwindow number="6" Xpos="32" Ypos="40" Xsize="96" Ysize="48" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="transfer 160x128">
+    <label number="1" Xpos="46" Ypos="57" font="4" storagemethod="0" text="DFU transfer..." multilang="0" transparency="0"/>
+    <shortcut number="2" shortcutkey="50" action="IMAGELEAVE" screen="RET"/>
+  </subwindow>
+  <subwindow number="7" Xpos="112" Ypos="96" Xsize="96" Ysize="48" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="transfer 320x240">
+    <label number="1" Xpos="120" Ypos="109" font="4" storagemethod="0" text="DFU transfer..." multilang="0" transparency="0"/>
+    <shortcut number="2" shortcutkey="50" action="IMAGELEAVE" screen="RET"/>
+  </subwindow>
+  <window number="8" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="prog 128x128">
+    <label number="1" Xpos="16" Ypos="0" font="4" storagemethod="1" text="BINNAME" multilang="0" transparency="0"/>
+    <label number="2" Xpos="0" Ypos="16" font="4" storagemethod="0" text="Version:" multilang="0" transparency="0"/>
+    <label number="3" Xpos="45" Ypos="16" font="4" storagemethod="1" text="BINVERSION" multilang="0" transparency="0"/>
+    <label number="10" Xpos="0" Ypos="32" font="4" storagemethod="0" text="Author:" multilang="0" transparency="0"/>
+    <label number="11" Xpos="45" Ypos="32" font="4" storagemethod="1" text="BINAUTHOR" multilang="0" transparency="0"/>
+    <label number="12" Xpos="0" Ypos="48" font="4" storagemethod="0" text="License:" multilang="0" transparency="0"/>
+    <label number="13" Xpos="45" Ypos="48" font="4" storagemethod="1" text="BINLICENSE" multilang="0" transparency="0"/>
+    <label number="15" Xpos="0" Ypos="64" font="4" storagemethod="0" text="Date: " multilang="0" transparency="0"/>
+    <label number="16" Xpos="45" Ypos="64" font="4" storagemethod="1" text="BINDATE" multilang="0" transparency="0"/>
+    <box number="14" Xpos="88" Ypos="96" focusable="0" Xsize="32" Ysize="16" color="65280" action="" screen=""/>
+    <button number="4" Xpos="87" Ypos="95" focusable="-1" rectangle="-1" Xsize="34" Ysize="18" font="4" fontfocus="6" text="Run" storagemethod="0" action="BINEXEC" screen="" multilang="0" transparency="-1"/>
+    <checkbox number="5" Xpos="0" Ypos="80" focusable="-1" rectangle="0" Xsize="59" Ysize="9" font="4" fontfocus="6" text="Watchdog" storagemethod="0" checkname="BINWATCHDOG" action="BINWATCHDOG" screen="" multilang="0" transparency="0"/>
+    <checkbox number="8" Xpos="70" Ypos="80" focusable="1" rectangle="0" Xsize="40" Ysize="9" font="4" fontfocus="6" text="Autostart" storagemethod="0" checkname="BINAUTOSTART" action="BINAUTOSTART" screen="" multilang="0" transparency="0"/>
+    <button number="7" Xpos="0" Ypos="95" focusable="1" rectangle="-1" Xsize="40" Ysize="18" font="4" fontfocus="6" text="SAVEDELETE" storagemethod="1" action="BINSAVEDELETE" screen="" multilang="0" transparency="0"/>
+    <button number="9" Xpos="44" Ypos="95" focusable="-1" rectangle="-1" Xsize="40" Ysize="18" font="4" fontfocus="6" text="Info" storagemethod="0" action="BININFO" screen="window 11" multilang="0" transparency="0"/>
+    <shortcut number="17" shortcutkey="2" action="" screen="window 2"/>
+    <shortcut number="18" shortcutkey="103" action="" screen="subwindow 5"/>
+  </window>
+  <window number="9" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="prog 160x128">
+    <label number="1" Xpos="16" Ypos="0" font="4" storagemethod="1" text="BINNAME" multilang="0" transparency="0"/>
+    <label number="2" Xpos="1" Ypos="16" font="4" storagemethod="0" text="Version:" multilang="0" transparency="0"/>
+    <label number="3" Xpos="50" Ypos="16" font="4" storagemethod="1" text="BINVERSION" multilang="0" transparency="0"/>
+    <label number="10" Xpos="1" Ypos="32" font="4" storagemethod="0" text="Author:" multilang="0" transparency="0"/>
+    <label number="11" Xpos="50" Ypos="32" font="4" storagemethod="1" text="BINAUTHOR" multilang="0" transparency="0"/>
+    <label number="12" Xpos="1" Ypos="48" font="4" storagemethod="0" text="License:" multilang="0" transparency="0"/>
+    <label number="13" Xpos="50" Ypos="48" font="4" storagemethod="1" text="BINLICENSE" multilang="0" transparency="0"/>
+    <label number="15" Xpos="1" Ypos="64" font="4" storagemethod="0" text="Date: " multilang="0" transparency="0"/>
+    <label number="16" Xpos="50" Ypos="64" font="4" storagemethod="1" text="BINDATE" multilang="0" transparency="0"/>
+    <box number="14" Xpos="120" Ypos="96" focusable="0" Xsize="32" Ysize="16" color="65280" action="" screen=""/>
+    <button number="4" Xpos="119" Ypos="95" focusable="-1" rectangle="-1" Xsize="34" Ysize="18" font="4" fontfocus="6" text="Run" storagemethod="0" action="BINEXEC" screen="" multilang="0" transparency="-1"/>
+    <checkbox number="5" Xpos="1" Ypos="80" focusable="-1" rectangle="0" Xsize="59" Ysize="9" font="4" fontfocus="6" text="Watchdog" storagemethod="0" checkname="BINWATCHDOG" action="BINWATCHDOG" screen="" multilang="0" transparency="0"/>
+    <checkbox number="8" Xpos="80" Ypos="80" focusable="1" rectangle="0" Xsize="40" Ysize="9" font="4" fontfocus="6" text="Autostart" storagemethod="0" checkname="BINAUTOSTART" action="BINAUTOSTART" screen="" multilang="0" transparency="0"/>
+    <button number="7" Xpos="1" Ypos="95" focusable="1" rectangle="-1" Xsize="40" Ysize="18" font="4" fontfocus="6" text="SAVEDELETE" storagemethod="1" action="BINSAVEDELETE" screen="" multilang="0" transparency="0"/>
+    <button number="9" Xpos="48" Ypos="95" focusable="-1" rectangle="-1" Xsize="30" Ysize="18" font="4" fontfocus="6" text="Info" storagemethod="0" action="BININFO" screen="window 12" multilang="0" transparency="0"/>
+    <button number="19" Xpos="84" Ypos="95" focusable="1" rectangle="-1" Xsize="30" Ysize="18" font="4" fontfocus="6" text="GFX" storagemethod="0" action="IMAGEENTER" screen="window 15" multilang="0" transparency="0"/>
+    <shortcut number="17" shortcutkey="2" action="" screen="window 3"/>
+    <shortcut number="18" shortcutkey="103" action="" screen="subwindow 6"/>
+  </window>
+  <window number="10" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="prog 320x240">
+    <label number="1" Xpos="116" Ypos="16" font="4" storagemethod="1" text="BINNAME" multilang="0" transparency="0"/>
+    <label number="2" Xpos="80" Ypos="48" font="4" storagemethod="0" text="Version:" multilang="0" transparency="0"/>
+    <label number="3" Xpos="136" Ypos="48" font="4" storagemethod="1" text="BINVERSION" multilang="0" transparency="0"/>
+    <label number="10" Xpos="80" Ypos="64" font="4" storagemethod="0" text="Author:" multilang="0" transparency="0"/>
+    <label number="11" Xpos="136" Ypos="64" font="4" storagemethod="1" text="BINAUTHOR" multilang="0" transparency="0"/>
+    <label number="12" Xpos="80" Ypos="80" font="4" storagemethod="0" text="License:" multilang="0" transparency="0"/>
+    <label number="13" Xpos="136" Ypos="80" font="4" storagemethod="1" text="BINLICENSE" multilang="0" transparency="0"/>
+    <label number="15" Xpos="80" Ypos="96" font="4" storagemethod="0" text="Date: " multilang="0" transparency="0"/>
+    <label number="16" Xpos="136" Ypos="96" font="4" storagemethod="1" text="BINDATE" multilang="0" transparency="0"/>
+    <box number="14" Xpos="200" Ypos="160" focusable="0" Xsize="40" Ysize="16" color="65280" action="" screen=""/>
+    <button number="4" Xpos="199" Ypos="159" focusable="-1" rectangle="-1" Xsize="42" Ysize="18" font="4" fontfocus="6" text="Run" storagemethod="0" action="BINEXEC" screen="" multilang="0" transparency="-1"/>
+    <checkbox number="5" Xpos="80" Ypos="112" focusable="-1" rectangle="0" Xsize="59" Ysize="9" font="4" fontfocus="6" text="Watchdog" storagemethod="0" checkname="BINWATCHDOG" action="BINWATCHDOG" screen="" multilang="0" transparency="0"/>
+    <checkbox number="8" Xpos="80" Ypos="128" focusable="1" rectangle="0" Xsize="40" Ysize="9" font="4" fontfocus="6" text="Autostart" storagemethod="0" checkname="BINAUTOSTART" action="BINAUTOSTART" screen="" multilang="0" transparency="0"/>
+    <button number="7" Xpos="56" Ypos="159" focusable="1" rectangle="-1" Xsize="42" Ysize="18" font="4" fontfocus="6" text="SAVEDELETE" storagemethod="1" action="BINSAVEDELETE" screen="" multilang="0" transparency="0"/>
+    <button number="9" Xpos="104" Ypos="159" focusable="-1" rectangle="-1" Xsize="42" Ysize="18" font="4" fontfocus="6" text="Info" storagemethod="0" action="BININFO" screen="window 13" multilang="0" transparency="0"/>
+    <button number="19" Xpos="152" Ypos="159" focusable="1" rectangle="1" Xsize="42" Ysize="18" font="4" fontfocus="6" text="GFX" storagemethod="0" action="IMAGEENTER" screen="window 16" multilang="0" transparency="0"/>
+    <shortcut number="17" shortcutkey="2" action="" screen="window 4"/>
+    <shortcut number="18" shortcutkey="103" action="" screen="subwindow 7"/>
+  </window>
+  <window number="11" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="info 128x128">
+    <list number="1" Xpos="0" Ypos="0" focusable="-1" rectangle="-1" Xsize="128" Ysize="128" font="4" fontfocus="4" text="BININFO" storagemethod="1" checkname="BININFO" action="IMAGEENTER" screen="window 14" upkey="0" downkey="0" pageupkey="3" pagedownkey="4" multilang="0" transparency="0"/>
+    <shortcut number="2" shortcutkey="2" action="" screen="window 8"/>
+    <shortcut number="4" shortcutkey="103" action="" screen="subwindow 5"/>
+  </window>
+  <window number="12" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="info 160x128">
+    <list number="1" Xpos="0" Ypos="0" focusable="1" rectangle="1" Xsize="160" Ysize="128" font="4" fontfocus="4" text="BININFO" storagemethod="1" checkname="BININFO" action="IMAGEENTER" screen="window 15" upkey="0" downkey="0" pageupkey="3" pagedownkey="4" multilang="0" transparency="0"/>
+    <shortcut number="2" shortcutkey="2" action="" screen="window 9"/>
+    <shortcut number="4" shortcutkey="103" action="" screen="subwindow 6"/>
+  </window>
+  <window number="13" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="info 320x240">
+    <list number="1" Xpos="0" Ypos="0" focusable="1" rectangle="1" Xsize="320" Ysize="240" font="4" fontfocus="4" text="BININFO" storagemethod="1" checkname="BININFO" action="IMAGEENTER" screen="window 16" upkey="0" downkey="0" pageupkey="3" pagedownkey="4" multilang="0" transparency="0"/>
+    <shortcut number="2" shortcutkey="2" action="" screen="window 10"/>
+    <shortcut number="4" shortcutkey="103" action="" screen="subwindow 7"/>
+  </window>
+  <window number="14" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="image 128x128">
+    <gfx number="1" Xpos="0" Ypos="0" focusable="0" rectangle="0" Xsize="128" Ysize="128" text="BINDRAWING" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
+    <shortcut number="2" shortcutkey="1" action="IMAGELEAVE" screen="window 8"/>
+    <shortcut number="3" shortcutkey="2" action="IMAGELEAVE" screen="window 11"/>
+    <shortcut number="4" shortcutkey="3" action="IMAGELEAVE" screen="window 8"/>
+    <shortcut number="5" shortcutkey="4" action="IMAGELEAVE" screen="window 8"/>
+    <shortcut number="6" shortcutkey="103" action="" screen="subwindow 5"/>
+  </window>
+  <window number="15" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="image 160x128">
+    <gfx number="1" Xpos="0" Ypos="0" focusable="0" rectangle="0" Xsize="160" Ysize="128" text="BINDRAWING" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
+    <shortcut number="2" shortcutkey="1" action="IMAGELEAVE" screen="window 9"/>
+    <shortcut number="3" shortcutkey="2" action="IMAGELEAVE" screen="window 12"/>
+    <shortcut number="4" shortcutkey="3" action="IMAGELEAVE" screen="window 9"/>
+    <shortcut number="5" shortcutkey="4" action="IMAGELEAVE" screen="window 9"/>
+    <shortcut number="6" shortcutkey="103" action="" screen="subwindow 6"/>
+  </window>
+  <window number="16" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="image 320x240">
+    <gfx number="1" Xpos="0" Ypos="0" focusable="0" rectangle="0" Xsize="320" Ysize="240" text="BINDRAWING" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
+    <shortcut number="2" shortcutkey="1" action="IMAGELEAVE" screen="window 10"/>
+    <shortcut number="3" shortcutkey="2" action="IMAGELEAVE" screen="window 13"/>
+    <shortcut number="4" shortcutkey="3" action="IMAGELEAVE" screen="window 13"/>
+    <shortcut number="5" shortcutkey="4" action="IMAGELEAVE" screen="window 13"/>
+    <shortcut number="6" shortcutkey="103" action="" screen="subwindow 7"/>
+  </window>
+  <window number="17" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="filesystem 128x128">
+    <label number="1" Xpos="1" Ypos="16" font="4" storagemethod="0" text="Size:" multilang="0" transparency="0"/>
+    <label number="2" Xpos="1" Ypos="32" font="4" storagemethod="0" text="Free: " multilang="0" transparency="0"/>
+    <label number="3" Xpos="48" Ypos="16" font="4" storagemethod="1" text="DISKSIZE" multilang="0" transparency="0"/>
+    <label number="4" Xpos="48" Ypos="32" font="4" storagemethod="1" text="DISKFREE" multilang="0" transparency="0"/>
+    <label number="9" Xpos="1" Ypos="48" font="4" storagemethod="0" text="Sectors:" multilang="0" transparency="0"/>
+    <label number="10" Xpos="48" Ypos="48" font="4" storagemethod="1" text="DISKSECTORS" multilang="0" transparency="0"/>
+    <label number="11" Xpos="1" Ypos="64" font="4" storagemethod="0" text="Cluster:" multilang="0" transparency="0"/>
+    <label number="12" Xpos="48" Ypos="64" font="4" storagemethod="1" text="DISKCLUSTER" multilang="0" transparency="0"/>
+    <shortcut number="5" shortcutkey="103" action="" screen="subwindow 5"/>
+    <shortcut number="6" shortcutkey="2" action="" screen="window 2"/>
+    <button number="7" Xpos="8" Ypos="95" focusable="-1" rectangle="-1" Xsize="44" Ysize="18" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="window 2" multilang="0" transparency="0"/>
+    <button number="8" Xpos="64" Ypos="95" focusable="1" rectangle="1" Xsize="44" Ysize="18" font="4" fontfocus="6" text="Format" storagemethod="0" action="" screen="subwindow 20" multilang="0" transparency="0"/>
+    <box number="13" Xpos="0" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="255" action="" screen=""/>
+    <box number="14" Xpos="16" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="65280" action="" screen=""/>
+    <box number="15" Xpos="32" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="16711680" action="" screen=""/>
+    <label number="16" Xpos="0" Ypos="1" font="4" storagemethod="0" text=" R   G   B      Loader" multilang="0" transparency="-1"/>
+    <shortcut number="17" shortcutkey="104" action="" screen="window 8"/>
+  </window>
+  <window number="18" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="filesystem 160x128">
+    <label number="1" Xpos="1" Ypos="16" font="4" storagemethod="0" text="Size:" multilang="0" transparency="0"/>
+    <label number="2" Xpos="1" Ypos="32" font="4" storagemethod="0" text="Free: " multilang="0" transparency="0"/>
+    <label number="3" Xpos="48" Ypos="16" font="4" storagemethod="1" text="DISKSIZE" multilang="0" transparency="0"/>
+    <label number="4" Xpos="48" Ypos="32" font="4" storagemethod="1" text="DISKFREE" multilang="0" transparency="0"/>
+    <label number="9" Xpos="1" Ypos="48" font="4" storagemethod="0" text="Sectors:" multilang="0" transparency="0"/>
+    <label number="10" Xpos="48" Ypos="48" font="4" storagemethod="1" text="DISKSECTORS" multilang="0" transparency="0"/>
+    <label number="11" Xpos="1" Ypos="64" font="4" storagemethod="0" text="Cluster:" multilang="0" transparency="0"/>
+    <label number="12" Xpos="48" Ypos="64" font="4" storagemethod="1" text="DISKCLUSTER" multilang="0" transparency="0"/>
+    <shortcut number="5" shortcutkey="103" action="" screen="subwindow 6"/>
+    <shortcut number="6" shortcutkey="2" action="" screen="window 3"/>
+    <button number="7" Xpos="8" Ypos="95" focusable="-1" rectangle="-1" Xsize="44" Ysize="18" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="window 3" multilang="0" transparency="0"/>
+    <button number="8" Xpos="64" Ypos="95" focusable="1" rectangle="1" Xsize="44" Ysize="18" font="4" fontfocus="6" text="Format" storagemethod="0" action="" screen="subwindow 21" multilang="0" transparency="0"/>
+    <label number="13" Xpos="0" Ypos="0" font="4" storagemethod="0" text=" Loader" multilang="0" transparency="0"/>
+    <box number="14" Xpos="0" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="255" action="" screen=""/>
+    <box number="15" Xpos="16" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="65280" action="" screen=""/>
+    <box number="16" Xpos="32" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="16711680" action="" screen=""/>
+    <label number="17" Xpos="0" Ypos="1" font="4" storagemethod="0" text=" R   G   B      Loader" multilang="0" transparency="-1"/>
+    <shortcut number="18" shortcutkey="104" action="" screen="window 9"/>
+  </window>
+  <window number="19" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="filesystem 320x240">
+    <label number="1" Xpos="80" Ypos="48" font="4" storagemethod="0" text="Size:" multilang="0" transparency="0"/>
+    <label number="2" Xpos="80" Ypos="64" font="4" storagemethod="0" text="Free: " multilang="0" transparency="0"/>
+    <label number="3" Xpos="136" Ypos="48" font="4" storagemethod="1" text="DISKSIZE" multilang="0" transparency="0"/>
+    <label number="4" Xpos="136" Ypos="64" font="4" storagemethod="1" text="DISKFREE" multilang="0" transparency="0"/>
+    <label number="9" Xpos="80" Ypos="80" font="4" storagemethod="0" text="Sectors:" multilang="0" transparency="0"/>
+    <label number="10" Xpos="136" Ypos="80" font="4" storagemethod="1" text="DISKSECTORS" multilang="0" transparency="0"/>
+    <label number="11" Xpos="80" Ypos="96" font="4" storagemethod="0" text="Cluster:" multilang="0" transparency="0"/>
+    <label number="12" Xpos="136" Ypos="96" font="4" storagemethod="1" text="DISKCLUSTER" multilang="0" transparency="0"/>
+    <shortcut number="5" shortcutkey="103" action="" screen="subwindow 7"/>
+    <shortcut number="6" shortcutkey="2" action="" screen="window 4"/>
+    <button number="7" Xpos="64" Ypos="136" focusable="-1" rectangle="-1" Xsize="60" Ysize="18" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="window 4" multilang="0" transparency="0"/>
+    <button number="8" Xpos="150" Ypos="136" focusable="-1" rectangle="-1" Xsize="60" Ysize="18" font="4" fontfocus="6" text="Format" storagemethod="0" action="" screen="subwindow 22" multilang="0" transparency="0"/>
+    <box number="13" Xpos="0" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="255" action="" screen=""/>
+    <box number="14" Xpos="16" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="65280" action="" screen=""/>
+    <box number="15" Xpos="32" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="16711680" action="" screen=""/>
+    <label number="16" Xpos="0" Ypos="1" font="4" storagemethod="0" text=" R   G   B" multilang="0" transparency="-1"/>
+    <label number="17" Xpos="100" Ypos="16" font="4" storagemethod="0" text="Loader" multilang="0" transparency="0"/>
+    <shortcut number="18" shortcutkey="104" action="" screen="window 10"/>
+  </window>
+  <subwindow number="20" Xpos="16" Ypos="40" Xsize="96" Ysize="48" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="confirm 128x128">
+    <label number="1" Xpos="24" Ypos="45" font="4" storagemethod="0" text="Really format?" multilang="0" transparency="-1"/>
+    <button number="2" Xpos="24" Ypos="63" focusable="-1" rectangle="1" Xsize="30" Ysize="20" font="4" fontfocus="6" text="No" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
+    <button number="3" Xpos="70" Ypos="63" focusable="1" rectangle="1" Xsize="30" Ysize="20" font="4" fontfocus="6" text="Yes" storagemethod="0" action="STORAGEFORMAT" screen="RET" multilang="0" transparency="0"/>
+  </subwindow>
+  <subwindow number="21" Xpos="32" Ypos="40" Xsize="96" Ysize="48" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="confirm 160x128">
+    <label number="1" Xpos="40" Ypos="45" font="4" storagemethod="0" text="Really format?" multilang="0" transparency="0"/>
+    <button number="2" Xpos="88" Ypos="63" focusable="1" rectangle="1" Xsize="30" Ysize="20" font="4" fontfocus="6" text="No" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
+    <button number="3" Xpos="47" Ypos="63" focusable="-1" rectangle="-1" Xsize="30" Ysize="20" font="4" fontfocus="6" text="Yes" storagemethod="0" action="STORAGEFORMAT" screen="RET" multilang="0" transparency="0"/>
+  </subwindow>
+  <subwindow number="22" Xpos="112" Ypos="96" Xsize="96" Ysize="48" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="confirm 320x240">
+    <label number="1" Xpos="120" Ypos="100" font="4" storagemethod="0" text="Really format?" multilang="0" transparency="0"/>
+    <button number="2" Xpos="120" Ypos="120" focusable="1" rectangle="1" Xsize="30" Ysize="20" font="4" fontfocus="6" text="No" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
+    <button number="3" Xpos="170" Ypos="120" focusable="1" rectangle="1" Xsize="30" Ysize="20" font="4" fontfocus="6" text="Yes" storagemethod="0" action="STORAGEFORMAT" screen="RET" multilang="0" transparency="0"/>
+  </subwindow>
+</MenuConfig>

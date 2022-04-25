@@ -42,6 +42,7 @@ HALLIB=$(SIMCOMMON)/HAL
 FATFS=$(COMMON)/fatfs
 ALGORITHM=$(COMMON)/algorithm
 JSMN=$(COMMON)/jsmn
+MENUINTERPRETER=$(COMMON)/menuInterpreter
 
 ######################################
 # source
@@ -65,7 +66,12 @@ $(FATFS)/ff.c \
 $(FATFS)/ffunicode.c \
 $(FATFS)/diskio.c \
 $(ALGORITHM)/tarextract.c \
-../loader.c
+$(ALGORITHM)/framebufferLowmem.c \
+$(MENUINTERPRETER)/menu-interpreter.c \
+$(MENUINTERPRETER)/menu-text.c \
+../loader.c \
+../json.c \
+../gui.c \
 
 # ASM sources
 ASM_SOURCES =
@@ -101,7 +107,8 @@ AS_DEFS =
 
 # C defines
 C_DEFS =  \
--DPC_SIM
+-DPC_SIM \
+-DAPPVERSION=\"0.0.0\"
 
 
 # AS includes
@@ -117,6 +124,7 @@ C_INCLUDES =  \
 -I$(FATFS) \
 -I$(ALGORITHM) \
 -I$(JSMN)\
+-I$(MENUINTERPRETER)\
 -I.. \
 -I.
 
@@ -148,13 +156,17 @@ $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 $(BUILD_DIR)/$(TARGET): $(OBJECTS) Makefile
-	$(CC) $(OBJECTS) -lpthread -lGL -lglut -lm -o $@
+	$(CC) $(OBJECTS) -lpthread -lglut -lGL -lm -o $@
 
 $(BUILD_DIR):
 	mkdir $@
 
 test: $(BUILD_DIR)/$(TARGET)
-	./$(BUILD_DIR)/$(TARGET) ../../01-blinky-hal/build/Blinky-stm32l452-ram.tar
+	./$(BUILD_DIR)/$(TARGET) ../../02-test-everything-hal/build/*-ram.tar
+
+test2: $(BUILD_DIR)/$(TARGET)
+	./$(BUILD_DIR)/$(TARGET) ../../01-blinky-hal/build/*-ram.tar
+
 
 
 #######################################

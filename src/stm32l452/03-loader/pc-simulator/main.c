@@ -118,12 +118,14 @@ void * UsbDfuUploader(void * parameter) {
 		UsbDfuAbort();
 		UsbDfuGetStatus();
 		//the following is only requested if a :leave is added to dfu-util commands
+#if 0
 		UsbDfuSetAddress(0);
 		UsbDfuGetStatus();
 		UsbDfuGetStatus();
 		UsbDfuSendData(block, NULL, 0);
 		UsbDfuGetStatus();
 		UsbDfuGetStatus();
+#endif
 		//The following would terminate the file and start the new program:
 		//UsbDfuSendData(block, NULL, 0);
 		//UsbDfuGetStatus();
@@ -141,12 +143,12 @@ int main(int argc, char ** argv) {
 	}
 	memset(g_DfuMem, 0xEE, g_DfuMemSize);
 	SimulatedInit();
-	loaderInit();
+	LoaderInit();
 	pthread_t thread;
 	if (argc == 2) {
 		pthread_create(&thread, NULL, &UsbDfuUploader, argv[1]);
 	}
 	while(1) {
-		loaderCycle();
+		LoaderCycle();
 	}
 }

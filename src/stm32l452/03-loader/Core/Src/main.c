@@ -102,7 +102,7 @@ int main(void)
   g_DfuMem = (uint8_t *)&_Ram_Target;
   g_DfuMemSize = (size_t)&_Ram_Target_Size;
 
-  loaderInit();
+  LoaderInit();
 
   /* USER CODE END 2 */
 
@@ -113,7 +113,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    loaderCycle();
+    LoaderCycle();
   }
   /* USER CODE END 3 */
 }
