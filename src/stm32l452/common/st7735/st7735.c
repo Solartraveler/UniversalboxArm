@@ -203,8 +203,8 @@ void st7735_Init(void)
   st7735_WriteReg(LCD_REG_19, 0x00);
   /* Main screen turn on, no delay */
   st7735_WriteReg(LCD_REG_41, 0x00);
-  /* Memory access control: MY = 1, MX = 0, MV = 1, ML = 0 */
-  st7735_WriteReg(LCD_REG_54, 0xA0);
+  /* Memory access control: MY = 1, MX = 0, MV = 1, ML = 0, 0x8 = GBR order */
+  st7735_WriteReg(LCD_REG_54, 0xA8);
 }
 
 /**
