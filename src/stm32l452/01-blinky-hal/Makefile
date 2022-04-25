@@ -30,7 +30,7 @@ WATCHDOG = 10000
 #If the name is not readme.md, --transform needs to be used to adjust the name
 TARREADME = readme.md
 #Add a bitmap image to the tar file. Can be left empty.
-TARIMAGE =
+TARIMAGE = image128x128.ppm
 
 TARGET = $(NAME)-$(CHIP)
 TARGETRAM = $(TARGET)-ram
@@ -64,6 +64,7 @@ OPT = -Og
 BUILD_DIR = build
 
 COMMON=../common
+UTILITIES=../../utilities
 
 STM_HAL=$(COMMON)/STM32L4xx_HAL_Driver
 CMSIS=$(COMMON)/CMSIS
@@ -108,6 +109,8 @@ SZ = $(PREFIX)size
 endif
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
+
+PPM2BIN = $(UTILITIES)/ppm2menuimage/build/ppm2menuimage
 
 #######################################
 # CFLAGS
@@ -189,24 +192,29 @@ vpath %.c $(sort $(dir $(C_SOURCES)))
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
+IMAGES = $(notdir $(TARIMAGE:.ppm=.bin))
+
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
 	$(AS) -c $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/$(TARGETFLASH).elf: $(OBJECTS) Makefile
+$(BUILD_DIR)/$(TARGETFLASH).elf: $(OBJECTS) Makefile | $(BUILD_DIR)
 	$(CC) $(OBJECTS) $(LDFLAGSFLASH) -o $@
 	$(SZ) $@
 
-$(BUILD_DIR)/$(TARGETRAM).elf: $(OBJECTS) Makefile
+$(BUILD_DIR)/$(TARGETRAM).elf: $(OBJECTS) Makefile | $(BUILD_DIR)
 	$(CC) $(OBJECTS) $(LDFLAGSRAM) -o $@
 
 $(BUILD_DIR)/metadata.json: $(BUILD_DIR)/$(TARGETRAM).bin Makefile
 	jq -n --arg date $(DATE) --arg checksum $(MD5SUM) --arg startaddr $(STARTADDR) '{"name":"$(NAME)", "compiled":$$date, "version": "$(VERSION)", "author": "$(AUTHOR)", "license": "$(LICENSE)", "mcu":"$(CHIP)", "md5sum":$$checksum, "watchdog":"$(WATCHDOG)", "appaddr":$$startaddr}' > $@
 
-$(BUILD_DIR)/$(TARGETRAM).tar: $(BUILD_DIR)/$(TARGETRAM).bin $(BUILD_DIR)/metadata.json Makefile
-	tar --create -f $@ --blocking-factor=1 --owner=0 --group=0 $(TARREADME) $(TARIMAGE) $(TARBINARY) $(TARMETA)
+$(BUILD_DIR)/$(IMAGES): $(TARIMAGE)
+	$(PPM2BIN) --compress --input $< --output $@
+
+$(BUILD_DIR)/$(TARGETRAM).tar: $(BUILD_DIR)/$(TARGETRAM).bin $(BUILD_DIR)/$(TARMETA) Makefile $(BUILD_DIR)/$(IMAGES) | $(BUILD_DIR)
+	tar --create -f $@ --blocking-factor=1 --owner=0 --group=0 $(TARREADME) $(TARBINARY) $(TARMETA) $(IMAGES)
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(HEX) $< $@
