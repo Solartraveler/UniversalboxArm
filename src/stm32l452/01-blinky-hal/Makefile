@@ -210,7 +210,7 @@ $(BUILD_DIR)/$(TARGETRAM).elf: $(OBJECTS) Makefile | $(BUILD_DIR)
 $(BUILD_DIR)/metadata.json: $(BUILD_DIR)/$(TARGETRAM).bin Makefile
 	jq -n --arg date $(DATE) --arg checksum $(MD5SUM) --arg startaddr $(STARTADDR) '{"name":"$(NAME)", "compiled":$$date, "version": "$(VERSION)", "author": "$(AUTHOR)", "license": "$(LICENSE)", "mcu":"$(CHIP)", "md5sum":$$checksum, "watchdog":"$(WATCHDOG)", "appaddr":$$startaddr}' > $@
 
-$(BUILD_DIR)/$(IMAGES): $(TARIMAGE)
+$(BUILD_DIR)/$(IMAGES): $(TARIMAGE) | $(BUILD_DIR)
 	$(PPM2BIN) --compress --input $< --output $@
 
 $(BUILD_DIR)/$(TARGETRAM).tar: $(BUILD_DIR)/$(TARGETRAM).bin $(BUILD_DIR)/$(TARMETA) Makefile $(BUILD_DIR)/$(IMAGES) | $(BUILD_DIR)
