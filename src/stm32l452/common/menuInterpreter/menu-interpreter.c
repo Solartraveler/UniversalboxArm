@@ -549,6 +549,15 @@ static void menu_gfx_4Bit_set(SCREENPOS x, SCREENPOS y, uint8_t color4Bit) {
 	r = r << (8 - MENU_COLOR_CUSTOM##ID##_RED_BITS);\
 	g = g << (8 - MENU_COLOR_CUSTOM##ID##_GREEN_BITS);\
 	b = b << (8 - MENU_COLOR_CUSTOM##ID##_BLUE_BITS);\
+	if (r == (MENU_COLOR_CUSTOM##ID##_RED_MASK >> MENU_COLOR_CUSTOM##ID##_RED_LSB_POS << (8 - MENU_COLOR_CUSTOM##ID##_RED_BITS))) {\
+		r = 0xFF;\
+	}\
+	if (g == (MENU_COLOR_CUSTOM##ID##_GREEN_MASK >> MENU_COLOR_CUSTOM##ID##_GREEN_LSB_POS << (8 - MENU_COLOR_CUSTOM##ID##_GREEN_BITS))) {\
+		g = 0xFF;\
+	}\
+	if (b == (MENU_COLOR_CUSTOM##ID##_BLUE_MASK >> MENU_COLOR_CUSTOM##ID##_BLUE_LSB_POS << (8 - MENU_COLOR_CUSTOM##ID##_BLUE_BITS))) {\
+		b = 0xFF;\
+	}\
 	c = menu_gfx_rgb_to_screencolor(r, g, b);
 
 
@@ -1176,12 +1185,11 @@ static void menu_handle_listbox(MENUADDR addr, uint8_t key) {
 			uint16_t textlines = menu_list_lines(baseaddr, storage);
 			if (nvalue > 32000) //indicates an underflow
 				nvalue = 0;
-			if (nvalue >= textlines) //indicaes an overflow
+			if (nvalue >= textlines) //indicates an overflow
 				nvalue = textlines-1;
 			if (nvalue != menu_listindexstate[listindex]) {
 				menu_listindexstate[listindex] = nvalue;
-				if (action)
-				{
+				if (action) {
 					menu_action(action + 1); //the index change action is always +1 of the normal enter action
 				}
 				menu_redraw();
