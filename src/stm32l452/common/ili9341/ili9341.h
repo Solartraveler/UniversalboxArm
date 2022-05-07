@@ -215,6 +215,7 @@ void Ili9341WritePixel(uint16_t x, uint16_t y, uint16_t color);
 void Ili9341DrawHLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length);
 void Ili9341DrawVLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length);
 void Ili9341WritePixel(uint16_t x, uint16_t y, uint16_t color);
+void Ili9341WriteArray(const uint8_t * colors, uint16_t length);
 
 /* LCD IO functions */
 void LcdCsOff(void);

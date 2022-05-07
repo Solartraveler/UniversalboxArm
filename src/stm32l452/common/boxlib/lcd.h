@@ -33,4 +33,6 @@ void LcdTestpattern(void);
 
 void LcdCommandData(uint8_t command, const uint8_t * dataOut, uint8_t * dataIn, size_t len);
 
+
+//TODO: Currently this function only works with a height = 1 rectangle.
 void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint8_t * data, size_t len);

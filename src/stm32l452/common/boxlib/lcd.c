@@ -150,19 +150,16 @@ void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const
 			LCD_IO_WriteReg(LCD_REG_44);
 			LCD_IO_WriteMultipleData(data, width * 2);
 		}
-	}
-	if (g_LcdType == ILI9341) {
-		//TODO increase speed
-			for (uint32_t yi = y; yi < (y + height); yi++) {
-				for (uint32_t xi = x; xi < (x + width); xi++) {
-					uint16_t color = (*data) + ((*(data + 1)) << 8);
-					LcdWritePixel(xi, yi, color);
-					if (len >= 2) {
-						data += 2;
-						len -= 2;
-					}
-				}
+	} else if (g_LcdType == ILI9341) {
+		uint16_t h = ili9341_GetLcdPixelHeight();
+		uint16_t w = ili9341_GetLcdPixelWidth();
+		if ((y + height) <= h) {
+			if (width > w) {
+				width = w;
 			}
+			Ili9341SetWindowStart(x, width, y, y + 1);
+			Ili9341WriteArray(data, width * 2);
+		}
 	}
 }
 
