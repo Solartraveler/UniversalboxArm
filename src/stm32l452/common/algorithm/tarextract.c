@@ -22,6 +22,7 @@ bool TarFileStartGet(const char * filename, uint8_t * tarData, size_t tarLen,  u
 	while (tarLen >= BLOCKSIZE) {
 		size_t len = TarParseOctal((const char *)tarData + 124, 12);
 		const char * name = (const char *)tarData;
+		const char * date = (const char *)tarData + 136;
 		//printf("%s - %s - %u\n", name, (char *)tarData + 124, len);
 		tarData += BLOCKSIZE;
 		tarLen -= BLOCKSIZE;
@@ -32,7 +33,7 @@ bool TarFileStartGet(const char * filename, uint8_t * tarData, size_t tarLen,  u
 			*startAddress = tarData;
 			*fileLen = len;
 			if (timestamp) {
-				*timestamp = TarParseOctal((const char *)tarData + 136, 12);
+				*timestamp = TarParseOctal(date, 12);
 			}
 			return true;
 		} else {
