@@ -79,18 +79,17 @@ void UsbDfuAbort(void) {
 }
 
 //The commands send represent those found by using dfu-util
-void * UsbDfuUploader(void * parameter) {
-	const char * filename = (const char*)parameter;
+bool UsbDfuUploader(const char * filename, uint32_t alternateInterface, bool leaveAfterProgram) {
 	FILE * f = fopen(filename, "rb");
 	if (f) {
 		printf("Filling with DFU packets\n");
-		//1. set interface to alternate 1
-		UsbSetInterface(1);
+		//1. set interface to alternate 0 or 1.
+		UsbSetInterface(alternateInterface);
 		//2. check if we are in dfu idle state
 		uint8_t status = UsbDfuGetStatus();
 		if (status != 2) {
 			printf("Error, status not DFU idle. Returned %u\n", status);
-			return NULL;
+			return false;
 		}
 		//copy file
 		size_t blocksize = USB_BUFFERSIZE_BYTES - 8;
@@ -111,26 +110,61 @@ void * UsbDfuUploader(void * parameter) {
 				UsbDfuGetStatus();
 				block++;
 				offset += r;
-				usleep(50000);
+				usleep(10000);
 			}
 		} while (r == blocksize);
 		fclose(f);
 		UsbDfuAbort();
 		UsbDfuGetStatus();
-		//the following is only requested if a :leave is added to dfu-util commands
-#if 0
-		UsbDfuSetAddress(0);
-		UsbDfuGetStatus();
-		UsbDfuGetStatus();
-		UsbDfuSendData(block, NULL, 0);
-		UsbDfuGetStatus();
-		UsbDfuGetStatus();
-#endif
-		//The following would terminate the file and start the new program:
-		//UsbDfuSendData(block, NULL, 0);
-		//UsbDfuGetStatus();
+		//the following simulates if a :leave is added to dfu-util commands
+		if (leaveAfterProgram) {
+			UsbDfuSetAddress(0);
+			UsbDfuGetStatus();
+			UsbDfuGetStatus();
+			UsbDfuSendData(block, NULL, 0);
+			UsbDfuGetStatus();
+			UsbDfuGetStatus();
+		}
+		return true;
 	} else {
 		printf("Error, could not open %s\n", filename);
+	}
+	return false;
+}
+
+typedef struct {
+	char ** argv;
+	int argc;
+} commandList_t;
+
+void * CommandProcessor(void * parameter) {
+	commandList_t * pCl = (commandList_t *)parameter;
+	int argc = pCl->argc;
+	char ** argv = pCl->argv;
+	for (int i = 0; i < argc; i++) {
+		if ((i + 1) < argc) {
+			if (strcmp(argv[i], "--Upload") == 0) {
+				UsbDfuUploader(argv[i + 1], 0, false);
+				i++;
+			} else if (strcmp(argv[i], "--UploadWrite") == 0) {
+				UsbDfuUploader(argv[i + 1], 1, false);
+				i++;
+			} else if (strcmp(argv[i], "--UploadRun") == 0) {
+				UsbDfuUploader(argv[i + 1], 0, true);
+				i++;
+			} else if (strcmp(argv[i], "--UploadWriteRun") == 0) {
+				UsbDfuUploader(argv[i + 1], 1, true);
+				i++;
+			} else if (strcmp(argv[i], "--Sleep") == 0) {
+				sleep(atoi(argv[i + 1]));
+				i++;
+			} else {
+				printf("Error, Command >%s< is unknown\n", argv[i]);
+				break;
+			}
+		} else {
+			printf("Error, command >%s< is missing a parameter\n", argv[i]);
+		}
 	}
 	return NULL;
 }
@@ -145,8 +179,11 @@ int main(int argc, char ** argv) {
 	SimulatedInit();
 	LoaderInit();
 	pthread_t thread;
-	if (argc == 2) {
-		pthread_create(&thread, NULL, &UsbDfuUploader, argv[1]);
+	if (argc > 1) {
+		commandList_t cl;
+		cl.argv = argv + 1;
+		cl.argc = argc - 1;
+		pthread_create(&thread, NULL, &CommandProcessor, &cl);
 	}
 	while(1) {
 		LoaderCycle();

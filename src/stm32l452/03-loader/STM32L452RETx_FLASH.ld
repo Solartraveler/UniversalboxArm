@@ -56,10 +56,17 @@ ENTRY(Reset_Handler)
 _estack = 0x20028000;    /* end of RAM */
 /* Generate a link error if heap and stack don't fit into RAM */
 _Min_Heap_Size = 0x200;      /* required amount of heap  */
-_Min_Stack_Size = 0x400; /* required amount of stack */
+_Min_Stack_Size = 0x800; /* required amount of stack */
 
 _Ram_Target = 0x20000000;
 _Ram_Target_Size = 128K;
+
+/*
+The loader in the flash uses the 160KiB RAM like this:
+0...128KiB: Area to load other programs into
+128...160KiB: Loader data
+*/
+
 
 /* Specify the memory areas */
 MEMORY

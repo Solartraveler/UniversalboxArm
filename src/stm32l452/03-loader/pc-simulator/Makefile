@@ -162,11 +162,16 @@ $(BUILD_DIR):
 	mkdir $@
 
 test: $(BUILD_DIR)/$(TARGET)
-	./$(BUILD_DIR)/$(TARGET) ../../02-test-everything-hal/build/*-ram.tar
+	./$(BUILD_DIR)/$(TARGET) --UploadRun ../../02-test-everything-hal/build/*-ram.tar
 
 test2: $(BUILD_DIR)/$(TARGET)
-	./$(BUILD_DIR)/$(TARGET) ../../01-blinky-hal/build/*-ram.tar
+	./$(BUILD_DIR)/$(TARGET) --UploadWrite ../../02-test-everything-hal/build/*-ram.tar
 
+test3: $(BUILD_DIR)/$(TARGET)
+	./$(BUILD_DIR)/$(TARGET) --Upload ../../01-blinky-hal/build/*-ram.tar --Sleep 2 --UploadWrite ../../02-test-everything-hal/build/*-ram.tar
+
+test4: $(BUILD_DIR)/$(TARGET)
+	./$(BUILD_DIR)/$(TARGET) --Upload ../../02-test-everything-hal/build/*-ram.tar
 
 
 #######################################

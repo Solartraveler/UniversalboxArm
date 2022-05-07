@@ -334,7 +334,7 @@ void GuiShowInfoData(const char * text, size_t textLen) {
 		/*The word wrap is just a heuristic, it tries to wrap at word ending, but
 		  on long words, the wrap will be in the middle of the word.*/
 		if ((charsUsed < (READMETEXT - 1)) &&
-			  (((pixelsInLine >= maxLinePixel - 8)) ||
+		    (((pixelsInLine >= maxLinePixel - 8)) ||
 		     ((pixelsInLine >= maxLinePixel - 32) && (c == ' ')))) {
 			g_gui.readme[charsUsed] = '\n';
 			charsUsed++;
@@ -439,7 +439,6 @@ void GuiShowGfxData(const uint8_t * data, size_t imageLen, uint16_t x, uint16_t 
 			wptr--;
 		}
 	}
-	//memcpy(g_gui.drawing, data, imageLen);
 }
 
 void GuiShowFsData(uint32_t totalBytes, uint32_t freeBytes, uint32_t sectors, uint32_t clustersize) {

@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <stddef.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "loader.h"
 
@@ -117,8 +118,8 @@ uint8_t g_DeviceConfiguration[] = {
 	0x01, 0x01  //DFU version 1.1
 };
 
-/* The dfu-util can not load to address 0. So we give an offset as workaround
-   the same offset must be encoded in the g_target_desc, g_exttarget_desc and
+/* The dfu-util can not load to address 0. So we give an offset as workaround.
+   The same offset must be encoded in the g_target_desc, g_exttarget_desc and
    dfu-upload.sh scripts
 */
 
@@ -129,9 +130,11 @@ static struct usb_string_descriptor g_manuf_desc_en = USB_STRING_DESC("marwedels
 static struct usb_string_descriptor g_prod_desc_en  = USB_STRING_DESC("UniversalboxARM");
 static struct usb_string_descriptor g_serial_desc   = USB_STRING_DESC("Loader");
 
-//the g encodes: read + write + eraseable
-static struct usb_string_descriptor g_target_desc      = USB_STRING_DESC("@Internal RAM/0x1000/0128*0001Kg");
-static struct usb_string_descriptor g_exttarget_desc   = USB_STRING_DESC("@External flash/0x1000/0128*0001Kg");
+
+#define MAX_DESCRIPTOR_CHARS 48
+//TODO: How to reserve 48 uin16_t in the dynamic array?
+static struct usb_string_descriptor g_target_desc = USB_STRING_DESC("                                               ");
+static struct usb_string_descriptor g_exttarget_desc = USB_STRING_DESC("                                               ");
 
 usbd_device g_usbDev;
 
@@ -191,6 +194,7 @@ typedef struct {
 	bool savedToDisk;
 	bool inFile;
 	char filename[TARFILENAME_MAX];
+	uint32_t unixTimestamp;
 	bool watchdogEnforced;
 	bool watchdogEnabled;
 } loaderState_t;
@@ -498,6 +502,7 @@ bool LoaderMountFormat(bool formatForce) {
 		}
 	}
 	if (fres == FR_OK) {
+		f_setlabel("UniBoxARM"); //up to 11 characters
 		DWORD freeclusters;
 		FATFS * pff = NULL;
 		if (f_getfree("0", &freeclusters, &pff) == FR_OK) {
@@ -532,6 +537,16 @@ bool LoaderFormat(void) {
 	return success;
 }
 
+//bufferOut must have >= elements than strlen(text)
+void LoaderTextToDescriptor(const char * text, struct usb_string_descriptor * pDescr) {
+	size_t l = strlen(text);
+	for (uint32_t i = 0; i < l; i++) {
+		pDescr->wString[i] = text[i];
+	}
+	pDescr->bDescriptorType = USB_DTYPE_STRING;
+	pDescr->bLength = 2 + l * 2;
+}
+
 void LoaderInit(void) {
 	Led1Yellow();
 	PeripheralPowerOff();
@@ -557,6 +572,12 @@ void LoaderInit(void) {
 	GuiInit();
 	LoaderUpdateFsGui();
 	printf("Starting USB\r\n");
+	char buffer[MAX_DESCRIPTOR_CHARS];
+	//the g encodes: read + write + eraseable
+	snprintf(buffer, sizeof(buffer), "@Internal RAM/0x%x/%04u*0001Kg", DFU_FAKEOFFSET, (unsigned int)(g_DfuMemSize / 1024));
+	LoaderTextToDescriptor(buffer, &g_target_desc);
+	snprintf(buffer, sizeof(buffer), "@External flash/0x%x/%04u*0001Kg", DFU_FAKEOFFSET, (unsigned int)(g_DfuMemSize / 1024));
+	LoaderTextToDescriptor(buffer, &g_exttarget_desc);
 	int32_t result = UsbStart(&g_usbDev, &usbSetConf, &usbControl, &usbGetDesc);
 	if (result == -1) {
 		printf("Error, failed to start 48MHz clock. Error: %u\r\n", (unsigned int)result);
@@ -967,7 +988,7 @@ void LoaderGfxUpdate(void) {
 	loaderMemUnlock();
 	if (ix == 0) {
 		printf("No image present\r\n");
-		uint8_t fourPixel = ((4-1)<<3) | 0x7; //compressed 4 pixel, white color
+		uint8_t fourPixel = ((4-1)<<3) | 0x7; //compressed 4 pixel (4-1), white color (0x7)
 		GuiShowGfxData(&fourPixel, sizeof(fourPixel), 2, 2);
 	}
 }
@@ -976,6 +997,13 @@ bool LoaderUpdateGui(void) {
 	return ProgUpdateGui(g_loaderState.memStart, g_loaderState.tarSize,
 	 g_loaderState.filename, g_loaderState.inFile, g_loaderState.watchdogEnforced,
 	 g_loaderState.watchdogEnabled);
+}
+
+void LoaderUpdateTimestamp(void) {
+	uint8_t * startAddr;
+	size_t fileLen;
+	g_loaderState.unixTimestamp = 0;
+	TarFileStartGet("application.bin", g_loaderState.memStart, g_loaderState.tarSize, &startAddr, &fileLen, &(g_loaderState.unixTimestamp));
 }
 
 bool LoaderTarLoad(const char * filename) {
@@ -992,6 +1020,7 @@ bool LoaderTarLoad(const char * filename) {
 			strncpy(g_loaderState.filename, filename, TARFILENAME_MAX - 1);
 			g_loaderState.inFile = true;
 			g_loaderState.watchdogEnforced = false;
+			LoaderUpdateTimestamp();
 			//we let tar do the file size check
 			g_loaderState.tarSize = r;
 			if (ProgTarCheck(g_loaderState.memStart, g_loaderState.tarSize)) {
@@ -1004,9 +1033,21 @@ bool LoaderTarLoad(const char * filename) {
 		printf("Error, could not open %s\r\n", filename);
 	}
 	if (!success) {
+		g_loaderState.inFile = false;
+		g_loaderState.tarSize = 0;
+		g_loaderState.filename[0] = 0;
 		GuiShowBinData("Load failed", "?", "?", "?", "?", false, false, false);
+		GuiShowInfoData("No tar", 6);
 	}
 	return success;
+}
+
+static void UnixToFatTimeDate(uint32_t unixTime, uint32_t * timeOut, uint32_t * dateOut) {
+	time_t tIn = unixTime;
+	struct tm tOut;
+	gmtime_r(&tIn, &tOut);
+	*dateOut = (tOut.tm_year - 80) | ((tOut.tm_mon + 1)<< 5) | (tOut.tm_mday << 9);
+	*timeOut = (tOut.tm_sec >> 1) | (tOut.tm_min << 5) | ((tOut.tm_year - 80) << 11);
 }
 
 bool LoaderTarSave(void) {
@@ -1027,6 +1068,12 @@ bool LoaderTarSave(void) {
 			printf("Error, could not write %s. Error %u\r\n", g_loaderState.filename, (unsigned int)res);
 		}
 		f_close(&f);
+		FILINFO fno = {0};
+		uint32_t date, time;
+		UnixToFatTimeDate(g_loaderState.unixTimestamp, &time, &date);
+		fno.fdate = date;
+		fno.ftime = time;
+		f_utime(g_loaderState.filename, &fno);
 		GuiUpdateFilelist();
 		LoaderUpdateFsGui();
 	} else {
@@ -1102,27 +1149,29 @@ void LoaderCycle(void) {
 	}
 	__enable_irq();
 	if (transferDone) {
-		GuiTransferDone();
 		g_loaderState.tarSize = g_dfuState.commFileSize;
 		g_loaderState.watchdogEnforced = false;
 		bool toFlash = g_dfuState.commToFlash;
 		printf("Program with %ubytes transferred\r\n", (unsigned int)g_loaderState.tarSize);
 		if (ProgTarCheck(g_loaderState.memStart, g_loaderState.tarSize)) {
 			g_loaderState.inFile = false;
+			char name[32];
+			if (TarNameGet(g_loaderState.memStart, g_loaderState.tarSize, name, sizeof(name))) {
+				snprintf(g_loaderState.filename, TARFILENAME_MAX, "/bin/%s.tar", name);
+			} else {
+				g_loaderState.filename[0] = '\0';
+				printf("Error, could not get program name\r\n");
+			}
+			LoaderUpdateTimestamp();
 			if (toFlash) {
-				char name[32];
-				if (TarNameGet(g_loaderState.memStart, g_loaderState.tarSize, name, sizeof(name))) {
-					snprintf(g_loaderState.filename, TARFILENAME_MAX, "/bin/%s.tar", name);
-					LoaderTarSave();
-				} else {
-					printf("Error, could not get program name\r\n");
-				}
+				LoaderTarSave();
 			} else {
 				printf("Valid program in RAM. Awaiting action\r\n");
 			}
 			LoaderUpdateGui();
 			GuiJumpBinScreen();
 		}
+		GuiTransferDone();
 		g_dfuState.commTransferDone = false;
 		loaderMemUnlock();
 	}
