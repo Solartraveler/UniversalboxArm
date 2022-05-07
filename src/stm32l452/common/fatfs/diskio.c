@@ -145,7 +145,11 @@ DRESULT disk_ioctl (
 	return RES_PARERR;
 }
 
+#if (FF_FS_NORTC == 0)
+
 DWORD get_fattime(void)
 {
-	return 1; //TODO
+	return 1; //TODO: Access to RTC
 }
+
+#endif
