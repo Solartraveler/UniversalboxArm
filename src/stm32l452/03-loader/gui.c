@@ -279,8 +279,11 @@ void GuiUpdateFilelist(void) {
 	if (f_opendir(&d, "/bin") == FR_OK) {
 		while (f_readdir(&d, &fi) == FR_OK) {
 			if ((fi.fname[0]) && (FILELISTLEN > offset)) {
-				snprintf(g_gui.fileList + offset, FILELISTLEN - offset, "%s\n", fi.fname);
-				offset += strlen(fi.fname) + 1;
+				snprintf(g_gui.fileList + offset, FILELISTLEN - offset, "%s%s", offset ? "\n" : "", fi.fname);
+				if (offset) {
+					offset++;
+				}
+				offset += strlen(fi.fname);
 			} else {
 				break;
 			}
