@@ -3,6 +3,10 @@
 #include <stdarg.h>
 
 //Configure to your needs. Comment out whats not needed.
+//Or set the defines in femtoVsnprintfConfig.h
+
+#include "femtoVsnprintfConfig.h"
+
 
 
 //Enable for %u support

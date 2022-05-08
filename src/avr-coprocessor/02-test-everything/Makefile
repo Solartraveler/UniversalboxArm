@@ -9,7 +9,11 @@ MCU = attiny861a
 MCUAVRDUDE = attiny861
 FORMAT = ihex
 TARGET = main
-SRC = $(TARGET).c ../common/avr/softtx.c femtoVsnprintf.c ../common/avr/hardware.c
+
+VERYCOMMON=../../common
+ALGORITHM=$(VERYCOMMON)/algorithm
+
+SRC = $(TARGET).c ../common/avr/softtx.c $(ALGORITHM)/femtoVsnprintf.c ../common/avr/hardware.c
 ASRC =
 OPT = -O2 -fweb -Winline -mcall-prologues -mrelax
 
@@ -32,7 +36,7 @@ CSTANDARD = -std=gnu99
 CDEFS =
 
 # Place -I options here
-CINCS = -I avr -I ../common/avr
+CINCS = -I avr -I ../common/avr -I $(ALGORITHM)
 
 
 CDEBUG = -g$(DEBUG)

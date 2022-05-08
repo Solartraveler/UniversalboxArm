@@ -1,11 +1,5 @@
 # Shared files for the STM32L452 processor #
 
-
-# algorightm #
-Useful platform independend algorithm by the author of this project.
-
-License: BSD 3-Clause
-
 ## boxlib ##
 Files from the author of this project
 
