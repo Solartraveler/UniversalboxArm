@@ -681,7 +681,7 @@ bool MetaWatchdogGet(uint8_t * jsonStart, size_t jsonLen, uint16_t * watchdogOut
 	char buffer[16];
 	bool success = JsonValueGet(jsonStart, jsonLen, "watchdog", buffer, sizeof(buffer));
 	if (success) {
-		*watchdogOut = atol(buffer);
+		*watchdogOut = AsciiScanDec(buffer);
 		return true;
 	}
 	return false;
@@ -690,8 +690,7 @@ bool MetaWatchdogGet(uint8_t * jsonStart, size_t jsonLen, uint16_t * watchdogOut
 bool MetaProgramStartGet(uint8_t * jsonStart, size_t jsonLen, uintptr_t * programStart) {
 	char addr[20] = {0};
 	if (JsonValueGet(jsonStart, jsonLen, "appaddr", addr, sizeof(addr))) {
-		unsigned int x = 0;
-		sscanf(addr, "0x%x", &x);
+		uint32_t x = AsciiScanHex(addr);
 		*programStart = x;
 		return true;
 	}
@@ -705,8 +704,7 @@ bool MetaMd5Get(uint8_t * jsonStart, size_t jsonLen, uint8_t * checksumOut) {
 			char tmp[3] = {0};
 			tmp[0] = checksum[i * 2];
 			tmp[1] = checksum[i * 2 + 1];
-			unsigned int out = 0;
-			sscanf(tmp, "%x", &out);
+			uint32_t out = AsciiScanHex(tmp);
 			checksumOut[i] = out;
 		}
 		return true;

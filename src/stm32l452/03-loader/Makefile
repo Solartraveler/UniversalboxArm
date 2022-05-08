@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Loader
 #Version of this application, to be used in the metadata
-VERSION  = 0.5.0
+VERSION  = 0.6.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -85,7 +85,6 @@ MENUINTERPRETER=$(COMMON)/menuInterpreter
 C_SOURCES =  \
 Core/Src/main.c \
 Core/Src/gpio.c \
-Core/Src/rtc.c \
 Core/Src/spi.c \
 Core/Src/usart.c \
 Core/Src/stm32l4xx_it.c \
@@ -101,8 +100,6 @@ $(STM_HAL)/Src/stm32l4xx_hal_pwr.c \
 $(STM_HAL)/Src/stm32l4xx_hal_pwr_ex.c \
 $(STM_HAL)/Src/stm32l4xx_hal_cortex.c \
 $(STM_HAL)/Src/stm32l4xx_hal_exti.c \
-$(STM_HAL)/Src/stm32l4xx_hal_rtc.c \
-$(STM_HAL)/Src/stm32l4xx_hal_rtc_ex.c \
 $(STM_HAL)/Src/stm32l4xx_hal_spi.c \
 $(STM_HAL)/Src/stm32l4xx_hal_spi_ex.c \
 $(STM_HAL)/Src/stm32l4xx_hal_tim.c \
@@ -130,6 +127,7 @@ $(FATFS)/ffunicode.c \
 $(FATFS)/diskio.c \
 $(ALGORITHM)/tarextract.c \
 $(ALGORITHM)/framebufferLowmem.c \
+$(ALGORITHM)/utility.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 loader.c \
@@ -241,6 +239,9 @@ LDFLAGSFLASH = $(LDFLAGS) -T$(LDSCRIPTFLASH)
 # default action: build all
 all: $(BUILD_DIR)/$(TARGETFLASH).elf $(BUILD_DIR)/$(TARGETFLASH).hex $(BUILD_DIR)/$(TARGETFLASH).bin $(BUILD_DIR)/$(TARGETRAM).tar
 
+disassembly: $(BUILD_DIR)/$(TARGETFLASH).disass  $(BUILD_DIR)/$(TARGETRAM).disass
+
+
 
 #######################################
 # build the application
@@ -276,6 +277,9 @@ $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(BIN) $< $@
+
+$(BUILD_DIR)/%.disass: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+	arm-none-eabi-objdump -d $< > $@
 
 $(BUILD_DIR):
 	mkdir $@
