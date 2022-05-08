@@ -128,6 +128,8 @@ $(FATFS)/diskio.c \
 $(ALGORITHM)/tarextract.c \
 $(ALGORITHM)/framebufferLowmem.c \
 $(ALGORITHM)/utility.c \
+$(ALGORITHM)/libcMinsize.c \
+$(ALGORITHM)/femtoVsnprintf.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 loader.c \
