@@ -46,3 +46,9 @@
 #define FB_GREEN_OUT_BITS 6
 #define FB_BLUE_OUT_BITS 5
 
+//Depending of the target platform, its best to use 8, 16, 32 or 64 bit for the bitmask
+#define FB_BITMAP_TYPE uint32_t
+//How many bits should be saved in FB_BITMAP_TYPE? There may *not* be bits left unused!
+#define FB_BITMAP_BITS 32
+
+

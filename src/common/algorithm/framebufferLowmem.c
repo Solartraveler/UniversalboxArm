@@ -15,10 +15,14 @@ But other graphic libraries than then menu-enterpreter can be used.
 
 #include <string.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "framebufferLowmem.h"
 
 #include "boxlib/lcd.h"
+
+//For debug prints only:
+//#include "main.h"
 
 
 /* Include from the project to get the proper configuration
@@ -62,7 +66,8 @@ FB_FRONT_LEVEL
 #define FB_BLOCKS_X ((FB_SIZE_X + FB_COLOR_RES_X - 1) / FB_COLOR_RES_X)
 #define FB_BLOCKS_Y ((FB_SIZE_Y + FB_COLOR_RES_Y - 1) / FB_COLOR_RES_Y)
 
-#define FB_BYTES_X ((FB_SIZE_X + 7) / 8)
+//number of FB_BITMAP_BITS
+#define FB_ELEMENTS_X ((FB_SIZE_X + FB_BITMAP_BITS - 1) / FB_BITMAP_BITS)
 
 #define FB_MISSINGRED_IN   (8 - FB_RED_IN_BITS)
 #define FB_MISSINGGREEN_IN (8 - FB_GREEN_IN_BITS)
@@ -101,7 +106,7 @@ typedef uint64_t fb_DoubleColor_t;
 #define FB_SETGREEN_OUT(color) ((color >> FB_MISSINGGREEN_OUT) << (FB_RED_OUT_BITS))
 #define FB_SETBLUE_OUT(color) ((color >> FB_MISSINGBLUE_OUT) << (FB_GREEN_OUT_BITS + FB_RED_OUT_BITS))
 
-uint8_t g_fbFrontPixel[FB_BYTES_X * FB_SIZE_Y];
+FB_BITMAP_TYPE g_fbFrontPixel[FB_ELEMENTS_X * FB_SIZE_Y];
 fb_DoubleColor_t g_fbColor[FB_BLOCKS_X * FB_BLOCKS_Y];
 FB_SCREENPOS_TYPE g_fbUseX = FB_SIZE_X;
 FB_SCREENPOS_TYPE g_fbUseY = FB_SIZE_Y;
@@ -113,8 +118,8 @@ void menu_screen_set(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y, FB_COLOR_IN_TYPE 
 		uint8_t g = FB_GETGREEN_IN(color);
 		uint8_t b = FB_GETBLUE_IN(color);
 		uint32_t bright = r + g + b;
-		uint32_t index = x / 8 + y * FB_BYTES_X;
-		uint32_t shift = x % 8;
+		uint32_t index = x / FB_BITMAP_BITS + y * FB_ELEMENTS_X;
+		uint32_t shift = x % FB_BITMAP_BITS;
 		uint32_t indexBlock = (x / FB_COLOR_RES_X) + (y / FB_COLOR_RES_Y * FB_BLOCKS_X);
 		if (bright >= g_fbFrontLevel) {
 			g_fbFrontPixel[index] |= (1<<shift);
@@ -127,46 +132,57 @@ void menu_screen_set(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y, FB_COLOR_IN_TYPE 
 }
 
 void menu_screen_flush(void) {
+	//uint32_t timeStart = HAL_GetTick();
 	FB_COLOR_OUT_TYPE line[FB_SIZE_X];
 	uint32_t colorIdxBase = 0;
 	uint32_t colorIdxCntY = 0;
+	FB_COLOR_IN_TYPE colorIn;
+	FB_COLOR_IN_TYPE colorInLast = 0;
+	FB_COLOR_OUT_TYPE colorOut = 0;
 	for (uint32_t y = 0; y < g_fbUseY; y++) {
-		uint32_t bitmapIdxBase = y * FB_BYTES_X;
-		uint32_t bitmapMask = 1;
+		uint32_t bitmapIdxBase = y * FB_ELEMENTS_X;
+		FB_BITMAP_TYPE bitmapMask = 1;
 		uint32_t bitmapIdxOffset = 0;
 		uint32_t colorIdxOffset = 0;
 		uint32_t colorIdxCntX = 0;
+		FB_BITMAP_TYPE pixelData = g_fbFrontPixel[bitmapIdxBase + bitmapIdxOffset];
 		for (uint32_t x = 0; x < g_fbUseX; x++) {
 			uint32_t colorIdx = colorIdxBase + colorIdxOffset;
-			uint8_t pixel8 = g_fbFrontPixel[bitmapIdxBase + bitmapIdxOffset];
-			FB_COLOR_IN_TYPE colorIn;
-			if (pixel8 & bitmapMask) {
+			if (pixelData & bitmapMask) {
 				colorIn = g_fbColor[colorIdx] >> FB_COLOR_IN_BITS_USED;
 			} else {
 				colorIn = g_fbColor[colorIdx] & FB_DOUBLECOLOR_BACK_MASK;
 			}
-			uint8_t r = FB_GETRED_IN(colorIn);
-			uint8_t g = FB_GETGREEN_IN(colorIn);
-			uint8_t b = FB_GETBLUE_IN(colorIn);
-			if (r & 0x80) {
-				r |= ((1<<FB_MISSINGRED_IN) - 1);
+			if (colorIn != colorInLast) {
+				/*The bit calculations take quite a lot CPU time, so 'caching' the
+				  previous converted color nearly doubles the speed of this function
+				  (not counting LcdWriteRect call). */
+				colorInLast = colorIn;
+				uint8_t r = FB_GETRED_IN(colorIn);
+				uint8_t g = FB_GETGREEN_IN(colorIn);
+				uint8_t b = FB_GETBLUE_IN(colorIn);
+				if (r & 0x80) {
+					r |= ((1<<FB_MISSINGRED_IN) - 1);
+				}
+				if (g & 0x80) {
+					g |= ((1<<FB_MISSINGGREEN_IN) - 1);
+				}
+				if (b & 0x80) {
+					b |= ((1<<FB_MISSINGBLUE_IN) - 1);
+				}
+				colorOut = (FB_SETRED_OUT(r)) | (FB_SETGREEN_OUT(g)) | (FB_SETBLUE_OUT(b));
+				//due to little endian, we need to swap the bytes for the transfer later.
+				if (sizeof(FB_COLOR_OUT_TYPE) == 2) {
+					colorOut = (colorOut >> 8) | (colorOut << 8);
+				}
+				//TODO: How do we need to swap for 3byte output data?
 			}
-			if (g & 0x80) {
-				g |= ((1<<FB_MISSINGGREEN_IN) - 1);
-			}
-			if (b & 0x80) {
-				b |= ((1<<FB_MISSINGBLUE_IN) - 1);
-			}
-			line[x] = (FB_SETRED_OUT(r)) | (FB_SETGREEN_OUT(g)) | (FB_SETBLUE_OUT(b));
-			//due to little endian, we need to swap the bytes for the transfer later.
-			if (sizeof(FB_COLOR_OUT_TYPE) == 2) {
-				line[x] = (line[x] >> 8) | (line[x] << 8);
-			}
-			//TODO: How do we need to swap for 3byte output data?
+			line[x] = colorOut;
 			bitmapMask <<= 1;
-			if (bitmapMask == 0x100) {
+			if (bitmapMask == 0) { //thats why there may not be any unused bits in FB_BITMAP_TYPE
 				bitmapMask = 1;
 				bitmapIdxOffset++;
+				pixelData = g_fbFrontPixel[bitmapIdxBase + bitmapIdxOffset];
 			}
 			colorIdxCntX++;
 			if (colorIdxCntX == FB_COLOR_RES_X) {
@@ -181,6 +197,8 @@ void menu_screen_flush(void) {
 			colorIdxBase += FB_BLOCKS_X;
 		}
 	}
+	//uint32_t timeStop = HAL_GetTick();
+	//printf("Redraw took %uticks\r\n", (unsigned int)(timeStop - timeStart));
 }
 
 void menu_screen_size(SCREENPOS x, SCREENPOS y) {
@@ -193,6 +211,6 @@ void menu_screen_frontlevel(uint16_t level) {
 }
 
 void menu_screen_clear(void) {
-	memset(g_fbFrontPixel, 0xFF, (FB_BYTES_X * FB_SIZE_Y) * sizeof(uint8_t));
+	memset(g_fbFrontPixel, 0xFF, (FB_ELEMENTS_X * FB_SIZE_Y) * sizeof(FB_BITMAP_TYPE));
 	memset(g_fbColor, 0xFF, (FB_BLOCKS_X * FB_BLOCKS_Y) * sizeof(fb_DoubleColor_t));
 }
