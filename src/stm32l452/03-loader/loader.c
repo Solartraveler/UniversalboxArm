@@ -550,7 +550,7 @@ void LoaderTextToDescriptor(const char * text, struct usb_string_descriptor * pD
 void LoaderInit(void) {
 	Led1Yellow();
 	PeripheralPowerOff();
-	HAL_Delay(1000);
+	HAL_Delay(500);
 	PeripheralPowerOn();
 	Rs232Init();
 	printf("\r\nLoader %s\r\n", APPVERSION);
