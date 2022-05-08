@@ -214,19 +214,31 @@ void ili9341_Init(void) {
 
 void Ili9341SetWindowStart(uint16_t xStart, uint16_t xEnd, uint16_t yStart, uint16_t yEnd) {
 	//x
-	uint8_t ax[4];
-	ax[0] = xStart >> 8;
-	ax[1] = xStart & 0xFF;
-	ax[2] = xEnd >> 8;
-	ax[3] = xEnd & 0xFF;
-	LcdSend(LCD_COLUMN_ADDR, ax, NULL);
+	static uint16_t xStartLast = 0xFFFF;
+	static uint16_t xEndLast = 0xFFFF;
+	if ((xStartLast != xStart) || (xEndLast != xEnd)) {
+		uint8_t ax[4];
+		ax[0] = xStart >> 8;
+		ax[1] = xStart & 0xFF;
+		ax[2] = xEnd >> 8;
+		ax[3] = xEnd & 0xFF;
+		LcdSend(LCD_COLUMN_ADDR, ax, NULL);
+		xStartLast = xStart;
+		xEndLast = xEnd;
+	}
 	//y
-	uint8_t ay[4];
-	ay[0] = yStart >> 8;
-	ay[1] = yStart & 0xFF;
-	ay[2] = yEnd >> 8;
-	ay[3] = yEnd & 0xFF;
-	LcdSend(LCD_PAGE_ADDR, ay, NULL);
+	static uint16_t yStartLast = 0xFFFF;
+	static uint16_t yEndLast = 0xFFFF;
+	if ((yStartLast != yStart) || (yEndLast != yEnd)) {
+		uint8_t ay[4];
+		ay[0] = yStart >> 8;
+		ay[1] = yStart & 0xFF;
+		ay[2] = yEnd >> 8;
+		ay[3] = yEnd & 0xFF;
+		LcdSend(LCD_PAGE_ADDR, ay, NULL);
+		yStartLast = yStart;
+		yEndLast = yEnd;
+	}
 }
 
 void Ili9341WriteArray(const uint8_t * colors, uint16_t length) {
