@@ -27,17 +27,17 @@
   <subwindow number="5" Xpos="16" Ypos="40" Xsize="96" Ysize="48" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="transfer 128x128">
     <label number="1" Xpos="24" Ypos="57" font="4" storagemethod="0" text="DFU transfer..." multilang="0" transparency="-1"/>
     <shortcut number="2" shortcutkey="50" action="IMAGELEAVE" screen="RET"/>
-    <shortcut number="3" shortcutkey="104" action="" screen="window 8"/>
+    <shortcut number="3" shortcutkey="104" action="IMAGELEAVE" screen="window 8"/>
   </subwindow>
   <subwindow number="6" Xpos="32" Ypos="40" Xsize="96" Ysize="48" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="transfer 160x128">
     <label number="1" Xpos="46" Ypos="57" font="4" storagemethod="0" text="DFU transfer..." multilang="0" transparency="0"/>
     <shortcut number="2" shortcutkey="50" action="IMAGELEAVE" screen="RET"/>
-    <shortcut number="3" shortcutkey="104" action="" screen="window 9"/>
+    <shortcut number="3" shortcutkey="104" action="IMAGELEAVE" screen="window 9"/>
   </subwindow>
   <subwindow number="7" Xpos="112" Ypos="96" Xsize="96" Ysize="48" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="transfer 320x240">
     <label number="1" Xpos="120" Ypos="109" font="4" storagemethod="0" text="DFU transfer..." multilang="0" transparency="0"/>
     <shortcut number="2" shortcutkey="50" action="IMAGELEAVE" screen="RET"/>
-    <shortcut number="3" shortcutkey="104" action="" screen="window 10"/>
+    <shortcut number="3" shortcutkey="104" action="IMAGELEAVE" screen="window 10"/>
   </subwindow>
   <window number="8" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="prog 128x128">
     <label number="1" Xpos="16" Ypos="0" font="4" storagemethod="1" text="BINNAME" multilang="0" transparency="0"/>
