@@ -12,6 +12,9 @@ void NVIC_SystemReset(void);
 
 void HAL_Delay(uint32_t delay);
 
+uint32_t HAL_GetTick(void);
+
+
 extern const uint8_t g_dummyLoader[];
 
 //Not really disabling IRSs, its just a common lock.

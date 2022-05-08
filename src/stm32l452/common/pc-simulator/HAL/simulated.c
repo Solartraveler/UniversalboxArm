@@ -9,6 +9,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <time.h>
 
 #include "simulated.h"
 
@@ -40,6 +41,12 @@ void NVIC_SystemReset(void) {
 
 void HAL_Delay(uint32_t delay) {
 	usleep(delay * 1000);
+}
+
+uint32_t HAL_GetTick(void) {
+	struct timespec t = {0};
+	clock_gettime(CLOCK_MONOTONIC, &t);
+	return (t.tv_sec * 1000) + (t.tv_nsec / 1000000);
 }
 
 void __disable_irq(void) {
