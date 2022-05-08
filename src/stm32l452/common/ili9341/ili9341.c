@@ -38,9 +38,10 @@ void ili9341_Init(void) {
 	   See guessing:
 	   https://forums.adafruit.com/viewtopic.php?f=47&t=69805
 	   But the init sequences from the application note don't use them.
+	   Tests show this can be removed, so we disable it here.
 	*/
-	const uint8_t a1[] = {0x03, 0x80, 0x02};
-	LcdSend(0xEF, a1, NULL);
+	//const uint8_t a1[] = {0x03, 0x80, 0x02};
+	//LcdSend(0xEF, a1, NULL);
 
 	/* Compared to the default values, PCEQ for power saving is enabled.
 	   Not really good documented at all.
@@ -130,12 +131,6 @@ void ili9341_Init(void) {
 	const uint8_t a12[] = {0x28};
 	LcdSend(LCD_MAC, a12, NULL);
 
-	/* Vertical scrolling start address.
-	   As we don't use vertical scrolling, this is most likely unneccessare.
-	*/
-	const uint8_t a13[] = {0x00};
-	LcdSend(LCD_VSCRSADD, a13, NULL);
-
 	/* Default after reset: 0x66 -> RGB and MCU interface uses 18Bit
 	0x55: Both using 16it
 	*/
@@ -171,9 +166,10 @@ void ili9341_Init(void) {
 	/* 3 gamma control disabled. Represents the default value after reset.
 	   No further documentation present.
 	   -> Most likely, this command can be removed
+	   Tested: Works without this line, so disable it
 	*/
-	const uint8_t a17[] = {0x00};
-	LcdSend(LCD_3GAMMA_EN, a17, NULL);
+	//const uint8_t a17[] = {0x00};
+	//LcdSend(LCD_3GAMMA_EN, a17, NULL);
 
 	/* Select gamma 2.2 curve. Up to 4 are available, but the other three are undefined
 	*/
@@ -195,15 +191,16 @@ void ili9341_Init(void) {
 	const uint8_t a21[] = {};
 	LcdSend(LCD_SLEEP_OUT, a21, NULL);
 
-	LCD_Delay(200); //only 5ms according to the datasheet required
+	/* Only 5ms according to the datasheet required, tested with 5ms and it works.
+	   now using 10ms, to have some safety margin
+	*/
+	LCD_Delay(10);
 
 	/* Just enables the display. Does nothing if already on. Default after reset
 	   is off.
 	*/
 	const uint8_t a22[] = {};
 	LcdSend(LCD_DISPLAY_ON, a22, NULL);
-
-	LCD_Delay(200); //propably can be removed
 
 	//As compared to partial mode, in normal mode the whole screen is driven.
 	//Should already be set after reset, so this is propably unneccessary.
