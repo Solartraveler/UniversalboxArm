@@ -142,23 +142,17 @@ void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const
 	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
 		uint16_t h = st7735_GetLcdPixelHeight();
 		uint16_t w = st7735_GetLcdPixelWidth();
-		if ((y + height) <= h) {
-			if (width > w) {
-				width = w;
-			}
-			st7735_SetDisplayWindow(x, y, width, 1);
+		if (((x + width) <= w) && ((y + height) <= h)) {
+			st7735_SetDisplayWindow(x, y, width, height);
 			LCD_IO_WriteReg(LCD_REG_44);
-			LCD_IO_WriteMultipleData(data, width * 2);
+			LCD_IO_WriteMultipleData(data, len);
 		}
 	} else if (g_LcdType == ILI9341) {
 		uint16_t h = ili9341_GetLcdPixelHeight();
 		uint16_t w = ili9341_GetLcdPixelWidth();
-		if ((y + height) <= h) {
-			if (width > w) {
-				width = w;
-			}
-			Ili9341SetWindowStart(x, width, y, y + 1);
-			Ili9341WriteArray(data, width * 2);
+		if (((x + width) <= w) && ((y + height) <= h)) {
+			Ili9341SetWindowStart(x, x + width - 1, y, y + height);
+			Ili9341WriteArray(data, len);
 		}
 	}
 }
@@ -239,7 +233,7 @@ void LcdTestpattern(void) {
 void LCD_IO_Init(void) {
 }
 
-void LCD_IO_WriteMultipleData(uint8_t *pData, uint32_t Size) {
+void LCD_IO_WriteMultipleData(const uint8_t *pData, uint32_t Size) {
 	LcdA0On();
 	LcdTransfer(pData, Size);
 }

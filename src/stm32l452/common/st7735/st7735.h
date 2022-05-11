@@ -168,7 +168,7 @@ void     st7735_DrawBitmap(uint16_t Xpos, uint16_t Ypos, uint8_t *pbmp);
 
 /* LCD IO functions */
 void     LCD_IO_Init(void);
-void     LCD_IO_WriteMultipleData(uint8_t *pData, uint32_t Size);
+void     LCD_IO_WriteMultipleData(const uint8_t *pData, uint32_t Size);
 void     LCD_IO_WriteReg(uint8_t Reg);
 void     LCD_Delay(uint32_t delay);
 /**
