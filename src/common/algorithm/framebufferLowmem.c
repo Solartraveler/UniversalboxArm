@@ -63,8 +63,8 @@ FB_FRONT_LEVEL
 
 #include "framebufferConfig.h"
 
-#define FB_BLOCKS_X ((FB_SIZE_X + FB_COLOR_RES_X - 1) / FB_COLOR_RES_X)
-#define FB_BLOCKS_Y ((FB_SIZE_Y + FB_COLOR_RES_Y - 1) / FB_COLOR_RES_Y)
+#define FB_COLORBLOCKS_X ((FB_SIZE_X + FB_COLOR_RES_X - 1) / FB_COLOR_RES_X)
+#define FB_COLORBLOCKS_Y ((FB_SIZE_Y + FB_COLOR_RES_Y - 1) / FB_COLOR_RES_Y)
 
 //number of FB_BITMAP_BITS
 #define FB_ELEMENTS_X ((FB_SIZE_X + FB_BITMAP_BITS - 1) / FB_BITMAP_BITS)
@@ -107,20 +107,35 @@ typedef uint64_t fb_DoubleColor_t;
 #define FB_SETBLUE_OUT(color) ((color >> FB_MISSINGBLUE_OUT) << (FB_GREEN_OUT_BITS + FB_RED_OUT_BITS))
 
 FB_BITMAP_TYPE g_fbFrontPixel[FB_ELEMENTS_X * FB_SIZE_Y];
-fb_DoubleColor_t g_fbColor[FB_BLOCKS_X * FB_BLOCKS_Y];
+fb_DoubleColor_t g_fbColor[FB_COLORBLOCKS_X * FB_COLORBLOCKS_Y];
 FB_SCREENPOS_TYPE g_fbUseX = FB_SIZE_X;
 FB_SCREENPOS_TYPE g_fbUseY = FB_SIZE_Y;
 uint16_t g_fbFrontLevel = FB_FRONT_LEVEL;
 
+/*This array is only used as performance booster.
+  When no menu_screen_set is done between two menu_screen_clear, a write to the LCD
+  can be skipped. Since we need to write on the So each pixel write sets the counter to 2. A flush must write
+  the block if the counter is non 0 and dercreases the counter by 1. But on the very first
+  flush, we have to write everything
+*/
+#define FB_OUTPUTBLOCKS_X (FB_SIZE_X / FB_OUTPUTBLOCK_X)
+#define FB_OUTPUTBLOCKS_Y (FB_SIZE_Y / FB_OUTPUTBLOCK_Y)
+
+#define FB_WRITTENBLOCKS_X ((FB_SIZE_X + FB_BITMAP_BITS - 1) / FB_BITMAP_BITS)
+#define FB_WRITTENBLOCKS_Y ((FB_SIZE_Y + FB_BITMAP_BITS - 1) / FB_BITMAP_BITS)
+FB_BITMAP_TYPE g_fbWrittenBlock[FB_WRITTENBLOCKS_X * FB_WRITTENBLOCKS_Y];
+uint8_t g_fbWritten;
+
+
 void menu_screen_set(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y, FB_COLOR_IN_TYPE color) {
-	if ((x < FB_SIZE_X) && (y < FB_SIZE_Y)) {
+	if ((x < g_fbUseX) && (y < g_fbUseY)) {
 		uint8_t r = FB_GETRED_IN(color);
 		uint8_t g = FB_GETGREEN_IN(color);
 		uint8_t b = FB_GETBLUE_IN(color);
 		uint32_t bright = r + g + b;
 		uint32_t index = x / FB_BITMAP_BITS + y * FB_ELEMENTS_X;
 		uint32_t shift = x % FB_BITMAP_BITS;
-		uint32_t indexBlock = (x / FB_COLOR_RES_X) + (y / FB_COLOR_RES_Y * FB_BLOCKS_X);
+		uint32_t indexBlock = (x / FB_COLOR_RES_X) + (y / FB_COLOR_RES_Y * FB_COLORBLOCKS_X);
 		if (bright >= g_fbFrontLevel) {
 			g_fbFrontPixel[index] |= (1<<shift);
 			g_fbColor[indexBlock] = (color << FB_COLOR_IN_BITS_USED) | (g_fbColor[indexBlock] & FB_DOUBLECOLOR_BACK_MASK);
@@ -128,25 +143,31 @@ void menu_screen_set(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y, FB_COLOR_IN_TYPE 
 			g_fbFrontPixel[index] &= ~(1<<shift);
 			g_fbColor[indexBlock] = color | (g_fbColor[indexBlock] & FB_DOUBLECOLOR_FRONT_MASK);
 		}
+		//speed improvement
+		uint32_t blockWritten = (x / FB_OUTPUTBLOCK_X) + (y / FB_OUTPUTBLOCK_Y) * FB_WRITTENBLOCKS_X;
+		uint32_t indexWritten = blockWritten / (FB_BITMAP_BITS / 2);
+		uint32_t offsetWritten = blockWritten % (FB_BITMAP_BITS / 2);
+		FB_BITMAP_TYPE maskWrittenHigh = 2 << (offsetWritten * 2);
+		g_fbWrittenBlock[indexWritten] |= maskWrittenHigh; //can now be 2 or 3. 3 is handled as it is a 2.
 	}
 }
 
-void menu_screen_flush(void) {
-	//uint32_t timeStart = HAL_GetTick();
-	FB_COLOR_OUT_TYPE line[FB_SIZE_X];
-	uint32_t colorIdxBase = 0;
+static void FbBlockFlush(const uint16_t startX, const uint16_t startY) {
+	FB_COLOR_OUT_TYPE block[FB_OUTPUTBLOCK_X * FB_OUTPUTBLOCK_Y];
+	uint32_t wptr = 0;
+	uint32_t colorIdxBase = (startX / FB_COLOR_RES_X) + (startY / FB_COLOR_RES_X) * (FB_SIZE_X / FB_COLOR_RES_X);
 	uint32_t colorIdxCntY = 0;
 	FB_COLOR_IN_TYPE colorIn;
 	FB_COLOR_IN_TYPE colorInLast = 0;
 	FB_COLOR_OUT_TYPE colorOut = 0;
-	for (uint32_t y = 0; y < g_fbUseY; y++) {
-		uint32_t bitmapIdxBase = y * FB_ELEMENTS_X;
+	for (uint32_t y = startY; y < (startY + FB_OUTPUTBLOCK_Y); y++) {
+		uint32_t bitmapIdxBase = y * FB_ELEMENTS_X + (startX / FB_BITMAP_BITS);
 		FB_BITMAP_TYPE bitmapMask = 1;
 		uint32_t bitmapIdxOffset = 0;
 		uint32_t colorIdxOffset = 0;
 		uint32_t colorIdxCntX = 0;
 		FB_BITMAP_TYPE pixelData = g_fbFrontPixel[bitmapIdxBase + bitmapIdxOffset];
-		for (uint32_t x = 0; x < g_fbUseX; x++) {
+		for (uint32_t x = startX; x < (startX + FB_OUTPUTBLOCK_X); x++) {
 			uint32_t colorIdx = colorIdxBase + colorIdxOffset;
 			if (pixelData & bitmapMask) {
 				colorIn = g_fbColor[colorIdx] >> FB_COLOR_IN_BITS_USED;
@@ -156,7 +177,7 @@ void menu_screen_flush(void) {
 			if (colorIn != colorInLast) {
 				/*The bit calculations take quite a lot CPU time, so 'caching' the
 				  previous converted color nearly doubles the speed of this function
-				  (not counting LcdWriteRect call). */
+				  (not counting the LcdWriteRect call). */
 				colorInLast = colorIn;
 				uint8_t r = FB_GETRED_IN(colorIn);
 				uint8_t g = FB_GETGREEN_IN(colorIn);
@@ -177,7 +198,8 @@ void menu_screen_flush(void) {
 				}
 				//TODO: How do we need to swap for 3byte output data?
 			}
-			line[x] = colorOut;
+			block[wptr] = colorOut;
+			wptr++;
 			bitmapMask <<= 1;
 			if (bitmapMask == 0) { //thats why there may not be any unused bits in FB_BITMAP_TYPE
 				bitmapMask = 1;
@@ -190,11 +212,36 @@ void menu_screen_flush(void) {
 				colorIdxCntX = 0;
 			}
 		}
-		LcdWriteRect(0, y, g_fbUseX, 1, (const uint8_t*)line, sizeof(line));
 		colorIdxCntY++;
 		if (colorIdxCntY == FB_COLOR_RES_Y) {
 			colorIdxCntY = 0;
-			colorIdxBase += FB_BLOCKS_X;
+			colorIdxBase += FB_COLORBLOCKS_X;
+		}
+	}
+	LcdWriteRect(startX, startY, FB_OUTPUTBLOCK_X, FB_OUTPUTBLOCK_Y, (const uint8_t*)block, sizeof(block));
+}
+
+void menu_screen_flush(void) {
+	//uint32_t timeStart = HAL_GetTick();
+	uint16_t xMax = g_fbUseX / FB_OUTPUTBLOCK_X;
+	uint16_t yMax = g_fbUseY / FB_OUTPUTBLOCK_Y;
+	for (uint32_t y = 0; y < yMax; y++) {
+		for (uint32_t x = 0; x < xMax; x++) {
+			uint32_t blockWritten = x + y * FB_OUTPUTBLOCKS_X;
+			uint32_t indexWritten = blockWritten / (FB_BITMAP_BITS / 2);
+			uint32_t offsetWritten = blockWritten % (FB_BITMAP_BITS / 2);
+			FB_BITMAP_TYPE maskWrittenHigh = 2 << (offsetWritten * 2);
+			FB_BITMAP_TYPE maskWrittenLow = 1 << (offsetWritten * 2);
+			FB_BITMAP_TYPE bitsWritten = g_fbWrittenBlock[indexWritten];
+			if (((maskWrittenHigh | maskWrittenLow) & bitsWritten)) {
+				FbBlockFlush(x * FB_OUTPUTBLOCK_X, y * FB_OUTPUTBLOCK_Y);
+				if (bitsWritten & maskWrittenHigh) { //if 2 -> 1, if 3 -> 1
+					bitsWritten = (bitsWritten & ~maskWrittenHigh) | maskWrittenLow;
+				} else { //if 1 -> 0
+					bitsWritten = bitsWritten & ~maskWrittenLow;
+				}
+				g_fbWrittenBlock[indexWritten] = bitsWritten;
+			}
 		}
 	}
 	//uint32_t timeStop = HAL_GetTick();
@@ -202,8 +249,12 @@ void menu_screen_flush(void) {
 }
 
 void menu_screen_size(SCREENPOS x, SCREENPOS y) {
-	g_fbUseX = x;
-	g_fbUseY = y;
+	if (x <= FB_SIZE_X) {
+		g_fbUseX = x;
+	}
+	if (y <= FB_SIZE_Y) {
+		g_fbUseY = y;
+	}
 }
 
 void menu_screen_frontlevel(uint16_t level) {
@@ -212,5 +263,10 @@ void menu_screen_frontlevel(uint16_t level) {
 
 void menu_screen_clear(void) {
 	memset(g_fbFrontPixel, 0xFF, (FB_ELEMENTS_X * FB_SIZE_Y) * sizeof(FB_BITMAP_TYPE));
-	memset(g_fbColor, 0xFF, (FB_BLOCKS_X * FB_BLOCKS_Y) * sizeof(fb_DoubleColor_t));
+	memset(g_fbColor, 0xFF, (FB_COLORBLOCKS_X * FB_COLORBLOCKS_Y) * sizeof(fb_DoubleColor_t));
+	if (g_fbWritten == 0) {
+		//0x55 -> write each block 1x
+		memset(g_fbWrittenBlock, 0x55, (FB_WRITTENBLOCKS_X * FB_WRITTENBLOCKS_Y) * sizeof(FB_BITMAP_TYPE));
+		g_fbWritten = 1; //first frame needs to be written completely
+	}
 }

@@ -51,4 +51,10 @@
 //How many bits should be saved in FB_BITMAP_TYPE? There may *not* be bits left unused!
 #define FB_BITMAP_BITS 32
 
-
+/*Must be a fraction of FB_SIZEX, FB_SIZEY
+  This block is transferred to the LCD as one write. It needs to be able to be
+  stored on the stack. And can be skipped if it is just the background color and
+  was so already for the previous frame
+*/
+#define FB_OUTPUTBLOCK_X 32
+#define FB_OUTPUTBLOCK_Y 16
