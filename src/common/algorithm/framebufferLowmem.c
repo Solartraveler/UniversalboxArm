@@ -152,8 +152,8 @@ void menu_screen_set(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y, FB_COLOR_IN_TYPE 
 	}
 }
 
-static void FbBlockFlush(const uint16_t startX, const uint16_t startY) {
-	FB_COLOR_OUT_TYPE block[FB_OUTPUTBLOCK_X * FB_OUTPUTBLOCK_Y];
+//block must have FB_OUTPUTBLOCK_X * FB_OUTPUTBLOCK_Y elements
+static void FbBlockFlush(const uint16_t startX, const uint16_t startY, FB_COLOR_OUT_TYPE * block) {
 	uint32_t wptr = 0;
 	uint32_t colorIdxBase = (startX / FB_COLOR_RES_X) + (startY / FB_COLOR_RES_X) * (FB_SIZE_X / FB_COLOR_RES_X);
 	uint32_t colorIdxCntY = 0;
@@ -218,13 +218,20 @@ static void FbBlockFlush(const uint16_t startX, const uint16_t startY) {
 			colorIdxBase += FB_COLORBLOCKS_X;
 		}
 	}
-	LcdWriteRect(startX, startY, FB_OUTPUTBLOCK_X, FB_OUTPUTBLOCK_Y, (const uint8_t*)block, sizeof(block));
+	LcdWriteRect(startX, startY, FB_OUTPUTBLOCK_X, FB_OUTPUTBLOCK_Y, (const uint8_t*)block, FB_OUTPUTBLOCK_X * FB_OUTPUTBLOCK_Y * sizeof(FB_COLOR_OUT_TYPE));
 }
 
 void menu_screen_flush(void) {
 	//uint32_t timeStart = HAL_GetTick();
 	uint16_t xMax = g_fbUseX / FB_OUTPUTBLOCK_X;
 	uint16_t yMax = g_fbUseY / FB_OUTPUTBLOCK_Y;
+#ifdef FB_TWOBUFFERS
+	FB_COLOR_OUT_TYPE blocks[2][FB_OUTPUTBLOCK_X * FB_OUTPUTBLOCK_Y];
+	FB_COLOR_OUT_TYPE * block = blocks[0];
+	uint8_t toggle = 0;
+#else
+	FB_COLOR_OUT_TYPE block[FB_OUTPUTBLOCK_X * FB_OUTPUTBLOCK_Y];
+#endif
 	for (uint32_t y = 0; y < yMax; y++) {
 		for (uint32_t x = 0; x < xMax; x++) {
 			uint32_t blockWritten = x + y * FB_OUTPUTBLOCKS_X;
@@ -234,16 +241,21 @@ void menu_screen_flush(void) {
 			FB_BITMAP_TYPE maskWrittenLow = 1 << (offsetWritten * 2);
 			FB_BITMAP_TYPE bitsWritten = g_fbWrittenBlock[indexWritten];
 			if (((maskWrittenHigh | maskWrittenLow) & bitsWritten)) {
-				FbBlockFlush(x * FB_OUTPUTBLOCK_X, y * FB_OUTPUTBLOCK_Y);
+				FbBlockFlush(x * FB_OUTPUTBLOCK_X, y * FB_OUTPUTBLOCK_Y, block);
 				if (bitsWritten & maskWrittenHigh) { //if 2 -> 1, if 3 -> 1
 					bitsWritten = (bitsWritten & ~maskWrittenHigh) | maskWrittenLow;
 				} else { //if 1 -> 0
 					bitsWritten = bitsWritten & ~maskWrittenLow;
 				}
 				g_fbWrittenBlock[indexWritten] = bitsWritten;
+#ifdef FB_TWOBUFFERS
+				toggle = 1 - toggle;
+				block = blocks[toggle];
+#endif
 			}
 		}
 	}
+	LcdWaitDmaDone(); //is an empty function if DMA is not used
 	//uint32_t timeStop = HAL_GetTick();
 	//printf("Redraw took %uticks\r\n", (unsigned int)(timeStop - timeStart));
 }

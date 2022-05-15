@@ -58,3 +58,8 @@
 */
 #define FB_OUTPUTBLOCK_X 32
 #define FB_OUTPUTBLOCK_Y 16
+
+/*Define to transfer one output block by DMA, while another one is prepared.
+  This doubles the required stack.
+*/
+#define FB_TWOBUFFERS
