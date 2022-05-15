@@ -12,10 +12,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include "peripheral.h"
 
-
 #include "main.h"
-
-#include "spi.h"
 
 #include "st7735/st7735.h"
 #include "ili9341/ili9341.h"
@@ -98,12 +95,12 @@ void LcdBacklightOff(void) {
 	HAL_GPIO_WritePin(LcdBacklight_GPIO_Port, LcdBacklight_Pin, GPIO_PIN_SET);
 }
 
-static void LcdTransfer(const uint8_t * dataOut, size_t len) {
+void LcdTransfer(const uint8_t * dataOut, size_t len) {
 	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
 		LcdCsOn();
 	}
 	if (g_LcdEnabled) {
-		HAL_SPI_Transmit(&hspi2, (uint8_t*)dataOut, len, 100);
+		PeripheralTransfer((uint8_t*)dataOut, NULL, len);
 	}
 	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
 		LcdCsOff();
@@ -256,8 +253,6 @@ void LcdCommandData(uint8_t command, const uint8_t * dataOut, uint8_t * dataIn, 
 	LcdCsOff();
 }
 
-void ili9341_WriteData(uint16_t data) {
-	uint8_t bytes = data & 0xFF;
-	LCD_IO_WriteMultipleData(&bytes, 1);
+void LcdWaitDmaDone(void) {
 }
 

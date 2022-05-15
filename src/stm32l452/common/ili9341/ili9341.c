@@ -239,10 +239,7 @@ void Ili9341SetWindowStart(uint16_t xStart, uint16_t xEnd, uint16_t yStart, uint
 }
 
 void Ili9341WriteArray(const uint8_t * colors, uint16_t length) {
-	LcdCsOn();
-	LCD_IO_WriteReg(LCD_GRAM);
-	PeripheralTransfer(colors, NULL, length);
-	LcdCsOff();
+	LcdCommandData(LCD_GRAM, colors, NULL, length);
 }
 
 void Ili9341WriteColor(uint16_t color, uint16_t length) {

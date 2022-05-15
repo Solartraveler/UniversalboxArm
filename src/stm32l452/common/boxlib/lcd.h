@@ -34,3 +34,10 @@ void LcdTestpattern(void);
 void LcdCommandData(uint8_t command, const uint8_t * dataOut, uint8_t * dataIn, size_t len);
 
 void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint8_t * data, size_t len);
+
+/*If LcdWriteRect is using dma, the buffer data must be valid until this function
+  returns. LcdWriteRect does the waiting internally, so there is no need to call
+  LcdWaitDmaDone before a next LcdWriteRect call. Other functions however need a call
+  before too. If DMA is not used by the implementation, the function may be left empty.
+*/
+void LcdWaitDmaDone(void);
