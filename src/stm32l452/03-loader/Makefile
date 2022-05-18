@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Loader
 #Version of this application, to be used in the metadata
-VERSION  = 0.7.0
+VERSION  = 0.8.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -106,11 +106,13 @@ $(STM_HAL)/Src/stm32l4xx_hal_tim.c \
 $(STM_HAL)/Src/stm32l4xx_hal_tim_ex.c \
 $(STM_HAL)/Src/stm32l4xx_hal_uart.c \
 $(STM_HAL)/Src/stm32l4xx_hal_uart_ex.c \
+$(STM_HAL)/Src/stm32l4xx_hal_dma.c \
 Core/Src/system_stm32l4xx.c \
 $(BOXLIB)/keys.c \
 $(BOXLIB)/leds.c \
 $(BOXLIB)/rs232debug.c \
 $(BOXLIB)/peripheral.c \
+$(BOXLIB)/peripheralDma.c \
 $(BOXLIB)/flash.c \
 $(BOXLIB)/lcd.c \
 $(BOXLIB)/coproc.c \

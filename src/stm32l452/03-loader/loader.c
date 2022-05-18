@@ -554,6 +554,7 @@ void LoaderInit(void) {
 	PeripheralPowerOn();
 	Rs232Init();
 	printf("\r\nLoader %s\r\n", APPVERSION);
+	PeripheralInit();
 	FlashEnable(64); //250kHz
 	LoaderMountFormat(false);
 	g_loaderState.memStart = g_DfuMem;

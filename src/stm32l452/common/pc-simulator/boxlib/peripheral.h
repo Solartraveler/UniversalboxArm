@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+void PeripheralInit(void);
+
 void PeripheralPowerOn(void);
 
 //This includes disabling of signals to LCD and flash too

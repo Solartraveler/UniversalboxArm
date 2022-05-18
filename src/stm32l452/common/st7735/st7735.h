@@ -164,13 +164,14 @@ void     st7735_DrawVLine(uint16_t RGBCode, uint16_t Xpos, uint16_t Ypos, uint16
 
 uint16_t st7735_GetLcdPixelWidth(void);
 uint16_t st7735_GetLcdPixelHeight(void);
-void     st7735_DrawBitmap(uint16_t Xpos, uint16_t Ypos, uint8_t *pbmp);
+
+void st7735WriteArray(const uint8_t * data, size_t len);
 
 /* LCD IO functions */
-void     LCD_IO_Init(void);
-void     LCD_IO_WriteMultipleData(const uint8_t *pData, uint32_t Size);
-void     LCD_IO_WriteReg(uint8_t Reg);
-void     LCD_Delay(uint32_t delay);
+void LcdCommand(uint8_t command);
+void LcdData(const uint8_t * dataOut, size_t len);
+void LcdCommandDataBackground(uint8_t command, const uint8_t * dataOut, uint8_t * dataIn, size_t len);
+void LcdDelay(uint32_t delay);
 /**
   * @}
   */

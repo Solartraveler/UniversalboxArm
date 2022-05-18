@@ -95,18 +95,6 @@ void LcdBacklightOff(void) {
 	HAL_GPIO_WritePin(LcdBacklight_GPIO_Port, LcdBacklight_Pin, GPIO_PIN_SET);
 }
 
-void LcdTransfer(const uint8_t * dataOut, size_t len) {
-	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
-		LcdCsOn();
-	}
-	if (g_LcdEnabled) {
-		PeripheralTransfer((uint8_t*)dataOut, NULL, len);
-	}
-	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
-		LcdCsOff();
-	}
-}
-
 void LcdInit(eDisplay_t lcdType) {
 	if (!g_LcdEnabled) {
 		return;
@@ -119,6 +107,57 @@ void LcdInit(eDisplay_t lcdType) {
 	if (g_LcdType == ILI9341) {
 		ili9341_Init();
 	}
+}
+
+void LcdDelay(uint32_t delay) {
+	HAL_Delay(delay);
+}
+
+void LcdWriteMultipleDataBackground(const uint8_t *pData, size_t len) {
+	LcdA0On();
+	PeripheralTransferBackground(pData, NULL, len);
+}
+
+void LcdWriteMultipleData(const uint8_t * dataOut, size_t len) {
+	LcdA0On();
+	PeripheralTransfer(dataOut, NULL, len);
+}
+
+void LcdWriteReg(uint8_t Reg) {
+	LcdA0Off();
+	PeripheralTransfer(&Reg, NULL, 1);
+	LcdA0On();
+}
+
+void LcdCommand(uint8_t command) {
+	LcdCsOn();
+	LcdWriteReg(command); //the command, leaves A0 on -> data next
+	LcdCsOff();
+}
+
+void LcdData(const uint8_t * dataOut, size_t len) {
+	LcdCsOn();
+	PeripheralTransfer(dataOut, NULL, len);
+	LcdCsOff();
+}
+
+void LcdCommandData(uint8_t command, const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
+	LcdCsOn();
+	LcdWriteReg(command); //the command, leaves A0 on -> data next
+	PeripheralTransfer(dataOut, dataIn, len);
+	LcdCsOff();
+}
+
+void LcdCommandDataBackground(uint8_t command, const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
+	LcdWaitBackgroundDone();
+	LcdCsOn();
+	LcdWriteReg(command); //the command, leaves A0 on -> data next
+	PeripheralTransferBackground(dataOut, dataIn, len);
+}
+
+void LcdWaitBackgroundDone(void) {
+	PeripheralTransferWaitDone();
+	LcdCsOff();
 }
 
 void LcdWritePixel(uint16_t x, uint16_t y, uint16_t color) {
@@ -135,14 +174,14 @@ void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const
 	if (!g_LcdEnabled) {
 		return;
 	}
+	LcdWaitBackgroundDone();
 	PeripheralPrescaler(g_lcdPrescaler);
 	if ((g_LcdType == ST7735_128) || (g_LcdType == ST7735_160)) {
 		uint16_t h = st7735_GetLcdPixelHeight();
 		uint16_t w = st7735_GetLcdPixelWidth();
 		if (((x + width) <= w) && ((y + height) <= h)) {
 			st7735_SetDisplayWindow(x, y, width, height);
-			LCD_IO_WriteReg(LCD_REG_44);
-			LCD_IO_WriteMultipleData(data, len);
+			st7735WriteArray(data, len);
 		}
 	} else if (g_LcdType == ILI9341) {
 		uint16_t h = ili9341_GetLcdPixelHeight();
@@ -224,35 +263,5 @@ void LcdTestpattern(void) {
 	LcdDrawHLine(0x07E0, 1, height - 2, width - 2);
 	LcdDrawVLine(0x07E0, 1, 1, height - 2);
 	LcdDrawVLine(0x07E0, width - 2, 1, height - 2);
-}
-
-//Interface implemenation of st7735.c
-void LCD_IO_Init(void) {
-}
-
-void LCD_IO_WriteMultipleData(const uint8_t *pData, uint32_t Size) {
-	LcdA0On();
-	LcdTransfer(pData, Size);
-}
-
-void LCD_IO_WriteReg(uint8_t Reg) {
-	LcdA0Off();
-	LcdTransfer(&Reg, 1);
-	LcdA0On();
-}
-
-void LCD_Delay(uint32_t delay) {
-	HAL_Delay(delay);
-}
-
-//only used by ILI9341
-void LcdCommandData(uint8_t command, const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
-	LcdCsOn();
-	LCD_IO_WriteReg(command); //the command, leaves A0 on -> data next
-	PeripheralTransfer(dataOut, dataIn, len);
-	LcdCsOff();
-}
-
-void LcdWaitDmaDone(void) {
 }
 

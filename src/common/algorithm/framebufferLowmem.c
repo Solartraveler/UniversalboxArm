@@ -255,7 +255,7 @@ void menu_screen_flush(void) {
 			}
 		}
 	}
-	LcdWaitDmaDone(); //is an empty function if DMA is not used
+	LcdWaitBackgroundDone(); //is an empty function if DMA is not used
 	//uint32_t timeStop = HAL_GetTick();
 	//printf("Redraw took %uticks\r\n", (unsigned int)(timeStop - timeStart));
 }

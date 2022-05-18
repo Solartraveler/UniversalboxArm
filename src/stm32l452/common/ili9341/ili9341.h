@@ -220,12 +220,12 @@ void Ili9341WriteArray(const uint8_t * colors, uint16_t length);
 /* LCD IO functions */
 void LcdCsOff(void);
 void LcdCsOn(void);
+void LcdWriteReg(uint8_t Reg);
+void LcdWriteMultipleData(const uint8_t * dataOut, size_t len);
 void LcdCommandData(uint8_t command, const uint8_t * dataOut, uint8_t * dataIn, size_t len);
-void PeripheralTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len);
-void LCD_IO_WriteData(uint16_t RegValue);
-void LCD_IO_WriteReg(uint8_t Reg);
-
-void LCD_Delay(uint32_t delay);
+void LcdCommandDataBackground(uint8_t command, const uint8_t * dataOut, uint8_t * dataIn, size_t len);
+void LcdWaitBackgroundDone(void);
+void LcdDelay(uint32_t delay);
 
 
 #ifdef __cplusplus

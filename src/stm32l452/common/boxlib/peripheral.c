@@ -17,29 +17,36 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include "spi.h"
 
+SPI_TypeDef * g_spi = (SPI_TypeDef *)SPI2_BASE;
+
+__weak void PeripheralInit(void) {
+}
+
 void PeripheralPowerOn(void) {
 	//active low enables the LCD, external flash and RS232
-	GPIO_InitTypeDef state = {0};
-	state.Mode = GPIO_MODE_INPUT;
-	state.Pull = GPIO_PULLDOWN;
-	state.Pin = PeripheralNPower_Pin;
-	HAL_GPIO_Init(PeripheralNPower_GPIO_Port, &state);
+	GPIO_InitTypeDef pinState = {0};
+	pinState.Mode = GPIO_MODE_INPUT;
+	pinState.Pull = GPIO_PULLDOWN;
+	pinState.Pin = PeripheralNPower_Pin;
+	HAL_GPIO_Init(PeripheralNPower_GPIO_Port, &pinState);
 	HAL_SPI_MspInit(&hspi2);
 }
 
 void PeripheralPowerOff(void) {
 	LcdDisable();
 	FlashDisable();
+
 	HAL_SPI_MspDeInit(&hspi2);
+
 	//disables the LCD, external flash and RS232
-	GPIO_InitTypeDef state = {0};
-	state.Mode = GPIO_MODE_INPUT;
-	state.Pull = GPIO_PULLUP;
-	state.Pin = PeripheralNPower_Pin;
-	HAL_GPIO_Init(PeripheralNPower_GPIO_Port, &state);
+	GPIO_InitTypeDef pinState = {0};
+	pinState.Mode = GPIO_MODE_INPUT;
+	pinState.Pull = GPIO_PULLUP;
+	pinState.Pin = PeripheralNPower_Pin;
+	HAL_GPIO_Init(PeripheralNPower_GPIO_Port, &pinState);
 }
 
-void PeripheralTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
+__weak void PeripheralTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
 	if ((dataIn) && (dataOut)) {
 		HAL_SPI_TransmitReceive(&hspi2, (uint8_t*)dataOut, dataIn, len, 100);
 	} else if (dataOut) {
@@ -47,6 +54,10 @@ void PeripheralTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
 	} else if (dataIn) {
 		HAL_SPI_Receive(&hspi2 ,dataIn, len, 100);
 	}
+}
+
+__weak void PeripheralTransferBackground(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
+	PeripheralTransfer(dataOut, dataIn, len);
 }
 
 void PeripheralPrescaler(uint32_t prescaler) {
@@ -72,5 +83,9 @@ void PeripheralPrescaler(uint32_t prescaler) {
 	reg &= ~SPI_CR1_BR_Msk;
 	reg |= bits;
 	WRITE_REG(hspi2.Instance->CR1, reg);
+}
+
+__weak void PeripheralTransferWaitDone(void) {
+
 }
 

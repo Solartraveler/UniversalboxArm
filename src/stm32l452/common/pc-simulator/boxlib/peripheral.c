@@ -13,6 +13,9 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include "lcd.h"
 #include "flash.h"
 
+void PeripheralInit(void) {
+}
+
 void PeripheralPowerOn(void) {
 }
 

@@ -39,7 +39,7 @@ void LcdCommandData(uint8_t command, const uint8_t * dataOut, uint8_t * dataIn, 
 
 void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint8_t * data, size_t len);
 
-void LcdWaitDmaDone(void);
+void LcdWaitBackgroundDone(void);
 
 bool KeyRightPressed(void);
 

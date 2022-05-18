@@ -31,8 +31,31 @@ void LcdWritePixel(uint16_t x, uint16_t y, uint16_t color);
 
 void LcdTestpattern(void);
 
+void LcdDelay(uint32_t delay);
+
+//background operation, chip select has to be dony be the caller
+void LcdWriteMultipleDataBackground(const uint8_t * dataOut, size_t len);
+
+//sends data, chip select has to be done by the caller
+void LcdWriteMultipleData(const uint8_t * dataOut, size_t len);
+
+//only sets one register, chip select has to be done by the caller
+void LcdWriteReg(uint8_t Reg);
+
+//sets one register, controls chip select
+void LcdCommand(uint8_t command);
+
+//sends one data, controls chip select
+void LcdData(const uint8_t * dataOut, size_t len);
+
+//sets one command with chip select
 void LcdCommandData(uint8_t command, const uint8_t * dataOut, uint8_t * dataIn, size_t len);
 
+//background operation if spiDma.c is used
+//needs a LcdWaitBackgroundDone call before the next call to any Lcd function, except LcdCommandDataBackground
+void LcdCommandDataBackground(uint8_t command, const uint8_t * dataOut, uint8_t * dataIn, size_t len);
+
+//background operation if spiDma.c is used. Waits for previous transfers to finish
 void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint8_t * data, size_t len);
 
 /*If LcdWriteRect is using dma, the buffer data must be valid until this function
@@ -40,4 +63,4 @@ void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const
   LcdWaitDmaDone before a next LcdWriteRect call. Other functions however need a call
   before too. If DMA is not used by the implementation, the function may be left empty.
 */
-void LcdWaitDmaDone(void);
+void LcdWaitBackgroundDone(void);

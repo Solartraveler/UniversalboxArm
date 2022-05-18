@@ -24,6 +24,10 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+
+#include <stdint.h>
+#include <stddef.h>
+
 #include "st7735.h"
 
 /** @addtogroup BSP
@@ -60,6 +64,10 @@
   * @{
   */
 
+#define LCD_IO_WriteReg LcdCommand
+
+#define LCD_IO_WriteMultipleData  LcdData
+
 /**
   * @}
   */
@@ -68,8 +76,6 @@
   * @{
   */
 
-
-static uint16_t ArrayRGB[320] = {0};
 
 /**
 * @}
@@ -96,11 +102,9 @@ void st7735_Init(void)
 {
   uint8_t data = 0;
 
-  /* Initialize ST7735 low level bus layer -----------------------------------*/
-  LCD_IO_Init();
   /* Make a software reset */
   LCD_IO_WriteReg(LCD_REG_1);
-  LCD_Delay(130); /* The datasheet requires at least 120ms */
+  LcdDelay(130); /* The datasheet requires at least 120ms */
   /* Out of sleep mode, 0 args, no delay */
   st7735_WriteReg(LCD_REG_17, 0x00);
   /* Frame rate ctrl - normal mode, 3 args:Rate = fosc/(1x2+40) * (LINE+2C+2D)*/
@@ -216,9 +220,9 @@ void st7735_DisplayOn(void)
 {
   uint8_t data = 0;
   LCD_IO_WriteReg(LCD_REG_19);
-  LCD_Delay(10);
+  LcdDelay(10);
   LCD_IO_WriteReg(LCD_REG_41);
-  LCD_Delay(10);
+  LcdDelay(10);
   LCD_IO_WriteReg(LCD_REG_54);
   data = 0xC0;
   LCD_IO_WriteMultipleData(&data, 1);
@@ -233,9 +237,9 @@ void st7735_DisplayOff(void)
 {
   uint8_t data = 0;
   LCD_IO_WriteReg(LCD_REG_19);
-  LCD_Delay(10);
+  LcdDelay(10);
   LCD_IO_WriteReg(LCD_REG_40);
-  LCD_Delay(10);
+  LcdDelay(10);
   LCD_IO_WriteReg(LCD_REG_54);
   data = 0xC0;
   LCD_IO_WriteMultipleData(&data, 1);
@@ -347,6 +351,8 @@ void st7735_SetDisplayWindow(uint16_t Xpos, uint16_t Ypos, uint16_t Width, uint1
   */
 void st7735_DrawHLine(uint16_t RGBCode, uint16_t Xpos, uint16_t Ypos, uint16_t Length)
 {
+  uint16_t ArrayRGB[ST7735_LCD_PIXEL_WIDTH] = {0};
+
   uint8_t counter = 0;
 
   if(Xpos + Length > ST7735_LCD_PIXEL_WIDTH) return;
@@ -400,37 +406,11 @@ uint16_t st7735_GetLcdPixelHeight(void)
   return ST7735_LCD_PIXEL_HEIGHT;
 }
 
-/**
-  * @brief  Displays a bitmap picture loaded in the internal Flash.
-  * @param  BmpAddress: Bmp picture address in the internal Flash.
-  * @retval None
-  */
-void st7735_DrawBitmap(uint16_t Xpos, uint16_t Ypos, uint8_t *pbmp)
+void st7735WriteArray(const uint8_t * data, size_t len)
 {
-  uint32_t index = 0, size = 0;
-
-  /* Read bitmap size */
-  size = *(volatile uint16_t *) (pbmp + 2);
-  size |= (*(volatile uint16_t *) (pbmp + 4)) << 16;
-  /* Get bitmap data address offset */
-  index = *(volatile uint16_t *) (pbmp + 10);
-  index |= (*(volatile uint16_t *) (pbmp + 12)) << 16;
-  size = (size - index)/2;
-  pbmp += index;
-
-  /* Set GRAM write direction and BGR = 0 */
-  /* Memory access control: MY = 0, MX = 1, MV = 0, ML = 0 */
-  st7735_WriteReg(LCD_REG_54, 0x40);
-
-  /* Set Cursor */
-  st7735_SetCursor(Xpos, Ypos);
-
-  LCD_IO_WriteMultipleData((uint8_t*)pbmp, size*2);
-
-  /* Set GRAM write direction and BGR = 0 */
-  /* Memory access control: MY = 1, MX = 1, MV = 0, ML = 0 */
-  st7735_WriteReg(LCD_REG_54, 0xC0);
+	LcdCommandDataBackground(LCD_REG_44, data, NULL, len);
 }
+
 
 /**
 * @}
