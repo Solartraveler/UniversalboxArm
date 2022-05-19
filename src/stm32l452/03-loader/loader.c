@@ -456,6 +456,7 @@ void mainMenu(void) {
 	printf("j: Configure to use 160x128 ST7735 as display\r\n");
 	printf("k: Configure to not use a display\r\n");
 	printf("n: Configure to use 320x240 ILI9341 as display\r\n");
+	printf("f: Format the flash\r\n");
 	printf("wasd: Control input keys in menu\r\n");
 }
 
@@ -483,6 +484,13 @@ void LoaderUpdateFsGui(void) {
 
 //this call assumes an unmounted filesystem
 bool LoaderMountFormat(bool formatForce) {
+	uint8_t manufacturer;
+	uint16_t device;
+	FlashGetId(&manufacturer, &device);
+	if (manufacturer != 0x1F) {
+		printf("Error, no valid answer from flash\r\n");
+		return false;
+	}
 	FRESULT fres;
 	if (formatForce == false) {
 		fres = f_mount(&g_fatfs, "0", 1);
@@ -1104,6 +1112,18 @@ bool LoaderTarSaveDelete(void) {
 	return success;
 }
 
+void LoaderFormatAsk(void) {
+	printf("Really format? y/n\r\n");
+	char input;
+	do {
+		input = Rs232GetChar();
+	} while (input == 0);
+	if (input == 'y') {
+		printf("Formatting...\r\n");
+		LoaderFormat();
+	}
+}
+
 void LoaderCycle(void) {
 	//led flash
 	if (g_loaderState.ledCycle < 25) {
@@ -1130,6 +1150,7 @@ void LoaderCycle(void) {
 		case 'j': GuiLcdSet(ST7735_160); break;
 		case 'k': GuiLcdSet(NONE); break;
 		case 'n': GuiLcdSet(ILI9341); break;
+		case 'f': LoaderFormatAsk(); break;
 		default: break;
 	}
 	uint32_t downloaded = g_dfuState.bytesDownloaded;
@@ -1177,6 +1198,11 @@ void LoaderCycle(void) {
 	if (startProgram) {
 		LoaderProgramStart();
 	}
+	//uint32_t timeStart = HAL_GetTick();
 	GuiCycle(input);
+	//uint32_t timeStop = HAL_GetTick();
+	//if (input) {
+	//	printf("Processing took %uticks\r\n", (unsigned int)(timeStop - timeStart));
+	//}
 	HAL_Delay(10); //call this loop ~100x per second
 }
