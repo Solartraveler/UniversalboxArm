@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 
 #include "loader.h"
+#include "boxlib/rs232debug.h"
 
 /* USER CODE END Includes */
 
@@ -182,8 +183,11 @@ void SystemClock_Config(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
+  printfNowait("Error handler called\r\n");
+  Rs232Flush();
+
   /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
+  //__disable_irq();
   while (1)
   {
   }
