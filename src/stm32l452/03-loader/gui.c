@@ -31,7 +31,7 @@
 #define READMETEXT 1024
 
 //A compressed 320x240 image with 3bits per pixel needs at least 2328bytes
-#define DRAWINGSIZE 6000
+#define DRAWINGSIZE 7000
 
 #define FRONTLEVEL_BG_DARK 100
 #define FRONTLEVEL_BG_BRIGHT 257
