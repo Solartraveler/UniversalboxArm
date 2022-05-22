@@ -215,10 +215,12 @@ static void chargerPwm(void) {
 int main(void) {
 	HardwareInit();
 	waitms(1); //let the uart have one level for a longer time
-	print_p(PSTR("Test everything 0.5\r\n"));
+	print_p(PSTR("Test everything 0.6\r\n"));
 	print_p(g_tests[0].name);
 	uint8_t testSelected = 0;
 	uint8_t pressedLeft = 0, pressedRight = 0, pressedRepeatRight = 0;
+	ArmUserprog();
+	waitms(1);
 	ArmRun();
 	for (;;) { //Main loop
 		if (KeyPressedLeft()) {

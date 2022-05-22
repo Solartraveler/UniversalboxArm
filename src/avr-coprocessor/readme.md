@@ -15,6 +15,10 @@ When using this, no battery should be connected, as no current limiting is done 
 the voltage is not watched. The fuse bits need to be set to use the 8MHz internal clock
 and the MCU runs with 1MHz internally.
 
+Instead of connecting a TTL level converter, the ARM CPU can run the 04-coprocessor-uart-forward firmware.
+The the ARM is forwarding the data from to his own RS232 port and shows a printout on the LCD.
+This works if the debug output is routed to PA1.
+
 ## 03-reset-button-with-spi ##
 Provides the same functionality as 01-minimal-reset-button, but the MCU acts as SPI slave to the ARM master.
 The reset mode can be controlled over this interface, and the input voltage can be read out.
