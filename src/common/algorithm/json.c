@@ -1,3 +1,13 @@
+/* json
+(c) 2022 by Malte Marwedel
+
+SPDX-License-Identifier:  BSD-3-Clause
+
+Easy usage of jsmn parser. Suitable for small files with up to 15 key/value
+elements. For larger files a more efficient method should be used than parsing
+the file for every key/value to retrieve.
+*/
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -6,11 +16,11 @@
 
 #include "jsmn.h"
 
-bool JsonValueGet(uint8_t * jsonStart, size_t jsonLen, const char * key, char * valueOut, size_t valueMax) {
+bool JsonValueGet(const uint8_t * jsonStart, size_t jsonLen, const char * key, char * valueOut, size_t valueMax) {
 	jsmn_parser p;
 	jsmntok_t t[32];
 	jsmn_init(&p);
-	int elems = jsmn_parse(&p, (char *)jsonStart, jsonLen, t, sizeof(t) / sizeof(t[0]));
+	int elems = jsmn_parse(&p, (const char *)jsonStart, jsonLen, t, sizeof(t) / sizeof(t[0]));
 	if (elems < 0) {
 		printf("Error, parsing json failed. Code: %i\r\n", elems);
 		return false;
