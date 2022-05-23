@@ -204,7 +204,10 @@ static void FbBlockFlush(const uint16_t startX, const uint16_t startY, FB_COLOR_
 			if (bitmapMask == 0) { //thats why there may not be any unused bits in FB_BITMAP_TYPE
 				bitmapMask = 1;
 				bitmapIdxOffset++;
-				pixelData = g_fbFrontPixel[bitmapIdxBase + bitmapIdxOffset];
+				//we do not need data when its the last loop. Otherwise we would get a read-bufferoverflow
+				if ((bitmapIdxBase + bitmapIdxOffset) < (FB_ELEMENTS_X * FB_SIZE_Y)) {
+					pixelData = g_fbFrontPixel[bitmapIdxBase + bitmapIdxOffset];
+				}
 			}
 			colorIdxCntX++;
 			if (colorIdxCntX == FB_COLOR_RES_X) {

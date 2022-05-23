@@ -128,8 +128,8 @@ C_INCLUDES =  \
 
 CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
-#CFLAGS += -fsanitize=address
-#LFLAGS += -fsanitize=address
+CFLAGS += -fsanitize=address
+LDFLAGS += -fsanitize=address
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
@@ -154,7 +154,7 @@ $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 $(BUILD_DIR)/$(TARGET): $(OBJECTS) Makefile
-	$(CC) $(OBJECTS) -lpthread -lglut -lGL -lm $(LFLAGS) -o $@
+	$(CC) $(OBJECTS) -lpthread -lglut -lGL -lm $(LDFLAGS) -o $@
 
 $(BUILD_DIR):
 	mkdir $@
