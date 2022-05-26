@@ -1,0 +1,4 @@
+**/build
+**/emulatedFlash.bin
+**/menudata.bin
+**/menudata-progmem.c
