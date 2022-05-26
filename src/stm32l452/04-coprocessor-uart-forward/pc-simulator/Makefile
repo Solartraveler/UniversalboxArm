@@ -59,7 +59,7 @@ $(HALLIB)/simulated.c \
 $(FATFS)/ff.c \
 $(FATFS)/ffunicode.c \
 $(FATFS)/diskio.c \
-$(ALGORITHM)/framebufferLowmem.c \
+$(ALGORITHM)/framebufferBwFast.c \
 $(ALGORITHM)/utility.c \
 $(ALGORITHM)/libcMinsize.c \
 $(ALGORITHM)/femtoVsnprintf.c \
@@ -154,20 +154,26 @@ $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 $(BUILD_DIR)/$(TARGET): $(OBJECTS) Makefile
-	$(CC) $(OBJECTS) -lpthread -lglut -lGL -lm $(LDFLAGS) -o $@
+	$(CC) $(OBJECTS) $(LDFLAGS) -lpthread -lglut -lGL -lm  -o $@
 
 $(BUILD_DIR):
 	mkdir $@
 
 test: $(BUILD_DIR)/$(TARGET)
-	rm -r emulatedFlash.bin
+	rm -f emulatedFlash.bin
 	./$(BUILD_DIR)/$(TARGET) 128x128
 
 test2: $(BUILD_DIR)/$(TARGET)
+	rm -f emulatedFlash.bin
 	./$(BUILD_DIR)/$(TARGET) 160x128
 
 test3: $(BUILD_DIR)/$(TARGET)
+	rm -f emulatedFlash.bin
 	./$(BUILD_DIR)/$(TARGET) 320x240
+
+test4: $(BUILD_DIR)/$(TARGET)
+	rm -f emulatedFlash.bin
+	./$(BUILD_DIR)/$(TARGET) 320x240 "Another text" "And even more text" "Lets test more" "And another line" "Some lines to provoke scrolling" "The answer" "is 42." "And the last line"
 
 
 #######################################

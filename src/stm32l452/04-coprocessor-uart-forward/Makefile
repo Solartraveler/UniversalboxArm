@@ -116,7 +116,7 @@ $(FATFS)/ff.c \
 $(FATFS)/ffunicode.c \
 $(FATFS)/diskio.c \
 $(ALGORITHM)/tarextract.c \
-$(ALGORITHM)/framebufferLowmem.c \
+$(ALGORITHM)/framebufferBwFast.c \
 $(ALGORITHM)/utility.c \
 $(ALGORITHM)/libcMinsize.c \
 $(ALGORITHM)/femtoVsnprintf.c \

@@ -10,7 +10,7 @@ block.
 
 This code implements the callbacks from menu-interpreter.h and forwards the
 result to boxlib/lcd.h.
-But other graphic libraries than then menu-enterpreter can be used.
+But other graphic libraries than then menu-interpreter can be used.
 */
 
 #include <string.h>

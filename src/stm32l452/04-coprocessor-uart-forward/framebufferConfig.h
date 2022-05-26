@@ -18,11 +18,13 @@
 //define the datatype of which the color is needed for the display
 #define FB_COLOR_OUT_TYPE uint16_t
 
+#define FB_COLOR_OUT_WHITE 0xFFFF
+
 //define the datatype of which the coordinates are delivered
 #define FB_SCREENPOS_TYPE SCREENPOS
 
 //default level at which a color should be at the front
-#define FB_FRONT_LEVEL 100
+#define FB_FRONT_LEVEL 1
 
 #ifdef MENU_SCREEN_COLORCUSTOM1
 #define FB_RED_IN_BITS MENU_COLOR_CUSTOM1_RED_BITS
