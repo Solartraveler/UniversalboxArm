@@ -227,51 +227,30 @@ int16_t SensorsChiptemperatureGet(void) {
 }
 
 void PwmBatterySet(uint8_t val) {
-	if (TCCR1B == 0) {
-		TCCR1C = 0;
-		TCCR1D = 0;
-		TCCR1E = 0;
-		PLLCSR = 0;
-		TCNT1 = 0;
-		OCR1C = PWM_MAX; //top value in fast pwm mode
-		TCCR1A = (1<<COM1B1) | (1<<PWM1B); //clear on compare match COM1B pin
-#if (F_CPU <= 125000)
-
-		TCCR1B = (1<<CS10); //prescaler = 1
-
-#elif (F_CPU <= 250000)
-
-		TCCR1B = (1<<CS11); //prescaler = 2
-
-#elif (F_CPU <= 500000)
-
-		TCCR1B = (1<<CS11) | (1<<CS10); //prescaler = 4
-
-#elif (F_CPU <= 1000000)
-
-		TCCR1B = (1<<CS12); //prescaler = 8
-
-#elif (F_CPU <= 2000000)
-
-		TCCR1B = (1<<CS12) | (1<<CS10); //prescaler = 16
-
-#elif (F_CPU <= 4000000)
-
-		TCCR1B = (1<<CS12) | (1<<CS11); //prescaler = 32
-
-#elif (F_CPU <= 8000000)
-
-		TCCR1B = (1<<CS12) | (1<<CS11) | (1<<CS10); //prescaler = 64
-
-#else
-
-		TCCR1B = (1<<CS13); //prescaler = 128
-
-#endif
-
-	}
-	if (val > PWM_MAX) {
-		val = PWM_MAX;
+	if (val) {
+		if (TCCR1B == 0) {
+			//1. start the PLL
+			PLLCSR = (1<<PLLE) | (1<<LSM);
+			waitms(1); //minimum 100µs according to the datasheet
+			if ((PLLCSR & (1<<PLOCK)) == 0) {
+				return; //error case
+			}
+			PLLCSR |= (1<<PCKE); //now the timer should use a 32MHz base clock
+			TCCR1C = 0;
+			TCCR1D = 0;
+			TCCR1E = 0;
+			TCNT1 = 0;
+			OCR1C = PWM_MAX; //top value in fast pwm mode
+			TCCR1A = (1<<COM1B1) | (1<<PWM1B); //clear on compare match COM1B pin
+			TCCR1B = (1<<CS10); //prescaler = 1
+		}
+		if (val > PWM_MAX) {
+			val = PWM_MAX;
+		}
+	} else {
+		TCCR1B = 0; //disable timer
+		PLLCSR &= ~(1<<PCKE); //disable timer base clock to be the PLL
+		PLLCSR &= ~(1<<PLLE); //disable PLL
 	}
 	OCR1B = val;
 }

@@ -13,8 +13,6 @@ void LedOn(void);
 
 void LedOff(void);
 
-void LedOff(void);
-
 void ArmReset(void);
 
 void ArmRun(void);

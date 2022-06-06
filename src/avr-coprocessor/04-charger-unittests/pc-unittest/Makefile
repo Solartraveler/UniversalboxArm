@@ -2,7 +2,7 @@ COMMON=../../common
 VERYCOMMON=../../../common
 ALGORITHM=$(VERYCOMMON)/algorithm
 
-SRC = simulate.c
+SRC = tests.c
 SRC += ../main.c
 SRC += $(ALGORITHM)/femtoVsnprintf.c
 SRC += $(COMMON)/chargerStatemachine.c
@@ -13,7 +13,10 @@ CINCS += -I$(ALGORITHM)
 CINCS += -I$(COMMON)
 
 all:
-	gcc $(SRC) -o pcSimulate -Wall -Wextra $(CINCS) -lglut -lGL -pthread -ggdb
+	gcc $(SRC) -o pcTests -Wall -Wextra $(CINCS) -ggdb
+
+test: all
+	./pcTests
 
 clean:
-	rm -f pcSimulate
+	rm -f pcTests

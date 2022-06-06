@@ -21,7 +21,7 @@
   Press the right key to execute the test
   Press the left key to toggle the test
 
-  Connect a serial cable to the LED pin at 9600 baud to see some data
+  Connect a serial cable to the LED pin at 1200 baud to see some data
 
   Pin connection:
   PINA.0 = Input, AVR DI
@@ -64,6 +64,7 @@ History:
 #include "timing.h"
 #include "softtx.h"
 #include "femtoVsnprintf.h"
+#include "chargerStatemachine.h"
 
 typedef void (*testSelect)(void);
 
@@ -73,7 +74,7 @@ typedef struct
 	const char * name;
 } test_t;
 
-#define TESTS 6
+#define TESTS 7
 
 static void readSensors(void);
 static void toggleArmPower(void);
@@ -81,6 +82,7 @@ static void toggleArmBoot(void);
 static void toggleArmReset(void);
 static void toggleSensorPower(void);
 static void chargerPwm(void);
+static void chargerTest(void);
 
 
 const char name0[] PROGMEM = "0-Read all sensors\r\n";
@@ -89,6 +91,7 @@ const char name2[] PROGMEM = "2-Toggle boot pin state\r\n";
 const char name3[] PROGMEM = "3-Toggle reset pin state\r\n";
 const char name4[] PROGMEM = "4-Toggle sensors power pin state\r\n";
 const char name5[] PROGMEM = "5-Set charger PWM\r\n";
+const char name6[] PROGMEM = "6-Run charger logic\r\n";
 
 
 
@@ -98,7 +101,8 @@ const test_t g_tests[TESTS] = {
 	{&toggleArmBoot, name2},
 	{&toggleArmReset, name3},
 	{&toggleSensorPower, name4},
-	{&chargerPwm, name5}
+	{&chargerPwm, name5},
+	{&chargerTest, name6}
 };
 
 bool g_ArmPowerState;
@@ -212,10 +216,44 @@ static void chargerPwm(void) {
 	PwmBatterySet(pwmValue);
 }
 
+static void chargerTest(void) {
+	chargerState_t cS;
+	ChargerInit(&cS, 0);
+	uint8_t cycle = 0;
+	char text[64];
+	size_t len = sizeof(text);
+	while (KeyPressedLeft() == 0) {
+		uint16_t batteryTemperature = SensorsBatterytemperatureGet();
+		uint16_t inputVoltage = SensorsInputvoltageGet();
+		uint16_t batteryVoltage = SensorsBatteryvoltageGet();
+		uint16_t batteryCurrent = SensorsBatterycurrentGet();
+		uint16_t pwm = ChargerCycle(&cS, batteryVoltage, inputVoltage, batteryCurrent, batteryTemperature, 100, 100);
+		PwmBatterySet(pwm);
+		waitms(100);
+		cycle++;
+		if (cycle == 10) {
+			femtoSnprintf(text, len, "%4umV- ", batteryVoltage);
+			print(text);
+		}
+		if (cycle == 20) {
+			femtoSnprintf(text, len, "%3umA- ", batteryCurrent);
+			print(text);
+		}
+		if (cycle == 30) {
+			femtoSnprintf(text, len, "%3u\r\n", pwm);
+			print(text);
+		}
+		if (cycle == 100) {
+			cycle = 0;
+		}
+	}
+	PwmBatterySet(0);
+}
+
 int main(void) {
 	HardwareInit();
 	waitms(1); //let the uart have one level for a longer time
-	print_p(PSTR("Test everything 0.6\r\n"));
+	print_p(PSTR("Test everything 0.7\r\n"));
 	print_p(g_tests[0].name);
 	uint8_t testSelected = 0;
 	uint8_t pressedLeft = 0, pressedRight = 0, pressedRepeatRight = 0;

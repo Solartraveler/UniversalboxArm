@@ -18,11 +18,10 @@ ALGORITHM=$(VERYCOMMON)/algorithm
 SRC = main.c
 SRC += $(COMMON)/avr/softtx.c
 SRC += $(ALGORITHM)/femtoVsnprintf.c
-SRC += $(COMMON)/avr/hardware.c
 SRC += $(COMMON)/chargerStatemachine.c
 
 ASRC =
-OPT = -O2 -fweb -Winline -mcall-prologues -mrelax
+OPT = -Os -fweb -Winline -mcall-prologues -mrelax
 
 # Name of this Makefile (used for "make depend").
 MAKEFILE = Makefile

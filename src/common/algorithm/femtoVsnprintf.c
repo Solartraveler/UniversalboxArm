@@ -234,6 +234,7 @@ void testMe(const char * format, ...) {
 	va_start(args, format);
 	char buffer[128];
 	femtoVsnprintf(buffer, 128, format, args);
+	va_end(args);
 	printf(buffer);
 }
 

@@ -12,7 +12,7 @@
 
 #include "configuration.h"
 
-#define PWM_MAX 65
+#define PWM_MAX 128
 
 /* The .init3 section is done after the stack has been set up, but before
 the bss section is copied. So we can not rely on any global variables,
