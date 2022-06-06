@@ -177,7 +177,9 @@ static inline void TimerInit(void) {
 	TIFR |= (1<<OCF0A); //clear compare flag
 	TCCR0A = 1<<0; //clear timer on compare match (WGM00 in header, CTC0 in datasheet)
 	TCNT0L = 0; //clear counter
-	OCR0A = F_CPU/(64ULL* 100); //10ms timing
+	const uint16_t timerMax = F_CPU/(64UL* 100UL); //10ms timing
+	OCR0B = (timerMax >> 8) & 0xFF; //high byte must be written before the low byte
+	OCR0A = timerMax & 0xFF;
 	TCCR0B = (1<<CS00) | (1<<CS01); //start timer with prescaler = 64
 }
 
