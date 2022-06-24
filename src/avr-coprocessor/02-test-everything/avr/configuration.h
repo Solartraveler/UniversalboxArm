@@ -29,4 +29,6 @@
 #define SOFTTX_PORT PORTA
 #define SOFTTX_PIN PIN1
 
+#define SOFTTX_PRINT_P
+
 #endif

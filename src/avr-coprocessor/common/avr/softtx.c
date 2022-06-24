@@ -41,6 +41,7 @@ Using a RS232->USB converter, the values were:
 
 #pragma GCC optimize ("-Os")
 
+
 void softtx_char(char c) {
 	uint8_t i = 0;
 	uint8_t c2 = c;
@@ -62,6 +63,8 @@ void softtx_char(char c) {
 
 #pragma GCC pop_options
 
+#ifdef SOFTTX_PRINT_P
+
 void print_p(const char * s) {
 	while (1) {
 		uint8_t v = pgm_read_byte(s);
@@ -72,6 +75,8 @@ void print_p(const char * s) {
 		s++;
 	}
 }
+
+#endif
 
 void print(const char * s) {
 	while (1) {

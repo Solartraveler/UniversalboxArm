@@ -10,6 +10,9 @@
 #define COLOR_GREEN "\e[0;32m"
 #define COLOR_RESET "\e[m"
 
+static inline void softtx_init(void) {
+}
+
 static inline void softtx_char(char c)
 {
 	printf(COLOR_GREEN "%c" COLOR_RESET, c);
