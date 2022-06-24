@@ -6,6 +6,7 @@ SRC = tests.c
 SRC += ../main.c
 SRC += $(ALGORITHM)/femtoVsnprintf.c
 SRC += $(COMMON)/chargerStatemachine.c
+SRC += counter.c
 
 CINCS = -I.
 CINCS += -I..

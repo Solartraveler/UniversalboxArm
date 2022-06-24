@@ -6,10 +6,10 @@
 #define FEMTO_SUPPORT_DECIMAL
 
 //Enable for %c
-#define FEMTO_SUPPORT_C
+//#define FEMTO_SUPPORT_C
 
 //Enable for %s
-#define FEMTO_SUPPORT_S
+//#define FEMTO_SUPPORT_S
 
 //enable for %X and %WX
 //#define FEMTO_SUPPORT_HEX
@@ -18,5 +18,5 @@
 //#define FEMTO_SUPPORT_LEADINGZEROS
 
 //enable for femtoSnprintf
-#define FEMTO_SUPPORT_SNPRINTF
+//#define FEMTO_SUPPORT_SNPRINTF
 

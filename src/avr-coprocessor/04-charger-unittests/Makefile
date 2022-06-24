@@ -21,7 +21,7 @@ SRC += $(ALGORITHM)/femtoVsnprintf.c
 SRC += $(COMMON)/chargerStatemachine.c
 
 ASRC =
-OPT = -Os -fweb -Winline -mcall-prologues -mrelax
+OPT = -Os -fweb -Winline -mcall-prologues -mno-interrupts -ffunction-sections
 
 # Name of this Makefile (used for "make depend").
 MAKEFILE = Makefile
@@ -54,7 +54,8 @@ CWARN = -Wall -Wstrict-prototypes -Wextra
 CTUNING = -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 #CEXTRA = -Wa,-adhlns=$(<:.c=.lst)
 CFLAGS = $(CDEBUG) $(CDEFS) $(CINCS) $(OPT) $(CWARN) $(CSTANDARD) $(CEXTRA)
-CFLAGS+= -DBUILD_DATE=\"`date +%Y-%m-%d`\"
+CFLAGS += -DBUILD_DATE=\"`date +%Y-%m-%d`\"
+
 
 #ASFLAGS = -Wa,-adhlns=$(<:.S=.lst),-gstabs
 
@@ -94,6 +95,7 @@ EXTMEMOPTS =
 
 LDMAP = -Wl,-Map=$(TARGET).map,--cref
 LDFLAGS = $(EXTMEMOPTS) $(LDMAP) $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
+LDFLAGS += -mno-interrupts
 
 
 # Programming support using avrdude. Settings and variables.
@@ -102,7 +104,7 @@ AVRDUDE_PROGRAMMER = avrispmkII
 AVRDUDE_PORT = usb
 
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
-#AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
+AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
 
 
 # Uncomment the following if you want avrdude's erase cycle counter.
@@ -182,11 +184,11 @@ COFFCONVERT=$(OBJCOPY) --debugging \
 --change-section-address .eeprom-0x810000
 
 
-coff: $(BUILD_DIR)/$(TARGET).elf
+coff: $(TARGET).elf
 	$(COFFCONVERT) -O coff-avr $(TARGET).elf $(TARGET).cof
 
 
-extcoff: $(BUILD_DIR)/$(TARGET).elf
+extcoff: $(TARGET).elf
 	$(COFFCONVERT) -O coff-ext-avr $(TARGET).elf $(TARGET).cof
 
 
@@ -228,7 +230,8 @@ $(BUILD_DIR)/%.s: %.c | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: %.S | $(BUILD_DIR)
 	$(CC) -c $(ALL_ASFLAGS) $< -o $@
 
-
+$(BUILD_DIR)/%.disass: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+	$(OBJDUMP) -d $< > $@
 
 # Target: clean project.
 clean:

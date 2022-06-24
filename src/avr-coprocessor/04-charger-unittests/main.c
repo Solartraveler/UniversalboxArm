@@ -21,7 +21,7 @@
   As sizeof(int) is just 16bit, results may be different than when run on a PC.
   So running on the target AVR verifies the tests already done on the PC.
 
-  Connect a serial cable to the LED pin at 1200 baud to see some data
+  Connect a serial cable to PORTA pin 1 with 1200 baud to see some data.
 
   Pin connection:
   PINA.0 = Input, AVR DI
@@ -49,8 +49,14 @@
   WARNING: While an ISP programmer is connected, the right button may not be
            pressed, as this would short circuit SCK of the programmer to ground.
 
+  Note: Strings have been moved to the eeprom - simply because the flash is full.
+  The resulting code could be shorter - but the old gcc 5 provided by Debian 11
+  ignores some optimization, like removing the unused interrupt vector table
+  (-mno-interrupts) or unused functions (-ffunction-sections).
+
 History:
- v0.1 2022-05-31:
+ v0.9 2022-06-24
+ v0.1 2022-05-31
 
 */
 
@@ -59,12 +65,15 @@ History:
 #include <string.h>
 #include <stdbool.h>
 
+#include <avr/eeprom.h>
+
 #include "hardware.h"
 #include "timing.h"
 #include "softtx.h"
 #include "femtoVsnprintf.h"
 #include "chargerStatemachine.h"
 #include "utility.h"
+#include "counter.h"
 
 #define TASSH(X, Y) if (!(X)) {return Y;}
 
@@ -77,21 +86,37 @@ typedef struct {
 	uint16_t pwmMax;
 	uint16_t pwmMin;
 	uint16_t pwmOut;
+	uint16_t maxTicks;
 } input_t;
+
+uint32_t g_maxTicks;
 
 static void myprintf(const char *format, ...) {
 	va_list args;
 	va_start(args, format);
+	char formatRam[64];
+	formatRam[sizeof(formatRam) - 1] = '\0';
+	uint8_t i = 0;
+	do {
+		formatRam[i] = eeprom_read_byte((const uint8_t*)format);
+		format++;
+		i++;
+	} while ((i < (sizeof(formatRam) - 1)) && (formatRam[i - 1]));
 	char buffer[96];
-	femtoVsnprintf(buffer, sizeof(buffer), format, args);
+	femtoVsnprintf(buffer, sizeof(buffer), formatRam, args);
 	va_end(args);
 	print(buffer);
 }
 
+const char EEMEM strPwm[] = "Pwm out of bounds, is %u\r\n";
+
 static bool StepForward(chargerState_t * pCs, uint32_t miliseconds, input_t * data) {
+	CounterStart();
 	data->pwmOut = ChargerCycle(pCs, data->battU, data->inU, data->battI, data->battTemp, data->inImax, miliseconds);
+	uint32_t ticks = CounterGet();
+	data->maxTicks = MAX(data->maxTicks, ticks);
 	if ((data->pwmOut > data->pwmMax) || (data->pwmOut < data->pwmMin)) {
-		myprintf("Pwm out of bounds, is %u\r\n", (unsigned int)data->pwmOut);
+		myprintf(strPwm, (unsigned int)data->pwmOut);
 		return false;
 	}
 	return true;
@@ -114,12 +139,14 @@ static bool TimeForwardS(chargerState_t * pCs, uint32_t seconds, input_t * data)
 	return TimeForward(pCs, seconds * 1000UL, data);
 }
 
+const char EEMEM strError[] = "Error should %u, is %u\r\n";
+
 static bool CheckErrorExpected(chargerState_t * pCs, uint8_t should) {
 	uint8_t errorState = ChargerGetError(pCs);
 	if (errorState == should) {
 		return true;
 	}
-	myprintf("Error should %u, is %u\r\n", (unsigned int)should, (unsigned int)errorState);
+	myprintf(strError, (unsigned int)should, (unsigned int)errorState);
 	return false;
 }
 
@@ -130,10 +157,18 @@ static bool CheckStateExpected(chargerState_t * pCs, uint8_t should) {
 	return false;
 }
 
+const char EEMEM strFailed[] = "Test %u failed, with code %u\r\n";
+
 static void PrintFailed(uint16_t testnumber, uint8_t errorCode) {
-	myprintf("Test %u failed, with code %u\r\n", (unsigned int)testnumber, (unsigned int)errorCode);
+	myprintf(strFailed, (unsigned int)testnumber, (unsigned int)errorCode);
 }
 
+const char EEMEM strTickAnalzye[] = "Max ticks: %u\r\n";
+
+static void TicksAnalyze(input_t * data) {
+	myprintf(strTickAnalzye, (unsigned int)data->maxTicks);
+	g_maxTicks = MAX(g_maxTicks, data->maxTicks);
+}
 
 //Under this conditions, the charging should start
 static void CommonStartCondition(input_t * data) {
@@ -144,6 +179,7 @@ static void CommonStartCondition(input_t * data) {
 	data->inImax = 100;
 	data->pwmMin = CHARGER_PWM_MAX / 2;
 	data->pwmMax = CHARGER_PWM_MAX;
+	data->maxTicks = 0;
 }
 
 //just do nothing, because the battery is full
@@ -158,6 +194,7 @@ static uint8_t test1(void) {
 	TASSH(TimeForwardS(&cs, 100, &data), 1);
 	TASSH(CheckErrorExpected(&cs, 0), 2);
 	TASSH(CheckStateExpected(&cs, 0), 3);
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -173,6 +210,7 @@ static uint8_t test2(void) {
 	TASSH(TimeForwardS(&cs, 100, &data), 1);
 	TASSH(CheckErrorExpected(&cs, 0), 2);
 	TASSH(CheckStateExpected(&cs, 0), 3);
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -187,6 +225,7 @@ static uint8_t test3(void) {
 	TASSH(TimeForwardS(&cs, 1, &data), 1);
 	TASSH(CheckErrorExpected(&cs, 1), 2);
 	TASSH(CheckStateExpected(&cs, 0), 3);
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -218,6 +257,7 @@ static uint8_t test4(void) {
 	TASSH(CheckErrorExpected(&cs, 0), 8);
 	TASSH(CheckStateExpected(&cs, 0), 9);
 	TASSH(ChargerGetCharged(&cs) == (600UL*60UL*60UL), 10);
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -253,6 +293,7 @@ static uint8_t test5(void) {
 	TASSH(CheckStateExpected(&cs, 0), 9);
 	TASSH(ChargerGetCharged(&cs) < (600UL*60UL*60UL), 10);
 	TASSH(ChargerGetCharged(&cs) > (600UL*60UL*59UL), 11);
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -290,6 +331,7 @@ static uint8_t test6(void) {
 	TASSH(CheckStateExpected(&cs, 0), 9);
 	TASSH(ChargerGetCharged(&cs) <= (610UL*60UL*60UL), 10);
 	TASSH(ChargerGetCharged(&cs) > (600UL*60UL*59UL), 11);
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -305,6 +347,7 @@ static uint8_t test7(void) {
 	TASSH(StepForward(&cs, 100, &data), 2);
 	TASSH(CheckErrorExpected(&cs, 0), 3);
 	TASSH(CheckStateExpected(&cs, 9), 4);
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -320,6 +363,7 @@ static uint8_t test23(void) {
 	TASSH(StepForward(&cs, 100, &data), 2);
 	TASSH(CheckErrorExpected(&cs, 0), 3);
 	TASSH(CheckStateExpected(&cs, 9), 4);
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -336,6 +380,7 @@ static uint8_t test8(void) {
 	TASSH(StepForward(&cs, 100, &data), 2);
 	TASSH(CheckErrorExpected(&cs, 2), 3);
 	TASSH(CheckStateExpected(&cs, 3), 4);
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -352,6 +397,7 @@ static uint8_t test9(void) {
 	TASSH(StepForward(&cs, 100, &data), 2);
 	TASSH(CheckErrorExpected(&cs, 1), 3);
 	TASSH(CheckStateExpected(&cs, 4), 4);
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -365,6 +411,7 @@ static uint8_t test10(void) {
 	TASSH(TimeForwardS(&cs, 10, &data), 1);
 	TASSH(CheckErrorExpected(&cs, 4), 3);
 	TASSH(CheckStateExpected(&cs, 8), 4);
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -386,6 +433,7 @@ static uint8_t test11(void) {
 	TASSH(CheckStateExpected(&cs, 8), 6);
 	TASSH(ChargerGetCharged(&cs) >= (700UL*60UL*60UL), 7);
 	TASSH(ChargerGetCharged(&cs) < (701UL*60UL*60UL), 8);
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -433,7 +481,7 @@ static uint8_t test12(void) {
 	TASSH(StepForward(&cs, 100, &data), 18);
 	TASSH(CheckStateExpected(&cs, 1), 19);
 	TASSH(CheckErrorExpected(&cs, 0), 20);
-
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -482,7 +530,7 @@ static uint8_t test13(void) {
 	TASSH(StepForward(&cs, 100, &data), 18);
 	TASSH(CheckStateExpected(&cs, 1), 19);
 	TASSH(CheckErrorExpected(&cs, 0), 20);
-
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -499,7 +547,7 @@ static uint8_t test14(void) {
 	TASSH(StepForward(&cs, 100, &data), 1);
 	TASSH(CheckStateExpected(&cs, 2), 2);
 	TASSH(CheckErrorExpected(&cs, 0), 3);
-
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -516,7 +564,7 @@ static uint8_t test15(void) {
 	TASSH(StepForward(&cs, 100, &data), 1);
 	TASSH(CheckStateExpected(&cs, 2), 2);
 	TASSH(CheckErrorExpected(&cs, 0), 3);
-
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -565,7 +613,7 @@ static uint8_t test16(void) {
 	TASSH(StepForward(&cs, 100, &data), 18);
 	TASSH(CheckStateExpected(&cs, 1), 19);
 	TASSH(CheckErrorExpected(&cs, 0), 20);
-
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -606,7 +654,7 @@ static uint8_t test17(void) {
 	TASSH(StepForward(&cs, 100, &data), 15);
 	TASSH(CheckStateExpected(&cs, 1), 16);
 	TASSH(CheckErrorExpected(&cs, 0), 17);
-
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -623,7 +671,7 @@ static uint8_t test18(void) {
 	TASSH(StepForward(&cs, 100, &data), 1);
 	TASSH(CheckStateExpected(&cs, 5), 2);
 	TASSH(CheckErrorExpected(&cs, 0), 3);
-
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -640,7 +688,7 @@ static uint8_t test19(void) {
 	TASSH(StepForward(&cs, 100, &data), 1);
 	TASSH(CheckStateExpected(&cs, 6), 2);
 	TASSH(CheckErrorExpected(&cs, 0), 3);
-
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -683,7 +731,7 @@ static uint8_t test20(void) {
 	TASSH(StepForward(&cs, 100, &data), 9);
 	TASSH(CheckErrorExpected(&cs, 0), 10);
 	TASSH(CheckStateExpected(&cs, 1), 11);
-
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -728,7 +776,7 @@ static uint8_t test21(void) {
 	TASSH(StepForward(&cs, 100, &data), 12);
 	TASSH(CheckErrorExpected(&cs, 2), 13);
 	TASSH(CheckStateExpected(&cs, 3), 14);
-
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -758,7 +806,7 @@ static uint8_t test22(void) {
 	TASSH(StepForward(&cs, 100, &data), 12);
 	TASSH(CheckErrorExpected(&cs, 3), 13);
 	TASSH(CheckStateExpected(&cs, 8), 14);
-
+	TicksAnalyze(&data);
 	return 0;
 }
 
@@ -792,28 +840,49 @@ test_t g_tests[] = {
 };
 
 
+#ifdef __AVR_ARCH__
+static int8_t RunTests(void) __attribute__((noreturn));
+#endif
+
+const char EEMEM strStartTest[] = "Start test %u\r\n";
+const char EEMEM strMaxTick[] = "Max ticks of all tests: %u\r\n";
+const char EEMEM strDoneSucces[] = "Test done - failure\r\n";
+const char EEMEM strDoneFail[] = "Test done - success\r\n";
+
+static int8_t RunTests(void) {
+	int8_t result = 0; //succes
+	uint8_t entries = sizeof(g_tests) / sizeof(test_t);
+	for (uint8_t i = 0; i < entries; i++) {
+		myprintf(strStartTest, (unsigned int)(i + 1));
+		uint8_t e = g_tests[i]();
+		if (e != 0) {
+			PrintFailed(i + 1, e);
+			result = -1;
+		}
+	}
+	//worst case found in tests 5 and 6 with 568 ticks
+	myprintf(strMaxTick, (unsigned int)g_maxTicks);
+
+	if (result) {
+		myprintf(strDoneSucces);
+	} else {
+		myprintf(strDoneFail);
+	}
+#ifdef __AVR_ARCH__
+	while(1);
+#else
+	return result;
+#endif
+}
+
+const char EEMEM strStart[] = "Unit tests 0.9\r\n";
+
 int main(void) {
 	HardwareInit();
 	ArmUserprog();
 	waitms(1);
 	ArmRun();
 	waitms(5000); //let the ARM start his UART forward application
-	print_p(PSTR("Unit tests 0.9\r\n"));
-	bool success = true;
-	uint16_t entries = sizeof(g_tests) / sizeof(test_t);
-	for (uint16_t i = 0; i < entries; i++) {
-		myprintf("Start test %u\r\n", (unsigned int)(i + 1));
-		uint8_t e = g_tests[i]();
-		if (e != 0) {
-			PrintFailed(i + 1, e);
-			success = false;
-		}
-	}
-	if (!success) {
-		print_p(PSTR("Tests done with failure\r\n"));
-		return -1; //failure
-	} else {
-		print_p(PSTR("Tests done with success\r\n"));
-		return 0;
-	}
+	myprintf(strStart);
+	return RunTests();
 }
