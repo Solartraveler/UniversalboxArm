@@ -3,6 +3,7 @@ VERYCOMMON=../../../common
 ALGORITHM=$(VERYCOMMON)/algorithm
 
 SRC = simulate.c
+SRC += counter.c
 SRC += ../main.c
 SRC += $(ALGORITHM)/femtoVsnprintf.c
 SRC += $(COMMON)/chargerStatemachine.c

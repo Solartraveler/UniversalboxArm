@@ -249,6 +249,7 @@ void PwmBatterySet(uint8_t val) {
 		}
 	} else {
 		TCCR1B = 0; //disable timer
+		TCCR1A = 0; //restores normal pin behaviour. So it should be a low level by now.
 		PLLCSR &= ~(1<<PCKE); //disable timer base clock to be the PLL
 		PLLCSR &= ~(1<<PLLE); //disable PLL
 	}

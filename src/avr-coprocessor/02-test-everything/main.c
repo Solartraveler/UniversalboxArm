@@ -49,7 +49,12 @@
   WARNING: While an ISP programmer is connected, the right button may not be
            pressed, as this would short circuit SCK of the programmer to ground.
 
+  Hardware used:
+   Timer0: For timekeeping
+   Timer1: For PWM generation
+
 History:
+ v0.8 2022-06-24: Complete testing for charger control logic
  v0.5 2021-12-19: All pins can be tested as intended and sensors can be read.
       Charging controller is missing.
 
@@ -65,6 +70,7 @@ History:
 #include "softtx.h"
 #include "femtoVsnprintf.h"
 #include "chargerStatemachine.h"
+#include "counter.h"
 
 typedef void (*testSelect)(void);
 
@@ -222,28 +228,46 @@ static void chargerTest(void) {
 	uint8_t cycle = 0;
 	char text[64];
 	size_t len = sizeof(text);
+	CounterStart(); //starts an 1ms counter
 	while (KeyPressedLeft() == 0) {
+		uint16_t timePassed = CounterGet();
+		if (timePassed < 100) {
+			waitms(100 - timePassed);
+		}
 		uint16_t batteryTemperature = SensorsBatterytemperatureGet();
 		uint16_t inputVoltage = SensorsInputvoltageGet();
 		uint16_t batteryVoltage = SensorsBatteryvoltageGet();
 		uint16_t batteryCurrent = SensorsBatterycurrentGet();
-		uint16_t pwm = ChargerCycle(&cS, batteryVoltage, inputVoltage, batteryCurrent, batteryTemperature, 100, 100);
+		timePassed = CounterGet();
+		CounterStart();
+		uint16_t pwm = ChargerCycle(&cS, batteryVoltage, inputVoltage, batteryCurrent, batteryTemperature, 100, timePassed);
 		PwmBatterySet(pwm);
-		waitms(100);
 		cycle++;
+		if (cycle == 5) {
+			femtoSnprintf(text, len, "%04umV- ", batteryVoltage);
+			print(text);
+		}
 		if (cycle == 10) {
-			femtoSnprintf(text, len, "%4umV- ", batteryVoltage);
+			femtoSnprintf(text, len, "%03umA- ", batteryCurrent);
+			print(text);
+		}
+		if (cycle == 15) {
+			femtoSnprintf(text, len, "%03uPWM\r\n", pwm);
 			print(text);
 		}
 		if (cycle == 20) {
-			femtoSnprintf(text, len, "%3umA- ", batteryCurrent);
+			femtoSnprintf(text, len, "%uSt-", ChargerGetState(&cS));
+			print(text);
+		}
+		if (cycle == 25) {
+			femtoSnprintf(text, len, "%uErr-", ChargerGetError(&cS));
 			print(text);
 		}
 		if (cycle == 30) {
-			femtoSnprintf(text, len, "%3u\r\n", pwm);
+			femtoSnprintf(text, len, "%05umAs\r\n", ChargerGetCharged(&cS));
 			print(text);
 		}
-		if (cycle == 100) {
+		if (cycle == 35) {
 			cycle = 0;
 		}
 	}
@@ -252,8 +276,9 @@ static void chargerTest(void) {
 
 int main(void) {
 	HardwareInit();
-	waitms(1); //let the uart have one level for a longer time
-	print_p(PSTR("Test everything 0.7\r\n"));
+	softtx_init();
+	waitms(10); //let the uart have one level for a longer time
+	print_p(PSTR("Test everything 0.8\r\n"));
 	print_p(g_tests[0].name);
 	uint8_t testSelected = 0;
 	uint8_t pressedLeft = 0, pressedRight = 0, pressedRepeatRight = 0;

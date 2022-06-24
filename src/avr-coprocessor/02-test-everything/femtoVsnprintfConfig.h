@@ -15,7 +15,7 @@
 //#define FEMTO_SUPPORT_HEX
 
 //enable for %0WX and %0Wu
-//#define FEMTO_SUPPORT_LEADINGZEROS
+#define FEMTO_SUPPORT_LEADINGZEROS
 
 //enable for femtoSnprintf
 #define FEMTO_SUPPORT_SNPRINTF
