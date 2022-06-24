@@ -776,7 +776,7 @@ static uint8_t test21(void) {
 	TASSH(StepForward(&cs, 100, &data), 12);
 	TASSH(CheckErrorExpected(&cs, 2), 13);
 	TASSH(CheckStateExpected(&cs, 3), 14);
-	TicksAnalyze(&data);
+	//TicksAnalyze(&data); //not enough flash
 	return 0;
 }
 
@@ -806,10 +806,24 @@ static uint8_t test22(void) {
 	TASSH(StepForward(&cs, 100, &data), 12);
 	TASSH(CheckErrorExpected(&cs, 3), 13);
 	TASSH(CheckStateExpected(&cs, 8), 14);
-	TicksAnalyze(&data);
+	//TicksAnalyze(&data); //not enough flash
 	return 0;
 }
 
+//charger defective
+static uint8_t test24(void) {
+	chargerState_t cs;
+	ChargerInit(&cs, 0);
+	input_t data;
+	CommonStartCondition(&data);
+	data.battI = 110; //too much. We want only 100mA
+	data.pwmMin = 0;
+	TimeForwardS(&cs, 30, &data);
+	TASSH(CheckErrorExpected(&cs, 4), 2);
+	TASSH(CheckStateExpected(&cs, 10), 3);
+	//TicksAnalyze(&data); //not enough flash
+	return 0;
+}
 
 typedef uint8_t (*test_t)(void);
 
@@ -837,6 +851,7 @@ test_t g_tests[] = {
 &test21,
 &test22,
 &test23,
+&test24,
 };
 
 

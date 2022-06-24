@@ -152,6 +152,11 @@ static uint16_t ChargerRegulator(chargerState_t * pCS, uint16_t battU, uint16_t 
 	if ((battI > (battImax + 1)) || (battI > (inImax + 1))) {
 		if (pCS->pwm > 0) { //ramp down the current
 			pCS->pwm--;
+		} else {
+			pCS->state = 10;
+			pCS->error = 4;
+			CHARGER_DEBUGMSG("Stop charge - PWM min, but still too much current\n");
+			return 0; //testcase 24
 		}
 	}
 	return pCS->pwm; //just continue to charge

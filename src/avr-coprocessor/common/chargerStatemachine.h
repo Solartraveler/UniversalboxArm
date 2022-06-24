@@ -22,6 +22,7 @@ typedef struct {
 	  7: Battey precharging because of very low voltage
 	  8: Failed to fully charge
 	  9: Software failure
+	 10: Charger defective
 	*/
 	uint8_t state;
 	uint16_t pwm;
