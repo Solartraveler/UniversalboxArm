@@ -233,9 +233,7 @@ $(BUILD_DIR)/%.o: %.S | $(BUILD_DIR)
 
 # Target: clean project.
 clean:
-	$(REMOVE) $(TARGET).hex $(TARGET).eep $(TARGET).cof $(TARGET).elf \
-	$(TARGET).map $(TARGET).sym $(TARGET).lss \
-	$(OBJ) $(LST) $(SRC:.c=.s) $(SRC:.c=.d)
+	rm -f $(BUILD_DIR)/*
 
 depend:
 	if grep '^# DO NOT DELETE' $(MAKEFILE) >/dev/null; \

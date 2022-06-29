@@ -7,8 +7,9 @@
 MCU = attiny861a
 MCUAVRDUDE = attiny861
 FORMAT = ihex
-TARGET = main
-SRC = $(TARGET).c
+BUILD_DIR = build
+TARGET = $(BUILD_DIR)/main
+SRC = main.c
 ASRC =
 OPT = -Os -fweb -Winline -mcall-prologues -mrelax
 
@@ -120,7 +121,8 @@ REMOVE = rm -f
 MV = mv -f
 
 # Define all object files.
-OBJ = $(SRC:.c=.o) $(ASRC:.S=.o)
+OBJ = $(addprefix $(BUILD_DIR)/,$(notdir $(SRC:.c=.o)))
+vpath %.c $(sort $(dir $(SRC)))
 
 # Define all listing files.
 LST = $(ASRC:.S=.lst) $(SRC:.c=.lst)
@@ -132,9 +134,7 @@ ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 
 # Default target.
-all: build
-
-build: clean elf hex eep
+all: elf hex eep
 	avr-size $(TARGET).elf
 
 elf: $(TARGET).elf
@@ -145,6 +145,9 @@ sym: $(TARGET).sym
 
 removebackup:
 	rm -f *~
+
+$(BUILD_DIR):
+	mkdir -p $@
 
 # Program the device.
 upload: program
@@ -164,11 +167,11 @@ COFFCONVERT=$(OBJCOPY) --debugging \
 --change-section-address .eeprom-0x810000
 
 
-coff: $(TARGET).elf
+coff: $(BUILD_DIR)/$(TARGET).elf
 	$(COFFCONVERT) -O coff-avr $(TARGET).elf $(TARGET).cof
 
 
-extcoff: $(TARGET).elf
+extcoff: $(BUILD_DIR)/$(TARGET).elf
 	$(COFFCONVERT) -O coff-ext-avr $(TARGET).elf $(TARGET).cof
 
 
@@ -197,26 +200,24 @@ $(TARGET).elf: $(OBJ)
 
 
 # Compile: create object files from C source files.
-.c.o:
+$(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
 	$(CC) -c $(ALL_CFLAGS) $< -o $@
 
 
 # Compile: create assembler files from C source files.
-.c.s:
+$(BUILD_DIR)/%.s: %.c | $(BUILD_DIR)
 	$(CC) -S $(ALL_CFLAGS) $< -o $@
 
 
 # Assemble: create object files from assembler source files.
-.S.o:
+$(BUILD_DIR)/%.o: %.S | $(BUILD_DIR)
 	$(CC) -c $(ALL_ASFLAGS) $< -o $@
 
 
 
 # Target: clean project.
 clean:
-	$(REMOVE) $(TARGET).hex $(TARGET).eep $(TARGET).cof $(TARGET).elf \
-	$(TARGET).map $(TARGET).sym $(TARGET).lss \
-	$(OBJ) $(LST) $(SRC:.c=.s) $(SRC:.c=.d)
+	rm -f $(BUILD_DIR)/*
 
 depend:
 	if grep '^# DO NOT DELETE' $(MAKEFILE) >/dev/null; \
