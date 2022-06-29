@@ -55,6 +55,7 @@
   (-mno-interrupts) or unused functions (-ffunction-sections).
 
 History:
+ v0.10 2022-06-26
  v0.9 2022-06-24
  v0.1 2022-05-31
 
@@ -83,6 +84,7 @@ typedef struct {
 	uint16_t battI;
 	int16_t battTemp;
 	uint16_t inImax;
+	uint8_t requestCharge;
 	uint16_t pwmMax;
 	uint16_t pwmMin;
 	uint16_t pwmOut;
@@ -112,7 +114,7 @@ const char EEMEM strPwm[] = "Pwm out of bounds, is %u\r\n";
 
 static bool StepForward(chargerState_t * pCs, uint32_t miliseconds, input_t * data) {
 	CounterStart();
-	data->pwmOut = ChargerCycle(pCs, data->battU, data->inU, data->battI, data->battTemp, data->inImax, miliseconds);
+	data->pwmOut = ChargerCycle(pCs, data->battU, data->inU, data->battI, data->battTemp, data->inImax, miliseconds, data->requestCharge);
 	uint32_t ticks = CounterGet();
 	data->maxTicks = MAX(data->maxTicks, ticks);
 	if ((data->pwmOut > data->pwmMax) || (data->pwmOut < data->pwmMin)) {
@@ -177,6 +179,7 @@ static void CommonStartCondition(input_t * data) {
 	data->battI = 0;
 	data->battTemp = 250;
 	data->inImax = 100;
+	data->requestCharge = 0;
 	data->pwmMin = CHARGER_PWM_MAX / 2;
 	data->pwmMax = CHARGER_PWM_MAX;
 	data->maxTicks = 0;
@@ -257,6 +260,9 @@ static uint8_t test4(void) {
 	TASSH(CheckErrorExpected(&cs, 0), 8);
 	TASSH(CheckStateExpected(&cs, 0), 9);
 	TASSH(ChargerGetCharged(&cs) == (600UL*60UL*60UL), 10);
+	TASSH(ChargerGetChargedTotal(&cs) == (600UL*60UL*60UL), 11);
+	TASSH(ChargerGetCycles(&cs) == 1, 12);
+	TASSH(ChargerGetPreCycles(&cs) == 0, 13);
 	TicksAnalyze(&data);
 	return 0;
 }
@@ -731,6 +737,8 @@ static uint8_t test20(void) {
 	TASSH(StepForward(&cs, 100, &data), 9);
 	TASSH(CheckErrorExpected(&cs, 0), 10);
 	TASSH(CheckStateExpected(&cs, 1), 11);
+	TASSH(ChargerGetCycles(&cs) == 1, 12);
+	TASSH(ChargerGetPreCycles(&cs) == 1, 13);
 	TicksAnalyze(&data);
 	return 0;
 }
@@ -776,7 +784,7 @@ static uint8_t test21(void) {
 	TASSH(StepForward(&cs, 100, &data), 12);
 	TASSH(CheckErrorExpected(&cs, 2), 13);
 	TASSH(CheckStateExpected(&cs, 3), 14);
-	//TicksAnalyze(&data); //not enough flash
+	TicksAnalyze(&data); //not enough flash
 	return 0;
 }
 
@@ -806,7 +814,7 @@ static uint8_t test22(void) {
 	TASSH(StepForward(&cs, 100, &data), 12);
 	TASSH(CheckErrorExpected(&cs, 3), 13);
 	TASSH(CheckStateExpected(&cs, 8), 14);
-	//TicksAnalyze(&data); //not enough flash
+	TicksAnalyze(&data); //not enough flash
 	return 0;
 }
 
@@ -821,9 +829,28 @@ static uint8_t test24(void) {
 	TimeForwardS(&cs, 30, &data);
 	TASSH(CheckErrorExpected(&cs, 4), 2);
 	TASSH(CheckStateExpected(&cs, 10), 3);
-	//TicksAnalyze(&data); //not enough flash
+	TicksAnalyze(&data); //not enough flash
 	return 0;
 }
+
+//start charge because we requested this, even when the battery is 99% full
+static uint8_t test25(void) {
+	chargerState_t cs;
+	ChargerInit(&cs, 0);
+	input_t data;
+	CommonStartCondition(&data);
+	data.battU = 3350;
+	data.requestCharge = 1;
+	TASSH(StepForward(&cs, 100, &data), 1);
+	TASSH(CheckErrorExpected(&cs, 0), 2);
+	TASSH(CheckStateExpected(&cs, 1), 3);
+	TASSH(TimeForwardS(&cs, 1, &data), 4);
+	TASSH(CheckErrorExpected(&cs, 0), 5);
+	TASSH(CheckStateExpected(&cs, 1), 6);
+	TicksAnalyze(&data);
+	return 0;
+}
+
 
 typedef uint8_t (*test_t)(void);
 
@@ -849,9 +876,13 @@ test_t g_tests[] = {
 &test19,
 &test20,
 &test21,
+//unfortunately, the AVR flash is just full. ...split into two binaries?
+#ifndef __AVR_ARCH__
 &test22,
 &test23,
 &test24,
+&test25,
+#endif
 };
 
 
@@ -875,7 +906,7 @@ static int8_t RunTests(void) {
 			result = -1;
 		}
 	}
-	//worst case found in tests 5 and 6 with 568 ticks
+	//worst case found in tests 5 and 6 with 687 ticks
 	myprintf(strMaxTick, (unsigned int)g_maxTicks);
 
 	if (result) {
@@ -890,7 +921,7 @@ static int8_t RunTests(void) {
 #endif
 }
 
-const char EEMEM strStart[] = "Unit tests 0.9\r\n";
+const char EEMEM strStart[] = "Unit tests 0.10\r\n";
 
 int main(void) {
 	HardwareInit();

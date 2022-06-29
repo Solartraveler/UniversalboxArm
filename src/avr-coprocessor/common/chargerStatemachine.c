@@ -32,17 +32,18 @@
 
 /*We never charge to more than 3600mV, to prevent damange on the ARM side
   with some tolerance, the voltage should be cut off at ~3550mV +-1%
+  3550mV -1% - 50mV measurement error -> 3464mV
 */
-#define BATT_FULL 3500
+#define BATT_FULL 3464
 
 
-//According to the datasheet at this voltage charging should stop
+//According to the datasheet at 3.65V charging should stop. We remove 50mV for measurement tolerance.
 //[mV]
-#define BATT_MAX 3650
+#define BATT_MAX 3600
 
-//According to the datasheet the battery may never exceed 3.7V
+//According to the datasheet the battery may never exceed 3.7V. We remove 50mV for measurement tolerance
 //[mV]
-#define BATT_DEFECTIVE 3680
+#define BATT_DEFECTIVE 3650
 
 //According to the datasheet charging is allowed between -10°C and 45°C
 //[0.1°C]
@@ -89,6 +90,7 @@ void ChargerInit(chargerState_t * pCS, uint8_t errorState) {
 static uint16_t ChargerRegulator(chargerState_t * pCS, uint16_t battU, uint16_t inU, uint16_t battI, int16_t battTemp, uint16_t inImax, uint16_t timePassed, uint16_t battUtarget, uint16_t battImax, uint32_t timeOut) {
 	pCS->chargingTime += timePassed;
 	pCS->chargingSum += battI * timePassed;
+	pCS->chargingSumAllTime += battI * timePassed;
 	if (battU >= battUtarget) { //stop charging, its full
 		pCS->state = 0;
 		CHARGER_DEBUGMSG("Stop charge - full (1)\n");
@@ -162,7 +164,7 @@ static uint16_t ChargerRegulator(chargerState_t * pCS, uint16_t battU, uint16_t 
 	return pCS->pwm; //just continue to charge
 }
 
-uint16_t ChargerCycle(chargerState_t * pCS, uint16_t battU, uint16_t inU, uint16_t battI, int16_t battTemp, uint16_t inImax, uint16_t timePassed) {
+uint16_t ChargerCycle(chargerState_t * pCS, uint16_t battU, uint16_t inU, uint16_t battI, int16_t battTemp, uint16_t inImax, uint16_t timePassed, uint8_t requestFullCharge) {
 	if (pCS->error) {
 		CHARGER_DEBUGMSG("Error state present\n");
 		return 0; //testcase 3
@@ -197,7 +199,7 @@ uint16_t ChargerCycle(chargerState_t * pCS, uint16_t battU, uint16_t inU, uint16
 	}
 	if (pCS->state == 0) { //check if we should start to charge?
 		CHARGER_DEBUGMSG("Check charging start\n");
-		if (battU < BATT_NOT_FULL) {
+		if ((battU < BATT_NOT_FULL) || ((requestFullCharge) && (battU < BATT_FULL))) {
 			CHARGER_DEBUGMSG("Check charging start - battery not full\n");
 			if ((battTemp >= BATT_TEMPERATURE_MAX) || (battTemp <= BATT_TEMPERATURE_MIN)) {
 				pCS->state = 2;
@@ -217,6 +219,7 @@ uint16_t ChargerCycle(chargerState_t * pCS, uint16_t battU, uint16_t inU, uint16
 				pCS->pwm = CHARGER_PWM_MAX / 2;
 				pCS->chargingTime = 0;
 				pCS->chargingSum = 0;
+				pCS->chargingCycles++;
 				return pCS->pwm; //testcase 4
 			} else { //precharge, look if battery could be recovered
 				CHARGER_DEBUGMSG("Start precharge\n");
@@ -224,6 +227,7 @@ uint16_t ChargerCycle(chargerState_t * pCS, uint16_t battU, uint16_t inU, uint16
 				pCS->pwm = CHARGER_PWM_MAX / 3;
 				pCS->chargingTime = 0;
 				pCS->chargingSum = 0;
+				pCS->prechargingCycles++;
 				return pCS->pwm; //testcase 20, testcase 21
 			}
 		} else {

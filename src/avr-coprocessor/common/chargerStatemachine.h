@@ -29,6 +29,10 @@ typedef struct {
 	uint32_t chargingTime; //ms
 	//sum of the measured charges
 	uint64_t chargingSum; //mAms
+	//variables for statistics only. Do not change the charging behaviour:
+	uint64_t chargingSumAllTime; //mAms
+	uint32_t chargingCycles; //increments every time a charging starts
+	uint32_t prechargingCycles; //increments every time a precharging starts
 } chargerState_t;
 
 #define CHARGER_PWM_MAX 127
@@ -47,6 +51,9 @@ battI: Charging current in [mA]
 battTemp: Battery temperature in [0.1°C]
 inImax: Maximum allowed charging current in [mA]
 timePassed: Time in [ms] since the last call. Minimum is 50ms to avoid oscilations.
+requestFullCharge: Automatic recharging starts when the battery is already partly empty.
+  Setting this to 1 for one cycle, starts a charge even if the voltage is not low enough
+  to start the automatic recharge.
 
 To not trigger an error, the charger current must be measured before the input voltage,
 because a current of 0 with an input voltage is considered a hardware error.
@@ -54,7 +61,7 @@ There could be a power cord removal between the two measurements.
 
 Returns: PWM value
 */
-uint16_t ChargerCycle(chargerState_t * pCS, uint16_t battU, uint16_t inU, uint16_t battI, int16_t battTemp, uint16_t inImax, uint16_t timePassed);
+uint16_t ChargerCycle(chargerState_t * pCS, uint16_t battU, uint16_t inU, uint16_t battI, int16_t battTemp, uint16_t inImax, uint16_t timePassed, uint8_t requestFullCharge);
 
 inline static uint8_t ChargerGetError(chargerState_t * pCS) {
 	return pCS->error;
@@ -68,3 +75,17 @@ inline static uint8_t ChargerGetState(chargerState_t * pCS) {
 inline static uint32_t ChargerGetCharged(chargerState_t * pCS) {
 	return pCS->chargingSum / 1000UL;
 }
+
+//returns mAs
+inline static uint32_t ChargerGetChargedTotal(chargerState_t * pCS) {
+	return pCS->chargingSumAllTime / 1000UL;
+}
+
+inline static uint32_t ChargerGetCycles(chargerState_t * pCS) {
+	return pCS->chargingCycles;
+}
+
+inline static uint32_t ChargerGetPreCycles(chargerState_t * pCS) {
+	return pCS->prechargingCycles;
+}
+

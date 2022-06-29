@@ -54,6 +54,7 @@
    Timer1: For PWM generation
 
 History:
+ v0.9 2022-06-29: Add force charge test
  v0.8 2022-06-24: Complete testing for charger control logic
  v0.5 2021-12-19: All pins can be tested as intended and sensors can be read.
       Charging controller is missing.
@@ -80,7 +81,7 @@ typedef struct
 	const char * name;
 } test_t;
 
-#define TESTS 7
+#define TESTS 8
 
 static void readSensors(void);
 static void toggleArmPower(void);
@@ -88,7 +89,8 @@ static void toggleArmBoot(void);
 static void toggleArmReset(void);
 static void toggleSensorPower(void);
 static void chargerPwm(void);
-static void chargerTest(void);
+static void chargerTestNormal(void);
+static void chargerTestForce(void);
 
 
 const char name0[] PROGMEM = "0-Read all sensors\r\n";
@@ -98,6 +100,7 @@ const char name3[] PROGMEM = "3-Toggle reset pin state\r\n";
 const char name4[] PROGMEM = "4-Toggle sensors power pin state\r\n";
 const char name5[] PROGMEM = "5-Set charger PWM\r\n";
 const char name6[] PROGMEM = "6-Run charger logic\r\n";
+const char name7[] PROGMEM = "7-Run charger logic, force charge\r\n";
 
 
 
@@ -108,7 +111,8 @@ const test_t g_tests[TESTS] = {
 	{&toggleArmReset, name3},
 	{&toggleSensorPower, name4},
 	{&chargerPwm, name5},
-	{&chargerTest, name6}
+	{&chargerTestNormal, name6},
+	{&chargerTestForce, name7},
 };
 
 bool g_ArmPowerState;
@@ -222,7 +226,7 @@ static void chargerPwm(void) {
 	PwmBatterySet(pwmValue);
 }
 
-static void chargerTest(void) {
+static void chargerTest(uint8_t force) {
 	chargerState_t cS;
 	ChargerInit(&cS, 0);
 	uint8_t cycle = 0;
@@ -240,45 +244,53 @@ static void chargerTest(void) {
 		uint16_t batteryCurrent = SensorsBatterycurrentGet();
 		timePassed = CounterGet();
 		CounterStart();
-		uint16_t pwm = ChargerCycle(&cS, batteryVoltage, inputVoltage, batteryCurrent, batteryTemperature, 100, timePassed);
+		uint16_t pwm = ChargerCycle(&cS, batteryVoltage, inputVoltage, batteryCurrent, batteryTemperature, 100, timePassed, force);
 		PwmBatterySet(pwm);
 		cycle++;
-		if (cycle == 5) {
-			femtoSnprintf(text, len, "%04umV- ", batteryVoltage);
+		if (cycle == 1) {
+			femtoSnprintf(text, len, "%04umV-", batteryVoltage);
 			print(text);
 		}
-		if (cycle == 10) {
-			femtoSnprintf(text, len, "%03umA- ", batteryCurrent);
+		if (cycle == 2) {
+			femtoSnprintf(text, len, "%03umA-", batteryCurrent);
 			print(text);
 		}
-		if (cycle == 15) {
+		if (cycle == 3) {
 			femtoSnprintf(text, len, "%03uPWM\r\n", pwm);
 			print(text);
 		}
-		if (cycle == 20) {
+		if (cycle == 4) {
 			femtoSnprintf(text, len, "%uSt-", ChargerGetState(&cS));
 			print(text);
 		}
-		if (cycle == 25) {
+		if (cycle == 5) {
 			femtoSnprintf(text, len, "%uErr-", ChargerGetError(&cS));
 			print(text);
 		}
-		if (cycle == 30) {
-			femtoSnprintf(text, len, "%05umAs\r\n", ChargerGetCharged(&cS));
+		if (cycle == 6) {
+			femtoSnprintf(text, len, "%05umAm\r\n", ChargerGetCharged(&cS) / 60);
 			print(text);
 		}
-		if (cycle == 35) {
+		if (cycle == 20) {
 			cycle = 0;
 		}
 	}
 	PwmBatterySet(0);
 }
 
+static void chargerTestNormal(void) {
+	chargerTest(0);
+}
+
+static void chargerTestForce(void) {
+	chargerTest(1);
+}
+
 int main(void) {
 	HardwareInit();
 	softtx_init();
 	waitms(10); //let the uart have one level for a longer time
-	print_p(PSTR("Test everything 0.8\r\n"));
+	print_p(PSTR("Test everything 0.9\r\n"));
 	print_p(g_tests[0].name);
 	uint8_t testSelected = 0;
 	uint8_t pressedLeft = 0, pressedRight = 0, pressedRepeatRight = 0;
