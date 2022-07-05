@@ -5,9 +5,12 @@
 #include <sys/time.h>
 #include <GL/glut.h>
 #include <pthread.h>
+#include <unistd.h>
 
 #include "hardware.h"
 #include "timing.h"
+
+#include "coprocCommands.h"
 
 uint8_t g_ledState;
 uint8_t g_armRun = 1;
@@ -20,11 +23,82 @@ uint64_t g_timestamp;
 uint8_t g_leftPressed;
 uint8_t g_rightPressed;
 
+//dummy vars to compile AVR sources
+uint8_t MCUCR;
+uint8_t GIMSK;
+uint8_t GIFR;
+
+//spi simulator
+extern void isrFunc(void);
+bool spi_clockState;
+bool spi_dataState;
+
+bool g_spiComm;
+
 //see: https://stackoverflow.com/questions/3756323/how-to-get-the-current-time-in-milliseconds-from-c-in-linux
 uint64_t TimeGetMs(void) {
 	struct timeval te;
 	gettimeofday(&te, NULL);
 	return te.tv_sec * 1000LL + te.tv_usec / 1000;
+}
+
+//If the program uses the interrupt, this is overwritten
+__attribute__((weak)) void isrFunc(void) {
+	printf("Spurious interrupt!\n");
+}
+
+uint32_t simulateSpiCommand(uint32_t dataOut, bool incomplete) {
+	uint32_t dataIn = 0;
+	uint32_t bits = 24;
+	g_spiComm = true;
+	if (incomplete) {
+		bits = 12;
+	}
+	for (uint32_t i = 0; i < bits; i++) {
+		spi_dataState = false;
+		if (dataOut & 0x800000) {
+			spi_dataState = true;
+		}
+		dataOut <<= 1;
+
+		//L -> H flank -> master and coprocessor sample the data
+		spi_clockState = true;
+		isrFunc();
+
+		dataIn <<= 1;
+		dataIn |= g_armBootload;
+
+		//H -> L flank -> master and coprocessor update the data
+		spi_clockState = false;
+		isrFunc();
+	}
+	g_spiComm = false;
+	return dataIn;
+}
+
+void simulateSpi(void) {
+	//first read out the signature
+	uint32_t dataOut = CMD_TESTREAD << 16;
+	uint32_t dataIn = simulateSpiCommand(dataOut, false);
+	printf("Got test pattern from SPI: 0x%x\n", dataIn);
+	//read out the software version
+	dataOut = CMD_VERSION << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Got version from SPI: 0x%x\n", dataIn);
+	//Now send a reset to user selected boot mode:
+	dataOut = (CMD_REBOOT << 16) | 0xA600;
+	dataIn = simulateSpiCommand(dataOut, false);
+	//send some corrupt data
+	dataOut = 0x7F1234;
+	dataIn = simulateSpiCommand(dataOut, true);
+	usleep(200000); //should take 150ms to recover its state
+	dataOut = CMD_TESTREAD << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Got test pattern from SPI after garbage and timeout: 0x%x\n", dataIn);
+	//Read vcc
+	dataOut = (CMD_VCC << 16) | 0x0000;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Voltage %umV\n", dataIn);
 }
 
 static void redraw(__attribute__((unused)) int param) {
@@ -60,6 +134,9 @@ void input_key_special(int key, __attribute__((unused)) int x, __attribute__((un
 	if (key == GLUT_KEY_F4) {
 		exit(0);
 	}
+	if (key == GLUT_KEY_F1) {
+		simulateSpi();
+	}
 }
 
 void input_key_special_up(int key, __attribute__((unused)) int x, __attribute__((unused)) int y) {
@@ -79,7 +156,7 @@ void * init_window(__attribute__((unused)) void * param) {
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize(100, 100);
 	glutInitWindowPosition(100,100);
-	glutCreateWindow("minimal reset button simulator");
+	glutCreateWindow("AVR program simulator");
 	glutDisplayFunc(&display);
 	glutTimerFunc(20, redraw, 0);
 	glClearColor(0.0,0.0,0.0,0.0);
@@ -94,6 +171,11 @@ void * init_window(__attribute__((unused)) void * param) {
 void HardwareInit(void) {
 	pthread_t pthr;
 	pthread_create(&pthr, NULL, &init_window, NULL);
+	printf("Press left and right for keys, F1 simulates the SPI\n");
+}
+
+void PinsInit(void) {
+	HardwareInit();
 }
 
 void LedOn(void) {
@@ -131,7 +213,9 @@ void ArmRun(void) {
 void ArmBootload(void) {
 	if (g_armBootload == 0)
 	{
-		printf("ARM bootloader\n");
+		if (g_spiComm == false) {
+			printf("ARM bootloader\n");
+		}
 		g_armBootload = 1;
 	}
 }
@@ -139,7 +223,9 @@ void ArmBootload(void) {
 void ArmUserprog(void) {
 	if (g_armBootload)
 	{
-		printf("ARM normal start vector\n");
+		if (g_spiComm == false) {
+			printf("ARM normal start vector\n");
+		}
 		g_armBootload = 0;
 	}
 }
@@ -177,11 +263,11 @@ void SensorsOff(void) {
 }
 
 bool SpiSckLevel(void) {
-	return true;
+	return spi_clockState;
 }
 
 bool SpiDiLevel(void) {
-	return false;
+	return spi_dataState;
 }
 
 bool KeyPressedRight(void) {
@@ -235,3 +321,18 @@ void PwmBatterySet(uint8_t val) {
 	printf("PWM set to %u\n", val);
 }
 
+void TimerInit(void) {
+	g_timestamp = TimeGetMs();
+}
+
+bool TimerHasOverflown(void) {
+	uint64_t stamp = TimeGetMs();
+	if ((g_timestamp + 10) <= stamp) {
+		g_timestamp = stamp;
+		return true;
+	}
+	return false;
+}
+
+void WatchdogReset(void) {
+}

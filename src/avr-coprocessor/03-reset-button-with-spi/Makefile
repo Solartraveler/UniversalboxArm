@@ -13,7 +13,7 @@ TARGET = $(BUILD_DIR)/main
 COMMON=../common
 
 SRC = $(TARGET).c
-SRC += spi.c
+SRC += $(COMMON)/spi.c
 SRC += $(COMMON)/avr/hardware.c
 ASRC =
 OPT = -O2 -fweb -Winline -mcall-prologues -mrelax
@@ -37,7 +37,10 @@ CSTANDARD = -std=gnu99
 CDEFS =
 
 # Place -I options here
-CINCS = -I avr -I ../common/avr -I ../../common
+CINCS = -I avr
+CINCS += -I ../common
+CINCS += -I ../common/avr
+CINCS += -I ../../common
 
 
 CDEBUG = -g$(DEBUG)

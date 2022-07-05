@@ -47,7 +47,9 @@ CINCS = -I avr
 CINCS += -I .
 CINCS += -I $(COMMON)
 CINCS += -I $(COMMON)/avr
+CINCS += -I $(VERYCOMMON)
 CINCS += -I $(ALGORITHM)
+
 
 
 CDEBUG = -g$(DEBUG)

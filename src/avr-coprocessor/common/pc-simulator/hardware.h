@@ -7,15 +7,17 @@
 
 void HardwareInit(void);
 
+void PinsInit(void);
+
 void ad_init(uint8_t prescal);
 
 void LedOn(void);
 
 void LedOff(void);
 
-void ArmReset(void);
-
 void ArmRun(void);
+
+void ArmReset(void);
 
 void ArmBootload(void);
 
@@ -39,6 +41,7 @@ int16_t SensorsBatterytemperatureGet(void);
 //in mV
 uint16_t SensorsInputvoltageGet(void);
 
+
 //directly the AD converter value
 uint16_t VccRaw(void);
 
@@ -60,3 +63,8 @@ bool KeyPressedRight(void);
 
 bool KeyPressedLeft(void);
 
+void TimerInit(void);
+
+bool TimerHasOverflown(void);
+
+void WatchdogReset(void);
