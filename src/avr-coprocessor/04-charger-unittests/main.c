@@ -185,10 +185,14 @@ static void CommonStartCondition(input_t * data) {
 	data->maxTicks = 0;
 }
 
+static void ChargerInitCommon(chargerState_t * pCs) {
+	ChargerInit(pCs, 0, 0, 0, 0);
+}
+
 //just do nothing, because the battery is full
 static uint8_t test1(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.battU = 3350;
@@ -204,7 +208,7 @@ static uint8_t test1(void) {
 //just do nothing, because the charging current is limited to 0
 static uint8_t test2(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.inImax = 0;
@@ -220,7 +224,7 @@ static uint8_t test2(void) {
 //reject, if initialized in error state
 static uint8_t test3(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 1);
+	ChargerInit(&cs, 1, 0, 0, 0);
 	input_t data;
 	CommonStartCondition(&data);
 	data.pwmMin = 0;
@@ -235,7 +239,7 @@ static uint8_t test3(void) {
 //lets do a simple charge
 static uint8_t test4(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	//start the charge
@@ -270,7 +274,7 @@ static uint8_t test4(void) {
 //lets do a charge but needing to adjust the pwm value to maintain the desired current
 static uint8_t test5(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.pwmMax = 101;
@@ -308,7 +312,7 @@ static uint8_t test5(void) {
 //and regulating gets difficult cause the 100mA is always missed
 static uint8_t test6(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.pwmMin = 45;
@@ -344,7 +348,7 @@ static uint8_t test6(void) {
 //reject, if not enough time passed
 static uint8_t test7(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.pwmMin = 0;
@@ -360,7 +364,7 @@ static uint8_t test7(void) {
 //reject, if too much time passed
 static uint8_t test23(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.pwmMin = 0;
@@ -376,7 +380,7 @@ static uint8_t test23(void) {
 //reject, if battery too low charged
 static uint8_t test8(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.battU = 1500;
@@ -393,7 +397,7 @@ static uint8_t test8(void) {
 //reject, if battery too high charged
 static uint8_t test9(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.battU = 3700;
@@ -410,7 +414,7 @@ static uint8_t test9(void) {
 //reject, charger fails to measure any current
 static uint8_t test10(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.pwmMin = 0;
@@ -425,7 +429,7 @@ static uint8_t test10(void) {
 //battery should be full, but fails to reach maximum voltage
 static uint8_t test11(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.pwmMin = 0;
@@ -446,7 +450,7 @@ static uint8_t test11(void) {
 //test stop by overtemperature and restart if cooldown is done
 static uint8_t test12(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	//start the charge
@@ -495,7 +499,7 @@ static uint8_t test12(void) {
 //test stop by undertemperature and restart if temperature has risen again
 static uint8_t test13(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	//start the charge
@@ -543,7 +547,7 @@ static uint8_t test13(void) {
 //do not start charge if battery is too hot
 static uint8_t test14(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.battTemp = 460;
@@ -560,7 +564,7 @@ static uint8_t test14(void) {
 //do not start charge if battery is too cold
 static uint8_t test15(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.battTemp = -110;
@@ -578,7 +582,7 @@ static uint8_t test15(void) {
 //stop the charge if input voltage drops too low, restart if it is ok again
 static uint8_t test16(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	//start the charge
@@ -626,7 +630,7 @@ static uint8_t test16(void) {
 //stop the charge if input voltage is too high, restart if it is ok again
 static uint8_t test17(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	//start the charge
@@ -667,7 +671,7 @@ static uint8_t test17(void) {
 //do not start charge if input voltage is too low
 static uint8_t test18(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.inU = 4200;
@@ -684,7 +688,7 @@ static uint8_t test18(void) {
 //do not start charge if input voltage is too high
 static uint8_t test19(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.inU = 5600;
@@ -701,7 +705,7 @@ static uint8_t test19(void) {
 //successfully relive the battey by precharging
 static uint8_t test20(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.battU = 2100; //start the precharge
@@ -746,7 +750,7 @@ static uint8_t test20(void) {
 //failing to relive the battey by precharging
 static uint8_t test21(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.battU = 2100; //start the precharge
@@ -791,7 +795,7 @@ static uint8_t test21(void) {
 //just never gets full
 static uint8_t test22(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	//let's do a 60h charge
@@ -821,7 +825,7 @@ static uint8_t test22(void) {
 //charger defective
 static uint8_t test24(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.battI = 110; //too much. We want only 100mA
@@ -836,7 +840,7 @@ static uint8_t test24(void) {
 //start charge because we requested this, even when the battery is 99% full
 static uint8_t test25(void) {
 	chargerState_t cs;
-	ChargerInit(&cs, 0);
+	ChargerInitCommon(&cs);
 	input_t data;
 	CommonStartCondition(&data);
 	data.battU = 3350;
@@ -875,9 +879,9 @@ test_t g_tests[] = {
 &test18,
 &test19,
 &test20,
-&test21,
 //unfortunately, the AVR flash is just full. ...split into two binaries?
 #ifndef __AVR_ARCH__
+&test21,
 &test22,
 &test23,
 &test24,

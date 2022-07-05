@@ -67,4 +67,12 @@ void TimerInit(void);
 
 bool TimerHasOverflown(void);
 
+void TimerStop(void);
+
 void WatchdogReset(void);
+
+void WatchdogDisable(void);
+
+void WaitForInterrupt(void);
+
+void WaitForExternalInterrupt(void);

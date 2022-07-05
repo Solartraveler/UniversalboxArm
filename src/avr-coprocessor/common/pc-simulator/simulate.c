@@ -17,6 +17,9 @@ uint8_t g_armRun = 1;
 uint8_t g_armBootload;
 uint8_t g_armBattery;
 uint8_t g_sensors;
+uint8_t g_pwm;
+uint16_t g_inputVoltage = 4756;
+uint16_t g_batteryVoltage = 3211;
 
 uint64_t g_timestamp;
 
@@ -101,6 +104,108 @@ void simulateSpi(void) {
 	printf("Voltage %umV\n", dataIn);
 }
 
+void simulateNewBattery(void) {
+	printf("Send battery replaced\n");
+	uint32_t dataOut = (CMD_BAT_NEW << 16) | 0x1291;
+	simulateSpiCommand(dataOut, false);
+}
+
+
+void simulateStartCharge(void) {
+	printf("Send battery full charge command\n");
+	uint32_t dataOut = CMD_BAT_FORCE_CHARGE << 16;
+	simulateSpiCommand(dataOut, false);
+}
+
+void simulateReadExtendedStates(void) {
+	printf("Read out the battery state\n");
+
+	uint32_t dataOut = CMD_BAT_TEMPERATURE << 16;
+	uint32_t dataIn = simulateSpiCommand(dataOut, false);
+	float temperature = ((float)((int16_t)dataIn)) / 10;
+	printf("Battery temperature: %.1f°C\n", temperature);
+
+	dataOut = CMD_BAT_VOLTAGE << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Battery voltage: %umV\n", dataIn);
+
+	dataOut = CMD_BAT_CURRENT << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Battery current: %umA\n", dataIn);
+
+	dataOut = CMD_BAT_CHARGE_STATE << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Charger state: %u\n", dataIn);
+
+	dataOut = CMD_BAT_CHARGE_ERR << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Charger error: %u\n", dataIn);
+
+	dataOut = CMD_BAT_CHARGED << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Battery charged: %umAh\n", dataIn);
+
+	dataOut = CMD_BAT_CHARGED_TOT << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Battery total charged: %uAh\n", dataIn);
+
+	dataOut = CMD_BAT_CHARGE_CYC << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Charger cycles: %u\n", dataIn);
+
+	dataOut = CMD_BAT_PRECHARGE_CYC << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Battery precharge cycles: %u\n", dataIn);
+
+	dataOut = CMD_BAT_PWM << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Charger PWM: %u\n", dataIn);
+
+	dataOut = CMD_CPU_TEMPERATURE << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	temperature = ((float)((int16_t)dataIn)) / 10;
+	printf("CPU temperature: %.1f°C\n", temperature);
+
+	dataOut = CMD_UPTIME << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Uptime: %uh\n", dataIn);
+
+	dataOut = CMD_OPTIME << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Operating time: %udays\n", dataIn);
+}
+
+void simulateWakeupTimer(void) {
+	static uint16_t time = 0;
+	time = 10 - time; //toggle 0 and 10s
+	printf("Set wakeuptimer to %us\n", time);
+	uint32_t dataOut = CMD_ALARM << 16 | time;
+	simulateSpiCommand(dataOut, false);
+}
+
+void simulateTogglePowermode(void) {
+	static uint16_t mode = 1;
+	mode = 1 - mode;
+	printf("Set power mode to %u\n", mode);
+	uint32_t dataOut = CMD_POWERMODE << 16 | mode;
+	simulateSpiCommand(dataOut, false);
+}
+
+void simulatePowerdown(void) {
+	printf("Request powerdown\n");
+	uint32_t dataOut = CMD_POWERDOWN << 16 | 0x1122;
+	simulateSpiCommand(dataOut, false);
+}
+
+void simulateBatteryVoltage(void) {
+	if (g_batteryVoltage > 2100) {
+		g_batteryVoltage -= 100;
+	} else {
+		g_batteryVoltage = 3555;
+	}
+	printf("Changed battery voltage to %umV\n", g_batteryVoltage);
+}
+
 static void redraw(__attribute__((unused)) int param) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glPushMatrix();
@@ -137,6 +242,36 @@ void input_key_special(int key, __attribute__((unused)) int x, __attribute__((un
 	if (key == GLUT_KEY_F1) {
 		simulateSpi();
 	}
+	if (key == GLUT_KEY_F3) {
+		simulateBatteryVoltage();
+	}
+	if (key == GLUT_KEY_F2) {
+		if (g_inputVoltage) {
+			g_inputVoltage = 0;
+		} else {
+			g_inputVoltage = 4756;
+		}
+		printf("Input voltage now %umV\n", g_inputVoltage);
+	}
+	if (key == GLUT_KEY_F5) {
+		simulateNewBattery();
+	}
+	if (key == GLUT_KEY_F6) {
+		simulateStartCharge();
+	}
+	if (key == GLUT_KEY_F7) {
+		simulateReadExtendedStates();
+	}
+	if (key == GLUT_KEY_F9) {
+		simulateTogglePowermode();
+	}
+	if (key == GLUT_KEY_F10) {
+		simulatePowerdown();
+	}
+	if (key == GLUT_KEY_F12) {
+		simulateWakeupTimer();
+	}
+
 }
 
 void input_key_special_up(int key, __attribute__((unused)) int x, __attribute__((unused)) int y) {
@@ -155,7 +290,7 @@ void * init_window(__attribute__((unused)) void * param) {
 	glutInit(&argc, NULL); //*must* be called before guiInit
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize(100, 100);
-	glutInitWindowPosition(100,100);
+	glutInitWindowPosition(100, 100);
 	glutCreateWindow("AVR program simulator");
 	glutDisplayFunc(&display);
 	glutTimerFunc(20, redraw, 0);
@@ -171,7 +306,17 @@ void * init_window(__attribute__((unused)) void * param) {
 void HardwareInit(void) {
 	pthread_t pthr;
 	pthread_create(&pthr, NULL, &init_window, NULL);
-	printf("Press left and right for keys, F1 simulates the SPI\n");
+	printf("Press left and right for keys\n");
+	printf("F1: Simulate SPI\n");
+	printf("F2: Toggle simulated input voltage\n");
+	printf("F3: Toggle simulated battery voltage\n");
+	printf("F4: Exit program\n");
+	printf("F5: Send SPI command for new battery\n");
+	printf("F6: Send SPI command for full charge\n");
+	printf("F7: Read out battery and MCU state over SPI\n");
+	printf("F9: Toggle power down mode\n");
+	printf("F10: Request powerdown\n");
+	printf("F12: Set wakeup timer to 10s\n");
 }
 
 void PinsInit(void) {
@@ -290,7 +435,7 @@ int16_t SensorsBatterytemperatureGet(void) {
 
 //in mV
 uint16_t SensorsInputvoltageGet(void) {
-	return 4756;
+	return g_inputVoltage;
 }
 
 //directly the AD converter value
@@ -304,12 +449,12 @@ uint16_t DropRaw(void) {
 
 //in mV
 uint16_t SensorsBatteryvoltageGet(void) {
-	return 3211;
+	return g_batteryVoltage;
 }
 
 //in mA
 uint16_t SensorsBatterycurrentGet(void) {
-	return 110;
+	return g_pwm;
 }
 
 //in 0.1°C units
@@ -318,7 +463,10 @@ int16_t SensorsChiptemperatureGet(void) {
 }
 
 void PwmBatterySet(uint8_t val) {
-	printf("PWM set to %u\n", val);
+	if (val != g_pwm) {
+		printf("PWM set to %u\n", val);
+		g_pwm = val;
+	}
 }
 
 void TimerInit(void) {
@@ -334,5 +482,22 @@ bool TimerHasOverflown(void) {
 	return false;
 }
 
+void TimerStop(void) {
+	printf("Timer stopped\n");
+}
+
 void WatchdogReset(void) {
 }
+
+void WatchdogDisable(void) {
+	printf("Watchdog disabled\n");
+}
+
+void WaitForInterrupt(void) {
+}
+
+void WaitForExternalInterrupt(void) {
+	printf("Wait for external interrupt. We do an exit now\n");
+	exit(0);
+}
+

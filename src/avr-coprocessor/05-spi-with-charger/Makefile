@@ -15,6 +15,7 @@ COMMON=../common
 SRC = $(TARGET).c
 SRC += $(COMMON)/spi.c
 SRC += $(COMMON)/avr/hardware.c
+SRC += $(COMMON)/chargerStatemachine.c
 ASRC =
 OPT = -O2 -fweb -Winline -mcall-prologues -mrelax
 

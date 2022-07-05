@@ -6,6 +6,7 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>
+#include <avr/sleep.h>
 
 #include "timing.h"
 #include "basicad.h"
@@ -107,8 +108,15 @@ static inline void ArmBatteryOn(void) {
 
 static inline void ArmBatteryOff(void) {
 	//off when pin is high or disconnected
+#ifdef ARMPOWERORIGINALPIN
+	//PB5 if no PCB fix is applied
+	PORTB |= (1<<5);
+	DDRB &= ~(1<<5);
+#endif
+#ifdef ARMPOWERBUGFIXPIN
 	PORTB |= (1<<0);
 	DDRB &= ~(1<<0);
+#endif
 }
 
 static inline void SensorsOn(void) {
@@ -191,6 +199,30 @@ static inline bool TimerHasOverflown(void) {
 	return false;
 }
 
+static inline void TimerStop(void) {
+	TCCR0B = 0;
+}
+
 static inline void WatchdogReset(void) {
 	wdt_reset();
+}
+
+static inline void WatchdogDisable(void) {
+	wdt_disable();
+}
+
+static inline void WaitForInterrupt(void) {
+	MCUCR &= ~((1<<SM1) | (1<<SM0)); //idle
+	sleep_enable();
+	sleep_cpu();
+	sleep_disable();
+}
+
+static inline void WaitForExternalInterrupt(void) {
+	MCUCR |= (1<<SM1);
+	MCUCR &= ~(1<<SM0); //power down mode
+	sleep_enable();
+	sleep_bod_disable();
+	sleep_cpu();
+	sleep_disable();
 }

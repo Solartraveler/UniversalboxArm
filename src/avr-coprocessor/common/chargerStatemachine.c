@@ -17,7 +17,7 @@
 #endif
 
 
-//Acording to the datasheet the battery should not go below 2V
+//According to the datasheet the battery should not go below 2V
 //[mV]
 #define BATT_MIN 2100
 
@@ -80,9 +80,13 @@
 #define INPUT_MAX 5500
 
 
-void ChargerInit(chargerState_t * pCS, uint8_t errorState) {
+void ChargerInit(chargerState_t * pCS, uint8_t errorState, uint32_t chargingCycles,
+                 uint32_t prechargingCycles, uint64_t chargingSumAllTime) {
 	memset(pCS, 0, sizeof(chargerState_t));
 	pCS->error = errorState;
+	pCS->chargingSumAllTime = chargingSumAllTime;
+	pCS->chargingCycles = chargingCycles;
+	pCS->prechargingCycles = prechargingCycles;
 }
 
 
