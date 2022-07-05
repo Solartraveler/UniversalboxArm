@@ -41,7 +41,8 @@ typedef struct {
 /* Initializes pCS. If some error has not been manually reset, it should be
 re-entered as errorState since the last power-fail.
 */
-void ChargerInit(chargerState_t * pCS, uint8_t errorState);
+void ChargerInit(chargerState_t * pCS, uint8_t errorState, uint32_t chargingCycles,
+                 uint32_t prechargingCycles, uint64_t chargingSumAllTime);
 
 /*Call every 100ms
 The internal state is stored in pCS. No data within this call should be modified from the outside.

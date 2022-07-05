@@ -10,3 +10,5 @@
 #define ARMPOWERORIGINALPIN
 
 #define USE_WATCHDOG
+
+#define CMD_READ_MAX 0x19

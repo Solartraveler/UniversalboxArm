@@ -1,4 +1,4 @@
-# Firmware for the AVR co-processor #
+# Firmware for the AVR coprocessor #
 All projects contain a pc-simulator folder which allows simulating the firmware on a PC.
 The key inputs are than the left and right cursor keys and a circle shows the state of the the red LED.
 
@@ -24,3 +24,14 @@ Provides the same functionality as 01-minimal-reset-button, but the MCU acts as 
 The reset mode can be controlled over this interface, and the input voltage can be read out.
 Suitable firmware if no battery functionality is added.
 
+## 04-charger-unittests ##
+Unit tests for the charger logic.
+Can be run on the PC or (partially, because the flash is full) on the AVR.
+It's pure calculation.
+No input is evaluated.
+The AVR results are printet with 1200baud to PA1, like 02-test-everything.
+
+## 05-spi-with-charger ##
+This is the main firmware to use.
+Provides the same functionality as 03-reset-button-with-spi but with all the extras for charging the battery.
+For this a lot of extra SPI commands are available.

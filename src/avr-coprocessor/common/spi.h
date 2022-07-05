@@ -3,8 +3,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define CMD_READ_MAX 0x3
-
 void SpiInit(void);
 
 void SpiDisable(void);

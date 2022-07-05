@@ -228,7 +228,7 @@ static void chargerPwm(void) {
 
 static void chargerTest(uint8_t force) {
 	chargerState_t cS;
-	ChargerInit(&cS, 0);
+	ChargerInit(&cS, 0, 0, 0, 0);
 	uint8_t cycle = 0;
 	char text[64];
 	size_t len = sizeof(text);

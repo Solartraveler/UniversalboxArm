@@ -4,6 +4,8 @@
 
 #include "spi.h"
 
+#include "configuration.h"
+
 #include "hardware.h"
 #include "coprocCommands.h"
 
