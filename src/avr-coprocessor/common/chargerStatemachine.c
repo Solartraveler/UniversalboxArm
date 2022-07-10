@@ -17,7 +17,7 @@
 #endif
 
 
-//Acording to the datasheet the battery should not go below 2V
+//According to the datasheet the battery should not go below 2V
 //[mV]
 #define BATT_MIN 2100
 

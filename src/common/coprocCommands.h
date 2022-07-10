@@ -34,8 +34,9 @@
                                                if yy = 1: leaves the ARM on)
   Wakeup alarm        0x85 yy yy     00 00 00 (Sets a time when the ARM is powered on by battery. [s])
   New battery         0x90 12 91     00 00 00 (Resets the non volatile error state of the battery charger logic)
-  Force charge        0x91 00 00     00 00 00 (Charges the battery to 100%)
-  Charge current max  0x92 yy yy     00 00 00 (Sets the maximum charger current [mA]. 0 Stops an ongoing charge)
+  Reset battery stat  0x91 33 44     00 00 00 (Resets the non volatile battery statistics)
+  Force charge        0x92 00 00     00 00 00 (Charges the battery to 100%)
+  Charge current max  0x93 yy yy     00 00 00 (Sets the maximum charger current [mA]. 0 Stops an ongoing charge)
 
 
 For the ARM (master), the meaning of in and out is switched.
@@ -77,6 +78,7 @@ of 200ms until a new transfer is started.
 #define CMD_ALARM             0x85
 
 #define CMD_BAT_NEW           0x90
-#define CMD_BAT_FORCE_CHARGE  0x91
-#define CMD_BAT_CURRENT_MAX   0x92
+#define CMD_BAT_STAT_RESET    0x91
+#define CMD_BAT_FORCE_CHARGE  0x92
+#define CMD_BAT_CURRENT_MAX   0x93
 

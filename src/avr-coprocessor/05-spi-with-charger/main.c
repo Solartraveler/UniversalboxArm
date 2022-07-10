@@ -89,6 +89,8 @@
 #include "coprocCommands.h"
 #include "chargerStatemachine.h"
 
+#define VCC_CONNECTED 3200
+
 typedef struct {
 	uint8_t chargerError;
 	uint32_t chargingCycles;
@@ -135,6 +137,40 @@ static void SettingsSave(persistent_t * pSettings) {
 	eeprom_update_block(pSettings, &g_settingsEepromB, sizeof(persistent_t));
 }
 
+static void PowerDownLoop(uint16_t alarm) {
+	uint8_t checkInputVoltage = 0;
+	PwmBatterySet(0);
+	SpiDisable();
+	SensorsOff();
+	//TODO
+	while (1) {
+		if (checkInputVoltage == 0) { //check every 500ms
+			checkInputVoltage = 50;
+			SensorsOn();
+			waitms(1);
+			uint16_t inputVoltage = SensorsInputvoltageGet();
+			if (inputVoltage >= VCC_CONNECTED) {
+				break;
+			}
+			SensorsOff();
+		}
+		checkInputVoltage--;
+		if (alarm) {
+			alarm--;
+			if (alarm == 0) {
+				break;
+			}
+		}
+		WatchdogReset();
+		while (TimerHasOverflown() == false);
+	}
+	SensorsOn();
+	waitms(1);
+	//TODO
+	SpiInit();
+
+}
+
 int main(void) {
 	HardwareInit(); //this sets the ARM to the reset state
 	LedOn();
@@ -149,27 +185,29 @@ int main(void) {
 	SensorsOn();
 	SpiInit();
 	SpiDataSet(CMD_VERSION, 0x0501); //05 for the program (folder name), 1 for the version
-	uint8_t pressedLeft = 0, pressedRight = 0;
-	uint8_t resetHold = 0;
-	uint8_t armNormal = 1;
-	uint8_t ledFlashCycle = 0;
-	uint8_t ledFlashRemaining = 0;
-	uint8_t ledFlashOnSpiCommand = 1;
-	uint8_t adcCycle = 0;
-	uint8_t reinitSpiDelay = 0;
-	uint16_t watchdogHighest = 0; // 0 = disabled
-	uint16_t watchdogCurrent = 0;
-	uint16_t inU = 0;
-	uint16_t battU = 0;
-	uint16_t battI = 0;
-	uint16_t battTemp = 0;
-	uint16_t inMax = 70;
-	uint8_t requestFullCharge = 0;
-	uint8_t battPwm = 0;
-	uint16_t cycle = 0;
-	uint32_t opRunning = 0; //counts the minutes
-	uint32_t opTotal = 0; //counts the minutes
-	uint16_t minutesPassed = 0;
+	uint8_t pressedLeft = 0, pressedRight = 0; //Time the left or right button is hold down [10ms]
+	uint8_t resetHold = 0; //count down until the reset of the ARM CPU is released [10ms]
+	uint8_t armNormal = 1; //startup mode of the ARM cpu 0: DFU bootloader, 1: normal program start
+	uint8_t ledFlashCycle = 0; //controls the speed of the LED flashing, counts up. [10ms]
+	uint8_t ledFlashRemaining = 0; //if non 0, the LED is flashing
+	uint8_t ledFlashOnSpiCommand = 1; //if 1, each SPI command is confirmed by a LED flash
+	uint8_t adcCycle = 0; //cycle for measuring the analog inputs and calculating the battery charger logic
+	uint8_t reinitSpiDelay = 0; //if reached 0, the SPI interface is reset
+	uint16_t watchdogHighest = 0; //reload value of the ARM cpu watchdog, 0 = disabled [1ms]
+	uint16_t watchdogCurrent = 0; //count down value of the ARM CPU watchdog. On a 0, a reset is issured. [1ms]
+	uint16_t inU = 0; //measured input voltage [mV]
+	uint16_t battU = 0; //measured battery voltage [mV]
+	uint16_t battI = 0; //measured battery current [mA]
+	int16_t battTemp = 0; //measured battery temperature [0.1°C]
+	uint16_t inMax = 70; //maximum allowed charging current [mA]
+	uint8_t requestFullCharge = 0; //If set to 1, a full charge is requested
+	uint8_t battPwm = 0; //last output PWM value controlling the battery charging current
+	uint16_t cycle = 0; //cycle for statistics. Resets every minute
+	uint32_t opRunning = 0; //counts the minutes since last power down
+	uint32_t opTotal = 0; //counts the minutes ever operating
+	uint16_t minutesSinceSave = 0; //If reached 1day, statistics are saved int eeprom
+	uint8_t powerDown = 0;
+	uint8_t requestPowerDown = 0;
 	chargerState_t CS;
 	persistent_t settings;
 	SettingsLoad(&settings);
@@ -262,6 +300,10 @@ int main(void) {
 				requestFullCharge = 1;
 			} else if ((command == CMD_BAT_NEW) && (parameter == 0x1291)) {
 				settings.chargerError = 0;
+				ChargerInit(&CS, settings.chargerError, settings.chargingCycles, settings.prechargingCycles, settings.chargingSumAllTimes);
+				PwmBatterySet(0);
+				SettingsSave(&settings);
+			} else if ((command == CMD_BAT_STAT_RESET) && (parameter == 0x3344)) {
 				settings.chargingCycles = 0;
 				settings.prechargingCycles = 0;
 				settings.chargingSumAllTimes = 0;
@@ -330,9 +372,12 @@ int main(void) {
 			SpiDataSet(CMD_BAT_CHARGE_STATE, ChargerGetState(&CS));
 			SpiDataSet(CMD_BAT_CHARGE_ERR, ChargerGetError(&CS));
 			SpiDataSet(CMD_BAT_CHARGED, ChargerGetCharged(&CS) / (60ULL*60ULL)); //mAs -> mAh
-			SpiDataSet(CMD_BAT_CHARGED_TOT, ChargerGetChargedTotal(&CS) / (60ULL * 60ULL * 1000ULL)); //mAs ->Ah
-			SpiDataSet(CMD_BAT_CHARGE_CYC, ChargerGetCycles(&CS));
-			SpiDataSet(CMD_BAT_PRECHARGE_CYC, ChargerGetPreCycles(&CS));
+			settings.chargingSumAllTimes = ChargerGetChargedTotal(&CS);
+			SpiDataSet(CMD_BAT_CHARGED_TOT, settings.chargingSumAllTimes / (60ULL * 60ULL * 1000ULL)); //mAs ->Ah
+			settings.chargingCycles = ChargerGetCycles(&CS);
+			SpiDataSet(CMD_BAT_CHARGE_CYC, settings.chargingCycles);
+			settings.prechargingCycles = ChargerGetPreCycles(&CS);
+			SpiDataSet(CMD_BAT_PRECHARGE_CYC, settings.prechargingCycles);
 			SpiDataSet(CMD_BAT_PWM, battPwm);
 		}
 		if (adcCycle == 7) {
@@ -342,16 +387,18 @@ int main(void) {
 		if (adcCycle == 10) {
 			adcCycle = 0;
 		}
-		//update statistics
+		//update statistics and save to eeprom
 		cycle++;
 		if (cycle == (100 * 60)) { //1m passed
+			cycle = 0;
 			opRunning++;
 			SpiDataSet(CMD_UPTIME, opRunning / 60UL);
 			opTotal++;
 			SpiDataSet(CMD_OPTIME, opTotal / (60UL * 24UL));
-			minutesSineSave++;
-			if (minutesSinceSave == (60 * 24)) {
+			minutesSinceSave++;
+			if (minutesSinceSave == (60 * 24)) { //1 day passed
 				minutesSinceSave = 0;
+				settings.opTotal = opTotal;
 				SettingsSave(&settings);
 			}
 		}
