@@ -8,6 +8,8 @@ Then add some common peripherals and fit this into a case.
 
 ![alt text](img/production-version-rendered.jpg "Kicad rendering")
 
+![alt text](img/pcb-v1-running-dfu-loader.jpg "PCB running with 2.2\" LCD")
+
 ## Features
 
 The following hardware has been added. Not everything is required to be populated on the PCB.
