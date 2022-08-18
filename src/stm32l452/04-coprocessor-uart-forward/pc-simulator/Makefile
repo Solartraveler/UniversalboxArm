@@ -64,6 +64,7 @@ $(ALGORITHM)/utility.c \
 $(ALGORITHM)/libcMinsize.c \
 $(ALGORITHM)/femtoVsnprintf.c \
 $(ALGORITHM)/json.c \
+$(ALGORITHM)/filesystem.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 ../forwarder.c \

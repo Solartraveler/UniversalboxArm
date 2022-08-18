@@ -24,44 +24,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "main.h"
 
-#include "ff.h"
+#include "filesystem.h"
 
 #include "utility.h"
-#include "tarextract.h"
 
 #include "json.h"
 #include "gui.h"
 #include "uartCoproc.h"
-
-FATFS g_fatfs;
 
 #define UARTBUFFERLEN 1024
 
 char g_uart4Buffer[UARTBUFFERLEN];
 volatile uint16_t g_uart4BufferReadIdx;
 volatile uint16_t g_uart4BufferWriteIdx;
-
-//this call assumes an unmounted filesystem
-bool ForwarderMount(void) {
-	uint8_t manufacturer;
-	uint16_t device;
-	FlashGetId(&manufacturer, &device);
-	if (manufacturer != 0x1F) {
-		printf("Error, no valid answer from flash\r\n");
-		return false;
-	}
-	FRESULT fres;
-	fres = f_mount(&g_fatfs, "0", 1);
-	if (fres == FR_NO_FILESYSTEM) {
-		printf("No filesystem -> no LCD...\r\n");
-	}
-	if (fres == FR_OK) {
-		return true;
-	} else {
-		printf("Error, mounting returned %u\r\n", (unsigned int)fres);
-		return false;
-	}
-}
 
 void ForwarderInit(void) {
 	Led1Yellow();
@@ -73,7 +48,7 @@ void ForwarderInit(void) {
 	printf("\r\nReset with 'r' or key up\r\n");
 	PeripheralInit();
 	FlashEnable(64); //250kHz
-	ForwarderMount();
+	FilesystemMount();
 	GuiInit();
 	UartCoprocInit();
 	Led1Green();

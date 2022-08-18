@@ -5,10 +5,8 @@
 
 #include "gui.h"
 
-#include "ff.h"
+#include "filesystem.h"
 #include "boxlib/lcd.h"
-#include "tarextract.h"
-#include "json.h"
 #include "menu-interpreter.h"
 #include "menu-text.h"
 #include "forwarder.h"
@@ -44,49 +42,13 @@ uint8_t menu_action(MENUACTION action) {
 	return 0;
 }
 
-eDisplay_t ConfigReadLcd(void) {
-	uint8_t displayconf[64] = {0};
-	char lcdtype[32];
-	FIL f;
-	UINT r = 0;
-	if (FR_OK == f_open(&f, CONFIGFILENAME, FA_READ)) {
-		FRESULT res = f_read(&f, displayconf, sizeof(displayconf) - 1, &r);
-		if (res != FR_OK) {
-			printf("Warning, could not read display config file\r\n");
-		}
-		f_close(&f);
-	} else {
-		printf("Warning, no display configured\r\n");
-		return NONE;
-	}
-	if (JsonValueGet(displayconf, r, "lcd", lcdtype, sizeof(lcdtype))) {
-		if (strcmp(lcdtype, "ST7735_128x128") == 0) {
-			printf("LCD 128x128 selected\r\n");
-			return ST7735_128;
-		}
-		if (strcmp(lcdtype, "ST7735_160x128") == 0) {
-			printf("LCD 128x160 selected\r\n");
-			return ST7735_160;
-		}
-		if (strcmp(lcdtype, "ILI9341_320x240") == 0) {
-			printf("LCD 320x240 selected\r\n");
-			return ILI9341;
-		}
-		if (strcmp(lcdtype, "NONE") == 0) {
-			printf("no LCD selected\r\n");
-			return NONE;
-		}
-	}
-	printf("Warning, could not get LCD value\r\n");
-	return NONE;
-}
 
 #define BORDER_PIXELS 7
 
 void GuiInit(void) {
 	printf("Starting GUI\r\n");
 	menu_strings[MENU_TEXT_UARTRX] = g_gui.brokendown;
-	g_gui.type = ConfigReadLcd();
+	g_gui.type = FilesystemReadLcd();
 	uint16_t action = 0;
 	if (g_gui.type != NONE) {
 		LcdBacklightOn();

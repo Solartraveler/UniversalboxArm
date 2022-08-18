@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-
+#include <stddef.h>
 /*
 Note: This function parses the json every time, so its slow. Moreover it only works
 on a 'flat' json and may not contain more than 32 elements. Which is:
