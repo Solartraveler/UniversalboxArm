@@ -148,11 +148,10 @@ static void SettingsSave(persistent_t * pSettings) {
 static void DeepDischargePrevention(void) {
 	SensorsOff();
 	TimerStop();
-	//TODO: Enable interrupts for keys
 	WatchdogDisable();
 	WaitForExternalInterrupt(); //get out by a keypress only
 	HardwareInit();
-	TimerInit();
+	TimerInit(true);
 }
 
 //if alarm is non 0, its a timout in [s] until a wakeup of the ARM CPU occurrs
@@ -204,16 +203,25 @@ static void PowerDownLoop(uint16_t alarm) {
 			}
 			checkAlarm--;
 		}
-		//wakeup by keypress
-		if ((powerByKeyState == 0) && (KeyPressedLeft() == 0) && (KeyPressedRight() == 0)) {
-			powerByKeyState = 1;
-		} else if ((powerByKeyState == 1) && (KeyPressedLeft()) && (KeyPressedRight())) {
-			powerByKeyState = 2;
-		} else if ((powerByKeyState == 2) && (KeyPressedLeft() == 0) && (KeyPressedRight() == 0)) {
-			break;
+		//wakeup by keypress, minimum 500ms, without keypress and then 500ms with keypress
+		if ((powerByKeyState < 50) && (KeyPressedLeft() == 0) && (KeyPressedRight() == 0)) {
+			powerByKeyState++;
+		} else if ((powerByKeyState >= 50) && (powerByKeyState < 100)) {
+			if ((KeyPressedLeft()) && (KeyPressedRight())) {
+				powerByKeyState++;
+			} else {
+				powerByKeyState = 50;
+			}
+		} else if (powerByKeyState == 100) {
+			LedOn();
+			if ((KeyPressedLeft() == 0) && (KeyPressedRight() == 0)) {
+				break;
+			}
 		}
 		WatchdogReset();
-		while (TimerHasOverflown() == false); //TODO: Go to idle sleep mode
+		while (TimerHasOverflownIsr() == false) {
+			WaitForInterrupt();
+		}
 	}
 	LedOn();
 	SensorsOn();
@@ -227,7 +235,7 @@ static void PowerDownLoop(uint16_t alarm) {
 int main(void) {
 	HardwareInit(); //this sets the ARM to the reset state
 	LedOn();
-	TimerInit();
+	TimerInit(true);
 	waitms(50);
 	ArmRun();
 	waitms(950);
@@ -237,7 +245,7 @@ int main(void) {
 	ArmBatteryOn();
 	SensorsOn();
 	SpiInit();
-	SpiDataSet(CMD_VERSION, 0x0501); //05 for the program (folder name), 1 for the version
+	SpiDataSet(CMD_VERSION, 0x0502); //05 for the program (folder name), 2 for the version
 	uint8_t pressedLeft = 0, pressedRight = 0; //Time the left or right button is hold down [10ms]
 	uint8_t resetHold = 0; //count down until the reset of the ARM CPU is released [10ms]
 	uint8_t armNormal = 1; //startup mode of the ARM cpu 0: DFU bootloader, 1: normal program start
@@ -483,6 +491,8 @@ int main(void) {
 			}
 		}
 		WatchdogReset();
-		while (TimerHasOverflown() == false); //TODO: Go to idle sleep mode
+		while (TimerHasOverflownIsr() == false) {
+			WaitForInterrupt();
+		}
 	}
 }

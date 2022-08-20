@@ -91,7 +91,7 @@
 int main(void) {
 	HardwareInit(); //this sets the ARM to the reset state
 	LedOn();
-	TimerInit();
+	TimerInit(false);
 	waitms(50);
 	ArmRun();
 	waitms(950);

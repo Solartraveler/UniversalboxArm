@@ -469,7 +469,8 @@ void PwmBatterySet(uint8_t val) {
 	}
 }
 
-void TimerInit(void) {
+void TimerInit(bool useIsr) {
+	(void)useIsr;
 	g_timestamp = TimeGetMs();
 }
 
@@ -481,6 +482,11 @@ bool TimerHasOverflown(void) {
 	}
 	return false;
 }
+
+bool TimerHasOverflownIsr(void) {
+	return TimerHasOverflown();
+}
+
 
 void TimerStop(void) {
 	printf("Timer stopped\n");

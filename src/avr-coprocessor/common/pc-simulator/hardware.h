@@ -63,9 +63,11 @@ bool KeyPressedRight(void);
 
 bool KeyPressedLeft(void);
 
-void TimerInit(void);
+void TimerInit(bool useIsr);
 
 bool TimerHasOverflown(void);
+
+bool TimerHasOverflownIsr(void);
 
 void TimerStop(void);
 

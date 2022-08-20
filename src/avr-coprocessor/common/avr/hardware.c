@@ -2,6 +2,7 @@
 #include <stdbool.h>
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 
 //important, because it defines some parameters for HardwareInitEarly
 #include "hardware.h"
@@ -36,6 +37,7 @@
 
 #endif
 
+volatile uint8_t g_Timer0Int;
 
 void HardwareInitEarly(void) {
 	DDRA = (1<<7) | (1<<1); //bootloader and reset pin
@@ -256,3 +258,19 @@ void PwmBatterySet(uint8_t val) {
 	OCR1B = val;
 }
 
+//The interrupts only have the function to wake up the device from sleep or
+//power down so they must be implemented, but are just empty
+
+//the left key can generate an interrupt
+ISR(INT0_vect) {
+
+}
+
+//timer 0 generates the 10ms timing
+ISR(TIMER0_COMPA_vect) {
+	g_Timer0Int = 1;
+}
+
+ISR(TIMER0_OVF_vect) {
+	g_Timer0Int = 1;
+}

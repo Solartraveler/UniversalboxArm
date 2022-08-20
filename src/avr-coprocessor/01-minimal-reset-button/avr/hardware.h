@@ -67,7 +67,8 @@ static inline bool KeyPressedLeft(void) {
 	return true;
 }
 
-static inline void TimerInit(void) {
+static inline void TimerInit(bool useIsr) {
+	(void)useIsr;
 	TCCR0B = 0; //stop timer
 	TIFR |= (1<<OCF0A); //clear compare flag
 	TCCR0A = 1<<0; //clear timer on compare match (WGM00 in header, CTC0 in datasheet)

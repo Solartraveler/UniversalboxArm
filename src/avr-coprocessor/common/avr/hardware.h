@@ -15,6 +15,8 @@
 
 #define PWM_MAX 128
 
+extern volatile uint8_t g_Timer0Int;
+
 /* The .init3 section is done after the stack has been set up, but before
 the bss section is copied. So we can not rely on any global variables,
 but we are faster after startup with settings the pins correctly.
@@ -66,6 +68,10 @@ static inline void HardwareInit(void) {
 #if defined(USE_WATCHDOG)
 	wdt_enable(WDTO_2S);
 #endif
+	GIMSK |= (1<<INT0); //allows waking up the CPU by the left key press
+	//rising and falling edge must generate an interrupt, this mode must be
+	//compatible with the SPI interrupt, see spi.c -> SpiInit
+	MCUCR |= (1<<ISC00);
 }
 
 static inline void LedOn(void) {
@@ -180,9 +186,14 @@ static inline bool KeyPressedLeft(void) {
 	return true;
 }
 
-static inline void TimerInit(void) {
+//If useIsr is false, the timer should be polled with TimerHasOverflown
+//otherwise TimerHasOverflownIsr must be used
+static inline void TimerInit(bool useIsr) {
 	TCCR0B = 0; //stop timer
 	TIFR |= (1<<OCF0A); //clear compare flag
+	if (useIsr) {
+		TIMSK |= (1<<OCIE0A);
+	}
 	TCCR0A = 1<<0; //clear timer on compare match (WGM00 in header, CTC0 in datasheet)
 	TCNT0L = 0; //clear counter
 	const uint16_t timerMax = F_CPU/(64UL* 100UL); //10ms timing
@@ -192,12 +203,21 @@ static inline void TimerInit(void) {
 }
 
 static inline bool TimerHasOverflown(void) {
-	if (TIFR & (1<<OCF0A)) {
+	if ((TIFR & (1<<OCF0A)) || (g_Timer0Int)) {
 		TIFR |= (1<<OCF0A); //clear compare flag
 		return true;
 	}
 	return false;
 }
+
+static inline bool TimerHasOverflownIsr(void) {
+	if (g_Timer0Int) {
+		g_Timer0Int = 0;
+		return true;
+	}
+	return false;
+}
+
 
 static inline void TimerStop(void) {
 	TCCR0B = 0;

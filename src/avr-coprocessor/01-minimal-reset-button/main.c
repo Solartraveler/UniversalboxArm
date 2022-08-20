@@ -75,7 +75,7 @@
 
 int main(void) {
 	PinsInit();
-	TimerInit();
+	TimerInit(false);
 	LedOn();
 	waitms(50);
 	ArmRun();
