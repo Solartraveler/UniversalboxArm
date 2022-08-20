@@ -14,3 +14,6 @@ Uses a RS232 port with 19200baud to allow controlling all connected hardware.
 If the coprocessor is running the 02-test-everything firmware, it prints data at 1200baud on the pins connected to the ARM.
 With this firmware the data is forwared to the RS232 port with 19200baud and prints the data on the LCD too.
 
+## 05-coprocessor-control ##
+If the coprocessor is running the 05-charger-with-spi firmware, this firmware allows reading out the charger state, resetting
+the charger state and playing with the power off features.
