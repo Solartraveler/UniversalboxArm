@@ -6,7 +6,7 @@ typedef struct {
 	/*
 	 0: No error
 	 1: Battery voltage too high - defective
-	 2: Battery voltage too low - defective
+	 2: Battery voltage too low - defective, or started without a battery inserted
 	 3: Failed to fully charge - charger or battery defective
 	 4: Failed to measure current - charger or battery defective
 	*/
