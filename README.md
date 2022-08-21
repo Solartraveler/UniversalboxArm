@@ -95,7 +95,9 @@ Moreover the compressed data needs to fit within 7000byte. Due to RAM constraint
 
     - ARM processor can enable a watchdog
 
-- Charger control is missing right now
+- The battery can be charged
+
+- A wakeup time for the ARM processor can be set
 
 #### Test software
 
@@ -104,6 +106,7 @@ Software testing all the hardware to be working as intended has been written for
 ### Hardware
 
 The PCB version 1 is working, but a lot of patching is required at several peripherals to use them.
+With 380µA, the power down consumption is too high, as this would discharge a full battery within 65 days, and then the LiFePo must be considered defective.
 The required changes are documented. Recreating a PCB version 1 is discouraged.
 Instead the required changes need to be integrated into a version 2.
 
