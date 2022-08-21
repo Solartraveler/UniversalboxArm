@@ -5,8 +5,8 @@ $Descr A2 23386 16535
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "2022-02-20"
-Rev "0.9"
+Date "2022-08-21"
+Rev "0.10"
 Comp ""
 Comment1 ""
 Comment2 ""
@@ -329,7 +329,7 @@ $EndComp
 Wire Wire Line
 	5500 5750 5500 5800
 Text Notes 5100 5400 0    50   ~ 0
-1,9kHz PWM
+250kHz PWM
 $Comp
 L Device:D_Schottky D1
 U 1 1 6096FBE9
