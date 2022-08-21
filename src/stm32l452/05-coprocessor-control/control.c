@@ -67,7 +67,7 @@ void ExecReset(void) {
 	NVIC_SystemReset();
 }
 
-static void temperatureToString(char * output, size_t len, int16_t temperature) {
+void TemperatureToString(char * output, size_t len, int16_t temperature) {
 	char sign = ' ';
 	if (temperature < 0) {
 		sign = '-';
@@ -77,8 +77,6 @@ static void temperatureToString(char * output, size_t len, int16_t temperature) 
 	unsigned int degree10th = temperature % 10;
 	femtoSnprintf(output, len, "%c%u.%u°C", sign, degree, degree10th);
 }
-
-#define STATES_MAX 11
 
 const char * g_chargerState[STATES_MAX] = {
 "Battery full, not charging",
@@ -94,7 +92,7 @@ const char * g_chargerState[STATES_MAX] = {
 "Charger defective"
 };
 
-#define ERRORS_MAX 5
+
 const char * g_chargerError[ERRORS_MAX] = {
 "No error",
 "Battery voltage too high - defective",
@@ -113,7 +111,7 @@ void ExecPrintStats(void) {
 	printf("Vcc = %umV\r\n", vcc);
 
 	int16_t cpuTemperature = CoprocReadCpuTemperature();
-	temperatureToString(text, sizeof(text), cpuTemperature);
+	TemperatureToString(text, sizeof(text), cpuTemperature);
 	printf("CPU temperature: %s (0x%x)\r\n", text, cpuTemperature);
 
 	uint16_t uptime = CoprocReadUptime();
@@ -123,7 +121,7 @@ void ExecPrintStats(void) {
 	printf("Optime: %udays\r\n", optime);
 
 	uint16_t batTemperature = CoprocReadBatteryTemperature();
-	temperatureToString(text, sizeof(text), batTemperature);
+	TemperatureToString(text, sizeof(text), batTemperature);
 	printf("Battery temperature: %s (0x%x)\r\n", text, batTemperature);
 
 	uint16_t batVcc = CoprocReadBatteryVoltage();
@@ -236,10 +234,11 @@ void ExecMode(void) {
 	printf("Enter mode (0...1)\r\n");
 	char buffer[8];
 	ReadSerialLine(buffer, sizeof(buffer));
-	unsigned int current = 0;
-	sscanf(buffer, "%u", &current);
-	if (current <= 1) {
-		CoprocWritePowermode(current);
+	unsigned int mode = 0;
+	sscanf(buffer, "%u", &mode);
+	if (mode <= 1) {
+		printf("Set mode to %u\r\n", mode);
+		CoprocWritePowermode(mode);
 	} else {
 		printf("Error, out of range\r\n");
 	}
