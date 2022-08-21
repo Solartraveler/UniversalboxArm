@@ -75,8 +75,23 @@
            With the workaround for the temperature sensor, the same is true for
            the left button too.
 
- TODO: Save power by going to sleep mode when waiting for a timer
-       Use interrupts of the keys to wake up from deep power down
+Current consumption when idle sleep mode (wakeup every 10ms) @ 3.3V
+360-380µA, which splits up:
+--> 285µA at R25 with D22 -> can not be fixed in software
+--> 1.7µA at R28 -> acceptable
+-->   9nA at R30 -> acceptable
+--> 0.5µA at D64 -> For RTC of ARM, as intended
+--> 86-110µA at D21
+---->    1.2µA for comparator U22
+----> 90-110µA consumption of the AVR
+------> 11µA for oscillator
+------> 18µA for the brown out detector
+
+
+Current consumption when in power down mode @ 2.4V (simulate with 2x NIMH battery)
+200µA
+--> 200µA at R25 with D22 -> can not be fixed in software
+Everything else nearly needs no power at all.
 
 */
 
@@ -147,11 +162,15 @@ static void SettingsSave(persistent_t * pSettings) {
 //just switch everything off
 static void DeepDischargePrevention(void) {
 	SensorsOff();
+	AdPowerdown();
 	TimerStop();
+	PinsWakeupByKeyPressOn();
 	WatchdogDisable();
 	WaitForExternalInterrupt(); //get out by a keypress only
+	PinsWakeupByKeyPressOff(); //must be called before SPI is enabled again
 	HardwareInit();
 	TimerInit(true);
+	TimerSlow();
 }
 
 //if alarm is non 0, its a timout in [s] until a wakeup of the ARM CPU occurrs
@@ -171,10 +190,12 @@ static void PowerDownLoop(uint16_t alarm) {
 	waitms(10); //make sure ARM finally is in reset state and capacitors are discharged
 	ArmRun(); //the low level saves some power, so we do not drive against the pull-down resistor.
 	LedOff();
-	while (1) { //loop runs every 10ms
+	PinsPowerdown(); //we only need the key inputs, HardwareInit() will set the configuration back
+	TimerSlow();
+	while (1) { //loop runs every 100ms
 		//wakeup by input voltage -> USB powered
 		if (checkInputVoltage == 0) { //check every 500ms
-			checkInputVoltage = 50;
+			checkInputVoltage = 5;
 			SensorsOn();
 			waitms(1);
 			uint16_t inputVoltage = SensorsInputvoltageGet();
@@ -182,14 +203,15 @@ static void PowerDownLoop(uint16_t alarm) {
 				break;
 			}
 			if (checkBatteryVoltage == 0) { //check every 10s
-				checkBatteryVoltage = 20;
+				checkBatteryVoltage = 2;
 				uint16_t batteryVoltage = SensorsBatteryvoltageGet();
-				if (batteryVoltage <= 2500) {
+				if (batteryVoltage <= 2800) {
 					DeepDischargePrevention();
 				}
 			}
 			checkBatteryVoltage--;
 			SensorsOff();
+			AdPowerdown();
 		}
 		checkInputVoltage--;
 		//wakeup by alarm
@@ -199,20 +221,20 @@ static void PowerDownLoop(uint16_t alarm) {
 				if (alarm == 0) {
 					break; //wakeup
 				}
-				checkAlarm = 100;
+				checkAlarm = 10;
 			}
 			checkAlarm--;
 		}
 		//wakeup by keypress, minimum 500ms, without keypress and then 500ms with keypress
-		if ((powerByKeyState < 50) && (KeyPressedLeft() == 0) && (KeyPressedRight() == 0)) {
+		if ((powerByKeyState < 5) && (KeyPressedLeft() == 0) && (KeyPressedRight() == 0)) {
 			powerByKeyState++;
-		} else if ((powerByKeyState >= 50) && (powerByKeyState < 100)) {
+		} else if ((powerByKeyState >= 5) && (powerByKeyState < 10)) {
 			if ((KeyPressedLeft()) && (KeyPressedRight())) {
 				powerByKeyState++;
 			} else {
-				powerByKeyState = 50;
+				powerByKeyState = 5;
 			}
-		} else if (powerByKeyState == 100) {
+		} else if (powerByKeyState == 10) {
 			LedOn();
 			if ((KeyPressedLeft() == 0) && (KeyPressedRight() == 0)) {
 				break;
@@ -224,6 +246,8 @@ static void PowerDownLoop(uint16_t alarm) {
 		}
 	}
 	LedOn();
+	PinsPowerup();
+	TimerFast();
 	SensorsOn();
 	ArmReset();
 	waitms(1);
@@ -245,7 +269,7 @@ int main(void) {
 	ArmBatteryOn();
 	SensorsOn();
 	SpiInit();
-	SpiDataSet(CMD_VERSION, 0x0502); //05 for the program (folder name), 2 for the version
+	SpiDataSet(CMD_VERSION, 0x0503); //05 for the program (folder name), 03 for the version
 	uint8_t pressedLeft = 0, pressedRight = 0; //Time the left or right button is hold down [10ms]
 	uint8_t resetHold = 0; //count down until the reset of the ARM CPU is released [10ms]
 	uint8_t armNormal = 1; //startup mode of the ARM cpu 0: DFU bootloader, 1: normal program start
