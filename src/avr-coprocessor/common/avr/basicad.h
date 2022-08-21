@@ -22,24 +22,28 @@ resolution.
 //the setting REFS[2:0] = 0x7 should not be used
 
 static inline void AdStartExtRef(uint8_t prescal, uint8_t channel) {
+	PRR &= ~(1<<PRADC);
 	ADMUX = (1<<REFS0) | (channel & 0x1F); //Select AD channel, use external Aref pin
 	ADCSRB = (channel >> 2) & 0x08;
 	ADCSRA = (1 << ADEN) | (1 << ADSC) | (prescal & 0x07); //start conversion
 }
 
 static inline void AdStartExtRefGain(uint8_t prescal, uint8_t channel) {
+	PRR &= ~(1<<PRADC);
 	ADMUX = (1<<REFS0) | (channel & 0x1F); //Select AD channel, use external Aref pin
 	ADCSRB = ((channel >> 2) & 0x08) | (1<<GSEL);
 	ADCSRA = (1 << ADEN) | (1 << ADSC) | (prescal & 0x07); //start conversion
 }
 
 static inline void AdStart11Ref(uint8_t prescal, uint8_t channel) {
+	PRR &= ~(1<<PRADC);
 	ADMUX = (1<<REFS1) | (channel & 0x1F); //Select AD channel, use internal 1.1V ref
 	ADCSRB = (channel >> 2) & 0x08;
 	ADCSRA = (1 << ADEN) | (1 << ADSC) | (prescal & 0x07); //start conversion
 }
 
 static inline void AdStartAvccRef(uint8_t prescal, uint8_t channel) {
+	PRR &= ~(1<<PRADC);
 	ADMUX = (channel & 0x1F); //Select AD channel, use Avcc ref
 	ADCSRB = (channel >> 2) & 0x08;
 	ADCSRA = (1 << ADEN) | (1 << ADSC) | (prescal & 0x07); //start conversion
@@ -52,6 +56,12 @@ static inline uint16_t AdGet(void) {
 
 static inline void AdStop(void) {
 	ADCSRA &= ~(1 << ADEN);
+
+}
+
+static inline void AdPowerdown(void) {
+	AdStop();
+	PRR |= (1<<PRADC);
 }
 
 uint16_t getadc500(uint8_t channel);

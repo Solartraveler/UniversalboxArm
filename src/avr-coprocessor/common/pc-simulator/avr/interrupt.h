@@ -9,6 +9,7 @@ void isrFunc(void);
 #define ISR(X) void isrFunc(void)
 
 #define ISC00 0
+#define ISC01 1
 #define INT1 8
 #define INTF1 8
 

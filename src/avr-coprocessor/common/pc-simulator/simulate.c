@@ -22,6 +22,7 @@ uint16_t g_inputVoltage = 4756;
 uint16_t g_batteryVoltage = 3211;
 
 uint64_t g_timestamp;
+bool g_timerSlow;
 
 uint8_t g_leftPressed;
 uint8_t g_rightPressed;
@@ -323,6 +324,19 @@ void PinsInit(void) {
 	HardwareInit();
 }
 
+void PinsPowerdown(void) {
+}
+
+void PinsPowerup(void) {
+}
+
+void PinsWakeupByKeyPressOn(void) {
+}
+
+void PinsWakeupByKeyPressOff(void) {
+}
+
+
 void LedOn(void) {
 	if (g_ledState == 0)
 	{
@@ -472,11 +486,16 @@ void PwmBatterySet(uint8_t val) {
 void TimerInit(bool useIsr) {
 	(void)useIsr;
 	g_timestamp = TimeGetMs();
+	g_timerSlow = false;
 }
 
 bool TimerHasOverflown(void) {
 	uint64_t stamp = TimeGetMs();
-	if ((g_timestamp + 10) <= stamp) {
+	uint32_t minWait = 10;
+	if (g_timerSlow) {
+		minWait = 100;
+	}
+	if ((g_timestamp + minWait) <= stamp) {
 		g_timestamp = stamp;
 		return true;
 	}
@@ -487,6 +506,13 @@ bool TimerHasOverflownIsr(void) {
 	return TimerHasOverflown();
 }
 
+void TimerSlow(void) {
+	g_timerSlow = true;
+}
+
+void TimerFast(void) {
+	g_timerSlow = false;
+}
 
 void TimerStop(void) {
 	printf("Timer stopped\n");
@@ -507,3 +533,5 @@ void WaitForExternalInterrupt(void) {
 	exit(0);
 }
 
+void AdPowerdown(void) {
+}

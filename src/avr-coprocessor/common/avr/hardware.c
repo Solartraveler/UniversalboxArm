@@ -174,14 +174,13 @@ uint16_t SensorsBatteryvoltageGet(void) {
 	I_R20[mA] = (192mV*AD/119.691Ω)
 	With gain 8:
 	I_R20[mA] = (24mV*AD/119.691Ω)
-	PWM frequency: 1893Hz
 	With 5x sample (exactly the number of samples possible within one PWM timer cycle):
 	I_R20[mA] = (24mV*(Sum(AD0...AD4))/598.455Ω)
 	Approximated:
 	I_R20[mA] = (4mV*Sum(AD0...AD4))/100Ω)
 	Range check:
 	4 * 1023 * 5 = 20460 -> uint16_t is enough
-	With 10x sample (exactly the number of samples possible within one PWM timer cycle):
+	With 10x sample:
 	I_R20[mA] = (4mV*Sum(AD0...AD4))/200Ω)
 	Maximum current which can be measured with 8x gain:
 	204mA
@@ -225,11 +224,11 @@ int16_t SensorsChiptemperatureGet(void) {
 	*/
 	int32_t temperature = ((ad - 230) * 125UL / 14UL) - 400;
 	return temperature;
-	//return ad;
 }
 
 void PwmBatterySet(uint8_t val) {
 	if (val) {
+		PRR &= ~(1<<PRTIM1); //enable power
 		if (TCCR1B == 0) {
 			//1. start the PLL
 			PLLCSR = (1<<PLLE) | (1<<LSM);
@@ -249,13 +248,15 @@ void PwmBatterySet(uint8_t val) {
 		if (val > PWM_MAX) {
 			val = PWM_MAX;
 		}
+		OCR1B = val;
 	} else {
 		TCCR1B = 0; //disable timer
 		TCCR1A = 0; //restores normal pin behaviour. So it should be a low level by now.
 		PLLCSR &= ~(1<<PCKE); //disable timer base clock to be the PLL
 		PLLCSR &= ~(1<<PLLE); //disable PLL
+		OCR1B = val;
+		PRR |= (1<<PRTIM1); //disable power
 	}
-	OCR1B = val;
 }
 
 //The interrupts only have the function to wake up the device from sleep or

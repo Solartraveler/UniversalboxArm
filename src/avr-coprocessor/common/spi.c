@@ -108,6 +108,7 @@ void SpiInit(void) {
 	g_spiCycle = 0;
 	g_expectedLevel = true; //low to high rising edge
 	MCUCR |= (1<<ISC00); //rising and falling edge must generate an interrupt
+	MCUCR &= ~(1<<ISC01); //rising and falling edge must generate an interrupt
 	GIMSK |= (1<<INT1);
 	GIFR |= (1<<INTF1); //clear pending interrupt
 	sei(); //enable interrupts globally

@@ -9,6 +9,14 @@ void HardwareInit(void);
 
 void PinsInit(void);
 
+void PinsPowerdown(void);
+
+void PinsPowerup(void);
+
+void PinsWakeupByKeyPressOn(void);
+
+void PinsWakeupByKeyPressOff(void);
+
 void ad_init(uint8_t prescal);
 
 void LedOn(void);
@@ -65,6 +73,10 @@ bool KeyPressedLeft(void);
 
 void TimerInit(bool useIsr);
 
+void TimerSlow(void);
+
+void TimerFast(void);
+
 bool TimerHasOverflown(void);
 
 bool TimerHasOverflownIsr(void);
@@ -78,3 +90,5 @@ void WatchdogDisable(void);
 void WaitForInterrupt(void);
 
 void WaitForExternalInterrupt(void);
+
+void AdPowerdown(void);

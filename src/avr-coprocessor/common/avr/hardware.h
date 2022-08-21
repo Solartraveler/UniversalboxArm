@@ -32,7 +32,7 @@ static inline void HardwareInit(void) {
 	//save some power
 	PRR = (1<<PRUSI);
 	DIDR0 = (1<<1) | (1<<3) | (1<<4) | (1<<5) | (1<<6) | (1<<7);
-	DIDR1 = (1<<5) | (1<<4);
+	DIDR1 = (1<<7) | (1<<5) | (1<<4);
 
 #if !defined(LOWSPEEDOSC)
 
@@ -68,10 +68,30 @@ static inline void HardwareInit(void) {
 #if defined(USE_WATCHDOG)
 	wdt_enable(WDTO_2S);
 #endif
+}
+
+//only the pullups are left
+static inline void PinsPowerdown(void) {
+	DIDR0 = 0xFF;
+	DIDR1 = (1<<7) | (1<<5) | (1<<4);
+}
+
+static inline void PinsPowerup(void) {
+	DIDR0 = (1<<1) | (1<<3) | (1<<4) | (1<<5) | (1<<6) | (1<<7);
+	DIDR1 = (1<<7) | (1<<5) | (1<<4);
+}
+
+static inline void PinsWakeupByKeyPressOn(void)
+{
+	//only a low level ISR can wake up the CPU from powerdown
+	//not compatible with the software SPI
+	MCUCR &= ~((1<<ISC00) | (1<<ISC01));
 	GIMSK |= (1<<INT0); //allows waking up the CPU by the left key press
-	//rising and falling edge must generate an interrupt, this mode must be
-	//compatible with the SPI interrupt, see spi.c -> SpiInit
-	MCUCR |= (1<<ISC00);
+}
+
+static inline void PinsWakeupByKeyPressOff(void)
+{
+	GIMSK &= ~(1<<INT0);
 }
 
 static inline void LedOn(void) {
@@ -188,19 +208,39 @@ static inline bool KeyPressedLeft(void) {
 
 //If useIsr is false, the timer should be polled with TimerHasOverflown
 //otherwise TimerHasOverflownIsr must be used
+//sets the speed as TimerFast()
 static inline void TimerInit(bool useIsr) {
+	PRR &= ~(1<<PRTIM0); //enable power
 	TCCR0B = 0; //stop timer
 	TIFR |= (1<<OCF0A); //clear compare flag
 	if (useIsr) {
 		TIMSK |= (1<<OCIE0A);
 	}
 	TCCR0A = 1<<0; //clear timer on compare match (WGM00 in header, CTC0 in datasheet)
+	TCNT0H = 0;
 	TCNT0L = 0; //clear counter
 	const uint16_t timerMax = F_CPU/(64UL* 100UL); //10ms timing
 	OCR0B = (timerMax >> 8) & 0xFF; //high byte must be written before the low byte
 	OCR0A = timerMax & 0xFF;
 	TCCR0B = (1<<CS00) | (1<<CS01); //start timer with prescaler = 64
 }
+
+static inline void TimerSlow(void) {
+	const uint16_t timerMax = F_CPU/(64UL* 10UL); //100ms timing
+	TCNT0H = 0;
+	TCNT0L = 0; //clear counter
+	OCR0B = (timerMax >> 8) & 0xFF; //high byte must be written before the low byte
+	OCR0A = timerMax & 0xFF;
+}
+
+static inline void TimerFast(void) {
+	const uint16_t timerMax = F_CPU/(64UL* 100UL); //10ms timing
+	TCNT0H = 0;
+	TCNT0L = 0; //clear counter
+	OCR0B = (timerMax >> 8) & 0xFF; //high byte must be written before the low byte
+	OCR0A = timerMax & 0xFF;
+}
+
 
 static inline bool TimerHasOverflown(void) {
 	if ((TIFR & (1<<OCF0A)) || (g_Timer0Int)) {
@@ -221,6 +261,7 @@ static inline bool TimerHasOverflownIsr(void) {
 
 static inline void TimerStop(void) {
 	TCCR0B = 0;
+	PRR |= (1<<PRTIM0); //disable power
 }
 
 static inline void WatchdogReset(void) {
@@ -246,3 +287,6 @@ static inline void WaitForExternalInterrupt(void) {
 	sleep_cpu();
 	sleep_disable();
 }
+
+//provided by basicad.h:
+static inline void AdPowerdown(void);
