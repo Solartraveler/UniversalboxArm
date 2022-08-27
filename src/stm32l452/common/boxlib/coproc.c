@@ -36,7 +36,7 @@ static void CoprocDataSet(bool state) {
 }
 
 static void CoprocCycleDelay(void) {
-	HAL_Delay(1);
+	HAL_Delay(1); //625µs minimum
 }
 
 uint16_t CoprocSendCommand(uint8_t command, uint16_t data) {
