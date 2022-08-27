@@ -67,6 +67,7 @@ $(ALGORITHM)/json.c \
 $(ALGORITHM)/filesystem.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
+$(SIMCOMMON)/simhelper.c \
 ../forwarder.c \
 ../gui.c \
 

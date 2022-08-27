@@ -4,11 +4,14 @@
 #include <pthread.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "main.h"
 
 #include "loader.h"
 #include "boxlib/boxusb.h"
+
+#include "simhelper.h"
 
 uint8_t * g_DfuMem;
 size_t g_DfuMemSize;
@@ -176,11 +179,14 @@ int main(int argc, char ** argv) {
 		return 1;
 	}
 	memset(g_DfuMem, 0xEE, g_DfuMemSize);
+	signal(SIGTERM, CatchSignal);
+	signal(SIGHUP, CatchSignal);
+	signal(SIGINT, CatchSignal);
 	SimulatedInit();
 	LoaderInit();
 	pthread_t thread;
+	commandList_t cl;
 	if (argc > 1) {
-		commandList_t cl;
 		cl.argv = argv + 1;
 		cl.argc = argc - 1;
 		pthread_create(&thread, NULL, &CommandProcessor, &cl);

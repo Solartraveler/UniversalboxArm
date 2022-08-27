@@ -20,6 +20,9 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include "lcd.h"
 
+#include "rs232debug.h"
+
+
 #include "peripheral.h"
 #include "main.h"
 
@@ -82,6 +85,7 @@ int g_loopMs = 10;
 bool g_dataChanged;
 
 float g_screen[LCD_SCREEN_MAX_Y][LCD_SCREEN_MAX_X][3];
+bool g_backlightOn;
 
 bool g_keyLeft;
 bool g_keyRight;
@@ -147,9 +151,11 @@ void LcdDisable(void) {
 }
 
 void LcdBacklightOn(void) {
+	g_backlightOn = true;
 }
 
 void LcdBacklightOff(void) {
+	g_backlightOn = false;
 }
 
 static void update_window_size(int width, int height) {
@@ -216,7 +222,15 @@ static void redraw(int param) {
 		glClear(GL_COLOR_BUFFER_BIT);
 		for (uint32_t y = 0; y < g_lcdHeight; y++) {
 			for (uint32_t x = 0; x < g_lcdWidth; x++) {
-				DrawRectangle(x, y, g_screen[y][x][0], g_screen[y][x][1], g_screen[y][x][2]);
+				float r = g_screen[y][x][0];
+				float g = g_screen[y][x][1];
+				float b = g_screen[y][x][2];
+				if (g_backlightOn == false) {
+					r /= 2.0;
+					g /= 2.0;
+					b /= 2.0;
+				}
+				DrawRectangle(x, y, r, g, b);
 			}
 		}
 		for (uint32_t i = 0; i < LEDS_NUM; i++) {
@@ -268,6 +282,11 @@ void input_key_special(int key, int x, int y) {
 	pthread_mutex_unlock(&g_guiMutex);
 }
 
+void GlutWindowClosed(void) {
+	printf("Window closed, terminating application\n");
+	Rs232Stop(); //needs to reset the terminal
+}
+
 
 void * GlutGui(void * parameter) {
 	int argc = 1;
@@ -287,6 +306,7 @@ void * GlutGui(void * parameter) {
 	glutCreateWindow(title);
 	glutReshapeFunc(update_window_size);
 	glutSpecialFunc(input_key_special);
+	glutCloseFunc(&GlutWindowClosed);
 	glutTimerFunc(g_loopMs, redraw, 0);
 	glClearColor(0.0,0.0,0.0,0.0);
 	glutMainLoop(); //does not return

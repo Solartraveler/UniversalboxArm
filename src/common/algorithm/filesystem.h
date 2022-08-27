@@ -15,3 +15,7 @@ bool FilesystemMount(void);
 
 //Requires a mounted filesystem
 eDisplay_t FilesystemReadLcd(void);
+
+void FilesystemWriteLcd(const char * lcdType);
+
+void FilesystemLcdSet(const char * type);

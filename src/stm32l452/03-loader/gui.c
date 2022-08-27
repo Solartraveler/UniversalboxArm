@@ -15,16 +15,15 @@
 #include "loader.h"
 #include "framebufferLowmem.h"
 #include "utility.h"
+#include "filesystem.h"
 
 #include "menudata.c"
-
-#define CONFIGFILENAME "/etc/display.json"
 
 #define FILELISTLEN 1024
 
 #define FILENAMEMAX 64
 
-#define BINTEXT 16
+#define BINTEXT 32
 
 #define FILETEXT 12
 
@@ -114,43 +113,6 @@ uint8_t menu_action(MENUACTION action) {
 	return 0;
 }
 
-eDisplay_t ConfigReadLcd(void) {
-	uint8_t displayconf[64] = {0};
-	char lcdtype[32];
-	FIL f;
-	UINT r = 0;
-	if (FR_OK == f_open(&f, CONFIGFILENAME, FA_READ)) {
-		FRESULT res = f_read(&f, displayconf, sizeof(displayconf) - 1, &r);
-		if (res != FR_OK) {
-			printf("Warning, could not read display config file\r\n");
-		}
-		f_close(&f);
-	} else {
-		printf("Warning, no display configured\r\n");
-		return NONE;
-	}
-	if (JsonValueGet(displayconf, r, "lcd", lcdtype, sizeof(lcdtype))) {
-		if (strcmp(lcdtype, "ST7735_128x128") == 0) {
-			printf("LCD 128x128 selected\r\n");
-			return ST7735_128;
-		}
-		if (strcmp(lcdtype, "ST7735_160x128") == 0) {
-			printf("LCD 128x160 selected\r\n");
-			return ST7735_160;
-		}
-		if (strcmp(lcdtype, "ILI9341_320x240") == 0) {
-			printf("LCD 320x240 selected\r\n");
-			return ILI9341;
-		}
-		if (strcmp(lcdtype, "NONE") == 0) {
-			printf("no LCD selected\r\n");
-			return NONE;
-		}
-	}
-	printf("Warning, could not get LCD value\r\n");
-	return NONE;
-}
-
 #define BORDER_PIXELS 7
 
 void GuiInit(void) {
@@ -169,7 +131,7 @@ void GuiInit(void) {
 	menu_gfxdata[MENU_GFX_BINDRAWING] = g_gui.drawing;
 	//we must provide data which prevent a buffer overflow
 	memset(g_gui.drawing, 0xFF, DRAWINGSIZE);
-	g_gui.type = ConfigReadLcd();
+	g_gui.type = FilesystemReadLcd();
 	if (g_gui.type != NONE) {
 		LcdBacklightOn();
 		//HAL_Delay(1000);
@@ -209,29 +171,15 @@ void GuiScreenResolutionGet(uint16_t * x, uint16_t * y) {
 	*y = g_gui.pixelY;
 }
 
-void ConfigWriteLcd(const char * lcdType) {
-	char buffer[256];
-	snprintf(buffer, sizeof(buffer), "{\n  \"lcd\": \"%s\"\n}\n", lcdType);
-	FIL f;
-	if (FR_OK == f_open(&f, CONFIGFILENAME, FA_WRITE | FA_CREATE_ALWAYS)) {
-		UINT written = 0;
-		FRESULT res = f_write(&f, buffer, strlen(buffer), &written);
-		if (res == FR_OK) {
-			printf("Display set. Restart to init\r\n");
-		}
-		f_close(&f);
-	}
-}
-
 void GuiLcdSet(eDisplay_t type) {
 	if (type == ST7735_128) {
-		ConfigWriteLcd("ST7735_128x128");
+		FilesystemWriteLcd("ST7735_128x128");
 	} else if (type == ST7735_160) {
-		ConfigWriteLcd("ST7735_160x128");
+		FilesystemWriteLcd("ST7735_160x128");
 	} else if (type == ILI9341) {
-		ConfigWriteLcd("ILI9341_320x240");
+		FilesystemWriteLcd("ILI9341_320x240");
 	} else {
-		ConfigWriteLcd("NONE");
+		FilesystemWriteLcd("NONE");
 	}
 }
 

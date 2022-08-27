@@ -40,6 +40,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "json.h"
 #include "gui.h"
+#include "filesystem.h"
 
 #define AUTOSTARTFILE "/etc/autostart.json"
 
@@ -132,7 +133,7 @@ static struct usb_string_descriptor g_serial_desc   = USB_STRING_DESC("Loader");
 
 
 #define MAX_DESCRIPTOR_CHARS 48
-//TODO: How to reserve 48 uin16_t in the dynamic array?
+//TODO: How to reserve 48 uint16_t in the dynamic array?
 static struct usb_string_descriptor g_target_desc = USB_STRING_DESC("                                               ");
 static struct usb_string_descriptor g_exttarget_desc = USB_STRING_DESC("                                               ");
 
@@ -178,8 +179,6 @@ typedef struct {
 } dfuState_t;
 
 dfuState_t g_dfuState = {0, 0, 0, DFU_STATE_DFUIDLE, DFU_STATUS_OK,  0, false};
-
-FATFS g_fatfs;
 
 #define TARFILENAME_MAX 64
 

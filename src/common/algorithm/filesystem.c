@@ -77,3 +77,31 @@ eDisplay_t FilesystemReadLcd(void) {
 	return NONE;
 }
 
+void FilesystemWriteLcd(const char * lcdType) {
+	char buffer[256];
+	f_mkdir("/etc");
+	snprintf(buffer, sizeof(buffer), "{\n  \"lcd\": \"%s\"\n}\n", lcdType);
+	FIL f;
+	if (FR_OK == f_open(&f, CONFIGFILENAME, FA_WRITE | FA_CREATE_ALWAYS)) {
+		UINT written = 0;
+		FRESULT res = f_write(&f, buffer, strlen(buffer), &written);
+		if (res == FR_OK) {
+			printf("Display set\n");
+		}
+		f_close(&f);
+	} else {
+		printf("Error, could not create file\n");
+	}
+}
+
+void FilesystemLcdSet(const char * type) {
+	if (strcmp(type, "128x128") == 0) {
+		FilesystemWriteLcd("ST7735_128x128");
+	} else if (strcmp(type, "160x128") == 0) {
+		FilesystemWriteLcd("ST7735_160x128");
+	} else if (strcmp(type, "320x240") == 0) {
+		FilesystemWriteLcd("ILI9341_320x240");
+	} else {
+		FilesystemWriteLcd("NONE");
+	}
+}
