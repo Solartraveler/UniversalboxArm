@@ -6,6 +6,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include <stdint.h>
 #include <ctype.h>
+#include <stdio.h>
 
 #include "utility.h"
 
@@ -59,3 +60,11 @@ uint32_t AsciiScanDec(const char * string) {
 	return out;
 }
 
+void PrintHex(const uint8_t * data, size_t len) {
+	for (uint32_t i = 0; i < len; i++) {
+		printf("%02X ", data[i]);
+		if (((i % 8) == 7) || (i == len -1)) {
+			printf("\r\n");
+		}
+	}
+}

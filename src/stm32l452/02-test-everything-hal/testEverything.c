@@ -35,6 +35,8 @@ License: BSD-3-Clause
 #include "usbd_core.h"
 #include "usb.h"
 
+#include "utility.h"
+
 void mainMenu(void) {
 	printf("\r\nSelect operation:\r\n");
 	printf("0: Read all inputs\r\n");
@@ -65,15 +67,6 @@ void mainMenu(void) {
 	printf("t: Reboot to normal mode (needs coprocessor)\r\n");
 	printf("u: Init USB device. 2. call disables again.\r\n");
 	printf("z: Reboot to DFU mode (needs coprocessor)\r\n");
-}
-
-void printHex(const uint8_t * data, size_t len) {
-	for (uint32_t i = 0; i < len; i++) {
-		printf("%02X ", data[i]);
-		if (((i % 8) == 7) || (i == len -1)) {
-			printf("\r\n");
-		}
-	}
 }
 
 void testInit(void) {
@@ -511,11 +504,11 @@ void checkFlash(void) {
 					}
 				} else {
 					printf("Error, read back data mismatched:\r\n");
-					printHex(bufferIn, blocksize);
+					PrintHex(bufferIn, blocksize);
 					printf("And the sram buffer:\r\n");
 					memset(bufferIn, 0, blocksize);
 					FlashReadBuffer1(bufferIn, 0, blocksize);
-					printHex(bufferIn, blocksize);
+					PrintHex(bufferIn, blocksize);
 				}
 			} else {
 				printf("Error, device ID does not fit to the pagesize\r\n");
@@ -693,7 +686,7 @@ void manualLcdCmd(void) {
 		parameters[i] = vars[i+2];
 	}
 	LcdCommandData(vars[1], parameters, readback, len);
-	printHex(readback, len);
+	PrintHex(readback, len);
 	printf("Done\r\n");
 }
 

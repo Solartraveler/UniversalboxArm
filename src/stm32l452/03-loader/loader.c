@@ -459,15 +459,6 @@ void mainMenu(void) {
 	printf("wasd: Control input keys in menu\r\n");
 }
 
-void printHex(const uint8_t * data, size_t len) {
-	for (uint32_t i = 0; i < len; i++) {
-		printf("%02X ", data[i]);
-		if (((i % 8) == 7) || (i == len -1)) {
-			printf("\r\n");
-		}
-	}
-}
-
 void LoaderUpdateFsGui(void) {
 	DWORD freeclusters;
 	FATFS * pff = NULL;
@@ -758,7 +749,7 @@ void ProgTarStart(void * tarStart, size_t tarLen, bool watchdogEnforced, bool wa
 			uint8_t md5sum[16] = {0};
 			md5(ramStart, fileLen, md5sum);
 			printf("Starting program with size %u. Md5sum:\r\n", (unsigned int)fileLen);
-			printHex(md5sum, sizeof(md5sum));
+			PrintHex(md5sum, sizeof(md5sum));
 			Led1Green();
 			if (watchdogEnforced) {
 				if (watchdogEnabled) {
@@ -792,7 +783,7 @@ bool ProgTarCheck(void * tarStart, size_t tarLen) {
 	if (!TarFileStartGet("application.bin", tarStart, tarLen, &fileStart, &fileLen, NULL)) {
 		printf("Error, no application found. Tar len: %u\r\n", (unsigned int)tarLen);
 		md5(tarStart, tarLen, md5sum1);
-		printHex(md5sum1, sizeof(md5sum1));
+		PrintHex(md5sum1, sizeof(md5sum1));
 		return false;
 	}
 	md5(fileStart, fileLen, md5sum1);
@@ -807,9 +798,9 @@ bool ProgTarCheck(void * tarStart, size_t tarLen) {
 	if (memcmp(md5sum1, md5sum2, sizeof(md5sum1))) {
 		printf("Error, checksum mismatch\r\n");
 		printf("Should:\r\n");
-		printHex(md5sum2, sizeof(md5sum2));
+		PrintHex(md5sum2, sizeof(md5sum2));
 		printf("Is:\r\n");
-		printHex(md5sum1, sizeof(md5sum1));
+		PrintHex(md5sum1, sizeof(md5sum1));
 		return false;
 	}
 	char mcu[16];

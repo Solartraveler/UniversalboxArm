@@ -73,6 +73,7 @@ BOXLIB=$(COMMON)/boxlib
 DISPLAYLIB1=$(COMMON)/st7735
 DISPLAYLIB2=$(COMMON)/ili9341
 USBLIB=$(COMMON)/libusb_stm32
+ALGORITHM=$(VERYCOMMON)/algorithm
 
 ######################################
 # source
@@ -123,6 +124,7 @@ $(DISPLAYLIB1)/st7735.c \
 $(DISPLAYLIB2)/ili9341.c \
 $(USBLIB)/usbd_core.c \
 $(USBLIB)/usbd_stm32l433_devfs.c \
+$(ALGORITHM)/utility.c \
 testEverything.c
 
 
@@ -189,6 +191,7 @@ C_INCLUDES =  \
 -I$(COMMON) \
 -I$(VERYCOMMON) \
 -I$(USBLIB) \
+-I$(ALGORITHM) \
 -I.
 
 
