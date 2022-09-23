@@ -23,6 +23,8 @@
   Read charged cycles 0x17 xx xx     00 yy yy (number of times a charge has started)
   Read pre charged cy 0x18 xx xx     00 yy yy (number of times a precharge has started)
   Read current PWM    0x19 xx xx     00 00 yy (current PWM value)
+  Read current max    0x20 xx xx     00 yy yy (maximum current value, set by charge current max command, [mA])
+  Read charge time    0x21 xx xx     00 yy yy (time since charging started, [s])
   Reboot              0x80 A6 00     00 00 00 (resets with user selected bootmode)
   Reboot              0x80 A6 01     00 00 00 (resets with program bootmode)
   Reboot              0x80 A6 02     00 00 00 (resets with bootloader bootmode)
@@ -69,6 +71,8 @@ of 200ms until a new transfer is started.
 #define CMD_BAT_CHARGE_CYC    0x17
 #define CMD_BAT_PRECHARGE_CYC 0x18
 #define CMD_BAT_PWM           0x19
+#define CMD_BAT_CURRENT_MAX_R 0x20
+#define CMD_BAT_TIME          0x21
 
 //write commands
 #define CMD_REBOOT            0x80

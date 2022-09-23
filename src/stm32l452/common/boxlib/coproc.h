@@ -79,6 +79,12 @@ uint16_t CoprocReadPrechargedCycles(void);
 //current PWM value for charging
 uint16_t CoprocReadChargerPwm(void);
 
+//read back the value set by CoprocBatteryCurrentMax in [mA]
+uint16_t CoprocReadBatteryCurrentMax(void);
+
+//read back the time since starting of current charge in [s]
+uint16_t CoprocReadBatteryChargeTime(void);
+
 //===== Write commands ======
 
 //parameter: 0: user selected mode, 1: program bootmode, 2: bootloader bootmode
@@ -114,6 +120,7 @@ void CoprocBatteryStatReset(void);
 //starts a charging cycle, even if the voltage indicates the battery is nearly full
 void CoprocBatteryForceCharge(void);
 
-//maximum charging current in [mA]
+//sets the maximum charging current in [mA]
 void CoprocBatteryCurrentMax(uint16_t current);
+
 

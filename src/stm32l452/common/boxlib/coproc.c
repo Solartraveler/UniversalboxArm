@@ -11,6 +11,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include "main.h"
 
 #include "coprocCommands.h"
+#include "mcu.h"
 
 bool CoprocInGet(void) {
 	if (HAL_GPIO_ReadPin(AvrSpiMiso_GPIO_Port, AvrSpiMiso_Pin) == GPIO_PIN_RESET) {
@@ -36,7 +37,9 @@ static void CoprocDataSet(bool state) {
 }
 
 static void CoprocCycleDelay(void) {
-	HAL_Delay(1); //625µs minimum
+	//625µs minimum
+	HAL_Delay(1);
+	//McuDelayUs(700);
 }
 
 uint16_t CoprocSendCommand(uint8_t command, uint16_t data) {
@@ -131,6 +134,15 @@ uint16_t CoprocReadChargerPwm(void) {
 	return CoprocSendCommand(CMD_BAT_PWM, 0);
 }
 
+uint16_t CoprocReadBatteryCurrentMax(void) {
+	return CoprocSendCommand(CMD_BAT_CURRENT_MAX_R, 0);
+}
+
+//read back the time since starting of current charge in [s]
+uint16_t CoprocReadBatteryChargeTime(void) {
+	return CoprocSendCommand(CMD_BAT_TIME, 0);
+}
+
 void CoprocWriteReboot(uint8_t mode) {
 	CoprocSendCommand(CMD_REBOOT, 0xA600 | mode);
 }
@@ -174,5 +186,3 @@ void CoprocBatteryForceCharge(void) {
 void CoprocBatteryCurrentMax(uint16_t current) {
 	CoprocSendCommand(CMD_BAT_CURRENT_MAX, current);
 }
-
-

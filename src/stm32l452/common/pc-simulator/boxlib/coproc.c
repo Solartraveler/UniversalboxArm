@@ -6,8 +6,16 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include <stdbool.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include "coproc.h"
+
+#include "simulated.h"
+
+uint32_t g_coprocChargeStartTime;
+bool g_coprocChargeStart;
+uint16_t g_coprocMaxCharge = 70;
+
 
 bool CoprocInGet(void) {
 	return false;
@@ -29,12 +37,16 @@ uint16_t CoprocReadVersion(void) {
 }
 
 uint16_t CoprocReadVcc(void) {
-	return 3210;
+	static uint16_t noise = 0;
+	noise = (noise + 2) % 4;
+	return 3210 + noise;
 }
 
 
 int16_t CoprocReadCpuTemperature(void) {
-	return 405;
+	static uint16_t noise = 0;
+	noise = (noise + 1) % 3;
+	return 405 + noise;
 }
 
 uint16_t CoprocReadUptime(void) {
@@ -47,18 +59,33 @@ uint16_t CoprocReadOptime(void) {
 }
 
 int16_t CoprocReadBatteryTemperature(void) {
-	return 351;
+	static uint16_t noise = 0;
+	noise = (noise + 1) % 2;
+	return 351 + noise;
 }
 
 uint16_t CoprocReadBatteryVoltage(void) {
-	return 3341;
+	static uint16_t noise = 0;
+	noise = (noise + 1) % 10;
+	if (g_coprocChargeStart) {
+		return 3380 + noise;
+	}
+	return 3340 + noise;
 }
 
 uint16_t CoprocReadBatteryCurrent(void) {
+	static uint16_t noise = 0;
+	if (g_coprocChargeStart) {
+		noise = (noise + 1) % 3;
+		return g_coprocMaxCharge + noise - 2;
+	}
 	return 0;
 }
 
 uint8_t CoprocReadChargerState(void) {
+	if (g_coprocChargeStart) {
+		return 1;
+	}
 	return 0;
 }
 
@@ -83,6 +110,23 @@ uint16_t CoprocReadPrechargedCycles(void) {
 }
 
 uint16_t CoprocReadChargerPwm(void) {
+	if (g_coprocChargeStart) {
+		return 80;
+	}
+	return 0;
+}
+
+//read back the value set by CoprocBatteryCurrentMax in [mA]
+uint16_t CoprocReadBatteryCurrentMax(void) {
+	return g_coprocMaxCharge;
+}
+
+//read back the time since starting of current charge in [s]
+uint16_t CoprocReadBatteryChargeTime(void) {
+	if (g_coprocChargeStart) {
+		uint32_t time = HAL_GetTick() - g_coprocChargeStartTime;
+		return time / 1000;
+	}
 	return 0;
 }
 
@@ -120,8 +164,13 @@ void CoprocBatteryStatReset(void) {
 }
 
 void CoprocBatteryForceCharge(void) {
+	g_coprocChargeStart = true;
+	g_coprocChargeStartTime = HAL_GetTick();
 }
 
 void CoprocBatteryCurrentMax(uint16_t current) {
-	(void)current;
+	g_coprocMaxCharge = current;
+	if (current == 0) {
+		g_coprocChargeStart = false;
+	}
 }
