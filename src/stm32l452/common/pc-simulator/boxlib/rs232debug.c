@@ -24,6 +24,7 @@ volatile bool g_keyboardThreadTerminate;
 char g_inputChar;
 
 void * ConsoleInput(void * parameter) {
+	(void)parameter;
 	struct pollfd fds;
 	fds.fd = 0;
 	fds.events = POLLIN;

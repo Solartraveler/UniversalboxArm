@@ -15,6 +15,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include "boxlib/flash.h"
 #include "boxlib/lcd.h"
+#include "boxlib/rs232debug.h"
 
 #define ROM_LOADER_SIZE (12 * 1024)
 
@@ -30,6 +31,7 @@ void SimulatedInit(void) {
 void SimulatedDeinit(void) {
 	FlashDisable(); //writes changes back to the file
 	LcdDisable(); //closes drawing thread
+	Rs232Stop(); //resets the terminal
 	pthread_mutex_destroy(&g_IsrLocked);
 }
 

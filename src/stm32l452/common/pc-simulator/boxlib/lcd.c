@@ -159,7 +159,7 @@ void LcdBacklightOff(void) {
 }
 
 static void update_window_size(int width, int height) {
-	if ((g_dispx != width) || (g_dispy != height)) {
+	if ((g_dispx != (uint32_t)width) || (g_dispy != (uint32_t)height)) {
 		glViewport(0, 0, width, height);
 		glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 		g_dispx = width;
@@ -289,6 +289,7 @@ void GlutWindowClosed(void) {
 
 
 void * GlutGui(void * parameter) {
+	(void)parameter;
 	int argc = 1;
 	char * argv = "";
 	glutInit(&argc, &argv);
