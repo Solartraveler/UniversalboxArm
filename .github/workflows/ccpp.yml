@@ -19,6 +19,8 @@ jobs:
       run: make -C src/avr-coprocessor
     - name: make STM32L452
       run: make -C src/stm32l452
+    - name: make Tests
+      run: make -C src/common/algorithm/unittests
     - name: Artifacts upload
       uses: actions/upload-artifact@v2
       with:
