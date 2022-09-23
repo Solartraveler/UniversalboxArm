@@ -1,3 +1,10 @@
+2022-09-17: Version 2.1
+  * Bugfix: If an image has one color channel set to the maximum value (0xFF for 8 Bit), the output converted to monochrome always stayed dark. 
+    So an image with only one color channel resulted always in a dark image.
+  * Bugfix: When converting from a 1 bit per color image to some output with more bits per color, the lowest bit always stayed zero, resulting in not the maximum color.
+    So an 1 bit per color image with one red bit set was converted just to 0x80 and not 0xFF if the output has 8 bit per color.
+    Note: This is not fixed for any images with more than 1 bit per color. So a 2 bit per color image can still only produce 0xC0 as maximum color on an 8 bit output.
+
 2020-05-03: Version 2.0
 
 2020-05-02:
@@ -10,9 +17,6 @@
   * License change: Change required library files from GPL version 2.0 or later to MPL version 2. As source under MPLv2 is considered compatible with GPL version 2.0 or later, this should have no impact to existing projects and samples.
   * Replace font 8x15 pixel font by an own created better looking one. The height of this font is always reported as 15pixels, regardless if underlined or not. As the older font
     was under the Apache version 2.0 license, which according to several sources is considered to be compatible with GPL version 3 but not GPL version 2, this would have prevented the usage togehter with sources under GPL version 2.0 only (without the "or later" text).
-
-2020-03-20:
-  * Bugfix: Only show the first line of a list. This avoids serveral seconds of GUI blocking (close to unusable) when large lists (~2000 lines) are drawn out of the visible area.
 
 2020-02-24:
   * Feature: Action can now be an 8 bit type, reducing bytecode size and interpreter size. The list index change action might not be backward compatible in some cases.

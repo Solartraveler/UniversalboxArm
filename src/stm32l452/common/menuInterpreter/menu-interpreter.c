@@ -1,6 +1,6 @@
 /* MenuInterpreter
-   Version 2.0
-   (c) 2009-2010, 2012, 2014, 2016, 2019, 2020 by Malte Marwedel
+   Version 2.1.0
+   (c) 2009-2010, 2012, 2014, 2016, 2019, 2020, 2021 by Malte Marwedel
    m DOT talk AT marwedels DOT de
    www.marwedels.de/malte
    menudesigner.sourceforge.net
@@ -502,7 +502,7 @@ static inline SCREENCOLOR menu_gfx_rgb_to_screencolor(uint8_t r, uint8_t g, uint
 	SCREENCOLOR c;
 #if defined(MENU_SCREEN_MONOCHROME)
 	uint16_t c16 = r + g + b;
-	if (c16 > 382) {
+	if (c16 >= 255) {
 		c = 1;
 	} else {
 		c = 0;
@@ -549,13 +549,13 @@ static void menu_gfx_4Bit_set(SCREENPOS x, SCREENPOS y, uint8_t color4Bit) {
 	r = r << (8 - MENU_COLOR_CUSTOM##ID##_RED_BITS);\
 	g = g << (8 - MENU_COLOR_CUSTOM##ID##_GREEN_BITS);\
 	b = b << (8 - MENU_COLOR_CUSTOM##ID##_BLUE_BITS);\
-	if (r == (MENU_COLOR_CUSTOM##ID##_RED_MASK >> MENU_COLOR_CUSTOM##ID##_RED_LSB_POS << (8 - MENU_COLOR_CUSTOM##ID##_RED_BITS))) {\
+	if ((MENU_COLOR_CUSTOM##ID##_RED_BITS == 1) && (r == (MENU_COLOR_CUSTOM##ID##_RED_MASK >> MENU_COLOR_CUSTOM##ID##_RED_LSB_POS << (8 - MENU_COLOR_CUSTOM##ID##_RED_BITS)))) {\
 		r = 0xFF;\
 	}\
-	if (g == (MENU_COLOR_CUSTOM##ID##_GREEN_MASK >> MENU_COLOR_CUSTOM##ID##_GREEN_LSB_POS << (8 - MENU_COLOR_CUSTOM##ID##_GREEN_BITS))) {\
+	if ((MENU_COLOR_CUSTOM##ID##_GREEN_BITS == 1) && (g == (MENU_COLOR_CUSTOM##ID##_GREEN_MASK >> MENU_COLOR_CUSTOM##ID##_GREEN_LSB_POS << (8 - MENU_COLOR_CUSTOM##ID##_GREEN_BITS)))) {\
 		g = 0xFF;\
 	}\
-	if (b == (MENU_COLOR_CUSTOM##ID##_BLUE_MASK >> MENU_COLOR_CUSTOM##ID##_BLUE_LSB_POS << (8 - MENU_COLOR_CUSTOM##ID##_BLUE_BITS))) {\
+	if ((MENU_COLOR_CUSTOM##ID##_BLUE_BITS == 1) && (b == (MENU_COLOR_CUSTOM##ID##_BLUE_MASK >> MENU_COLOR_CUSTOM##ID##_BLUE_LSB_POS << (8 - MENU_COLOR_CUSTOM##ID##_BLUE_BITS)))) {\
 		b = 0xFF;\
 	}\
 	c = menu_gfx_rgb_to_screencolor(r, g, b);
