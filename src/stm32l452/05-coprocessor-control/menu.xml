@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<MenuConfig Xsize="320" Ysize="240" compact="-1" multilang="0" languages="1" utf8="1" mousesupport="0" fileformat="2" colorFormatRed1="3" colorFormatRed2="5" colorFormatRed3="8" colorFormatGreen1="3" colorFormatGreen2="6" colorFormatGreen3="8" colorFormatBlue1="2" colorFormatBlue2="5" colorFormatBlue3="8" backgroundcolor="16777215" bordercolor="0" textcolor="0" subwindowBordercolor="0" subwindowBackgroundcolor="16777215" displaytype="5" projectinfo="Coprocessor control for 128x128 and 320x240 LCD">
+<MenuConfig Xsize="320" Ysize="258" compact="-1" multilang="0" languages="1" utf8="1" mousesupport="0" fileformat="2" colorFormatRed1="1" colorFormatRed2="1" colorFormatRed3="8" colorFormatGreen1="1" colorFormatGreen2="0" colorFormatGreen3="8" colorFormatBlue1="1" colorFormatBlue2="0" colorFormatBlue3="8" backgroundcolor="16777215" bordercolor="0" textcolor="0" subwindowBordercolor="0" subwindowBackgroundcolor="16777215" displaytype="4" projectinfo="Coprocessor control for 128x128 and 320x240 LCD">
   <window number="1" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="128x128 - Main&#xA;">
     <label number="2" Xpos="2" Ypos="1" font="4" storagemethod="0" text="Firmware: " multilang="0" transparency="0"/>
     <shortcut number="4" shortcutkey="102" action="" screen="window 7"/>
@@ -12,13 +12,14 @@
     <label number="11" Xpos="60" Ypos="46" font="4" storagemethod="1" text="UPTIME" multilang="0" transparency="0"/>
     <label number="12" Xpos="2" Ypos="61" font="4" storagemethod="0" text="Optime: " multilang="0" transparency="0"/>
     <label number="13" Xpos="60" Ypos="61" font="4" storagemethod="1" text="OPTIME" multilang="0" transparency="0"/>
-    <button number="14" Xpos="2" Ypos="81" focusable="-1" rectangle="-1" Xsize="122" Ysize="17" font="4" fontfocus="6" text="Power down" storagemethod="0" action="POWERDOWN" screen="" multilang="0" transparency="0"/>
+    <button number="14" Xpos="2" Ypos="81" focusable="-1" rectangle="-1" Xsize="73" Ysize="17" font="4" fontfocus="6" text="Power down" storagemethod="0" action="POWERDOWN" screen="" multilang="0" transparency="0"/>
+    <button number="18" Xpos="77" Ypos="81" focusable="1" rectangle="1" Xsize="47" Ysize="17" font="4" fontfocus="6" text="LED" storagemethod="0" action="" screen="subwindow 12" multilang="0" transparency="0"/>
     <button number="15" Xpos="2" Ypos="100" focusable="1" rectangle="1" Xsize="60" Ysize="17" font="4" fontfocus="6" text="Set alarm" storagemethod="0" action="" screen="subwindow 4" multilang="0" transparency="0"/>
     <button number="16" Xpos="63" Ypos="100" focusable="1" rectangle="1" Xsize="60" Ysize="17" font="4" fontfocus="6" text="Set mode" storagemethod="0" action="" screen="subwindow 5" multilang="0" transparency="0"/>
     <shortcut number="17" shortcutkey="2" action="BATVIEW" screen="window 6"/>
   </window>
-  <window number="6" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="128x128 Battery1">
-    <label number="2" Xpos="40" Ypos="1" font="4" storagemethod="0" text="Battery:" multilang="0" transparency="0"/>
+  <window number="6" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="128x128 - Battery1">
+    <label number="2" Xpos="2" Ypos="1" font="4" storagemethod="0" text="Battery:" multilang="0" transparency="0"/>
     <shortcut number="3" shortcutkey="2" action="" screen="window 3"/>
     <label number="4" Xpos="2" Ypos="16" font="4" storagemethod="0" text="Temp: " multilang="0" transparency="0"/>
     <label number="5" Xpos="60" Ypos="16" font="4" storagemethod="1" text="BATTEMPERATURE" multilang="0" transparency="0"/>
@@ -34,19 +35,32 @@
     <label number="15" Xpos="60" Ypos="91" font="4" storagemethod="1" text="BATCHARGED" multilang="0" transparency="0"/>
     <label number="16" Xpos="2" Ypos="106" font="4" storagemethod="0" text="PWM:" multilang="0" transparency="0"/>
     <label number="17" Xpos="60" Ypos="106" font="4" storagemethod="1" text="BATPWM" multilang="0" transparency="0"/>
+    <label number="18" Xpos="60" Ypos="1" font="4" storagemethod="1" text="BATTIME" multilang="0" transparency="0"/>
   </window>
-  <window number="3" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="128x128 Battery2">
+  <window number="3" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="128x128 - Battery2">
     <label number="2" Xpos="40" Ypos="1" font="4" storagemethod="0" text="Battery:" multilang="0" transparency="0"/>
-    <shortcut number="3" shortcutkey="2" action="MAINVIEW" screen="window 1"/>
+    <shortcut number="3" shortcutkey="2" action="" screen="window 13"/>
     <label number="4" Xpos="2" Ypos="16" font="4" storagemethod="0" text="Total charge: " multilang="0" transparency="0"/>
-    <label number="5" Xpos="60" Ypos="16" font="4" storagemethod="1" text="BATTOAL" multilang="0" transparency="0"/>
+    <label number="5" Xpos="80" Ypos="16" font="4" storagemethod="1" text="BATTOTAL" multilang="0" transparency="0"/>
     <label number="6" Xpos="2" Ypos="31" font="4" storagemethod="0" text="Cycles:" multilang="0" transparency="0"/>
-    <label number="7" Xpos="60" Ypos="31" font="4" storagemethod="1" text="BATCYCLES" multilang="0" transparency="0"/>
+    <label number="7" Xpos="80" Ypos="31" font="4" storagemethod="1" text="BATCYCLES" multilang="0" transparency="0"/>
     <label number="8" Xpos="2" Ypos="46" font="4" storagemethod="0" text="Pre cycles:" multilang="0" transparency="0"/>
-    <label number="9" Xpos="60" Ypos="46" font="4" storagemethod="1" text="BATPRECYCLES" multilang="0" transparency="0"/>
-    <button number="10" Xpos="2" Ypos="63" focusable="1" rectangle="1" Xsize="100" Ysize="18" font="4" fontfocus="6" text="New battery" storagemethod="0" action="" screen="subwindow 9" multilang="0" transparency="0"/>
-    <button number="11" Xpos="2" Ypos="82" focusable="1" rectangle="1" Xsize="100" Ysize="18" font="4" fontfocus="6" text="Force full charge" storagemethod="0" action="BATFORCECHARGE" screen="" multilang="0" transparency="0"/>
-    <button number="12" Xpos="2" Ypos="101" focusable="-1" rectangle="-1" Xsize="100" Ysize="18" font="4" fontfocus="6" text="Reset statistics" storagemethod="0" action="" screen="subwindow 10" multilang="0" transparency="0"/>
+    <label number="9" Xpos="80" Ypos="46" font="4" storagemethod="1" text="BATPRECYCLES" multilang="0" transparency="0"/>
+    <button number="10" Xpos="2" Ypos="63" focusable="1" rectangle="1" Xsize="75" Ysize="18" font="4" fontfocus="6" text="New battery" storagemethod="0" action="" screen="subwindow 9" multilang="0" transparency="0"/>
+    <button number="13" Xpos="79" Ypos="63" focusable="1" rectangle="1" Xsize="47" Ysize="18" font="4" fontfocus="6" text="Current" storagemethod="0" action="" screen="subwindow 11" multilang="0" transparency="0"/>
+    <button number="11" Xpos="2" Ypos="82" focusable="1" rectangle="1" Xsize="124" Ysize="18" font="4" fontfocus="6" text="Force full charge" storagemethod="0" action="BATFORCECHARGE" screen="" multilang="0" transparency="0"/>
+    <button number="12" Xpos="2" Ypos="101" focusable="-1" rectangle="-1" Xsize="124" Ysize="18" font="4" fontfocus="6" text="Reset statistics" storagemethod="0" action="" screen="subwindow 10" multilang="0" transparency="0"/>
+  </window>
+  <window number="13" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="128x128 - Battery 3">
+    <shortcut number="1" shortcutkey="2" action="MAINVIEW" screen="window 1"/>
+    <label number="2" Xpos="1" Ypos="0" font="4" storagemethod="0" text="Battery:" multilang="0" transparency="0"/>
+    <label number="6" Xpos="50" Ypos="0" font="4" storagemethod="1" text="GRAPHTIME" multilang="0" transparency="0"/>
+    <box number="7" Xpos="3" Ypos="16" focusable="0" Xsize="122" Ysize="82" color="0" action="" screen=""/>
+    <gfx number="3" Xpos="4" Ypos="17" focusable="0" rectangle="0" Xsize="120" Ysize="80" text="BATGRAPH" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
+    <label number="4" Xpos="13" Ypos="100" font="4" storagemethod="1" text="BATCURRENTMINMAX" multilang="0" transparency="0"/>
+    <label number="5" Xpos="13" Ypos="114" font="4" storagemethod="1" text="BATVOLTAGEMINMAX" multilang="0" transparency="0"/>
+    <box number="8" Xpos="3" Ypos="100" focusable="0" Xsize="8" Ysize="12" color="255" action="" screen=""/>
+    <box number="9" Xpos="3" Ypos="114" focusable="0" Xsize="8" Ysize="12" color="16711680" action="" screen=""/>
   </window>
   <subwindow number="4" Xpos="10" Ypos="10" Xsize="108" Ysize="108" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Alarm">
     <label number="2" Xpos="23" Ypos="11" font="4" storagemethod="0" text="Wake up alarm" multilang="0" transparency="0"/>
@@ -67,47 +81,58 @@
     <button number="9" Xpos="40" Ypos="95" focusable="1" rectangle="-1" Xsize="50" Ysize="17" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
   </subwindow>
   <window number="7" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="320x240 - Main&#xA;">
-    <label number="2" Xpos="2" Ypos="1" font="4" storagemethod="0" text="Firmware: " multilang="0" transparency="0"/>
-    <label number="5" Xpos="60" Ypos="1" font="4" storagemethod="1" text="FIRMWARE" multilang="0" transparency="0"/>
-    <label number="6" Xpos="2" Ypos="16" font="4" storagemethod="0" text="Vcc:" multilang="0" transparency="0"/>
-    <label number="7" Xpos="60" Ypos="16" font="4" storagemethod="1" text="VCC" multilang="0" transparency="0"/>
-    <label number="8" Xpos="2" Ypos="31" font="4" storagemethod="0" text="CPU:" multilang="0" transparency="0"/>
-    <label number="9" Xpos="60" Ypos="31" font="4" storagemethod="1" text="CPUTEMP" multilang="0" transparency="0"/>
-    <label number="10" Xpos="2" Ypos="46" font="4" storagemethod="0" text="Uptime:" multilang="0" transparency="0"/>
-    <label number="11" Xpos="60" Ypos="46" font="4" storagemethod="1" text="UPTIME" multilang="0" transparency="0"/>
-    <label number="12" Xpos="2" Ypos="61" font="4" storagemethod="0" text="Optime: " multilang="0" transparency="0"/>
-    <label number="13" Xpos="60" Ypos="61" font="4" storagemethod="1" text="OPTIME" multilang="0" transparency="0"/>
-    <button number="14" Xpos="2" Ypos="81" focusable="1" rectangle="-1" Xsize="122" Ysize="17" font="4" fontfocus="6" text="Power down" storagemethod="0" action="POWERDOWN" screen="" multilang="0" transparency="0"/>
-    <button number="15" Xpos="2" Ypos="100" focusable="1" rectangle="1" Xsize="60" Ysize="17" font="4" fontfocus="6" text="Set alarm" storagemethod="0" action="" screen="subwindow 4" multilang="0" transparency="0"/>
-    <button number="16" Xpos="63" Ypos="100" focusable="1" rectangle="1" Xsize="60" Ysize="17" font="4" fontfocus="6" text="Set mode" storagemethod="0" action="" screen="subwindow 5" multilang="0" transparency="0"/>
+    <label number="2" Xpos="80" Ypos="1" font="4" storagemethod="0" text="Firmware: " multilang="0" transparency="0"/>
+    <label number="5" Xpos="140" Ypos="1" font="4" storagemethod="1" text="FIRMWARE" multilang="0" transparency="0"/>
+    <label number="6" Xpos="80" Ypos="16" font="4" storagemethod="0" text="Vcc:" multilang="0" transparency="0"/>
+    <label number="7" Xpos="140" Ypos="16" font="4" storagemethod="1" text="VCC" multilang="0" transparency="0"/>
+    <label number="8" Xpos="80" Ypos="31" font="4" storagemethod="0" text="CPU:" multilang="0" transparency="0"/>
+    <label number="9" Xpos="140" Ypos="31" font="4" storagemethod="1" text="CPUTEMP" multilang="0" transparency="0"/>
+    <label number="10" Xpos="80" Ypos="46" font="4" storagemethod="0" text="Uptime:" multilang="0" transparency="0"/>
+    <label number="11" Xpos="140" Ypos="46" font="4" storagemethod="1" text="UPTIME" multilang="0" transparency="0"/>
+    <label number="12" Xpos="80" Ypos="61" font="4" storagemethod="0" text="Optime: " multilang="0" transparency="0"/>
+    <label number="13" Xpos="140" Ypos="61" font="4" storagemethod="1" text="OPTIME" multilang="0" transparency="0"/>
+    <button number="14" Xpos="80" Ypos="80" focusable="-1" rectangle="-1" Xsize="130" Ysize="17" font="4" fontfocus="6" text="Power down" storagemethod="0" action="POWERDOWN" screen="" multilang="0" transparency="0"/>
+    <button number="15" Xpos="80" Ypos="105" focusable="1" rectangle="1" Xsize="130" Ysize="17" font="4" fontfocus="6" text="Set alarm" storagemethod="0" action="" screen="subwindow 4" multilang="0" transparency="0"/>
+    <button number="16" Xpos="80" Ypos="130" focusable="1" rectangle="1" Xsize="130" Ysize="17" font="4" fontfocus="6" text="Set power down mode" storagemethod="0" action="" screen="subwindow 5" multilang="0" transparency="0"/>
+    <button number="18" Xpos="80" Ypos="155" focusable="1" rectangle="1" Xsize="130" Ysize="18" font="4" fontfocus="6" text="Set LED mode" storagemethod="0" action="" screen="subwindow 12" multilang="0" transparency="0"/>
     <shortcut number="17" shortcutkey="2" action="BATVIEW" screen="window 8"/>
   </window>
-  <window number="8" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="320x240 Battery">
+  <window number="8" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="320x240 - Battery">
+    <shortcut number="24" shortcutkey="2" action="MAINVIEW" screen="window 7"/>
     <label number="2" Xpos="80" Ypos="1" font="4" storagemethod="0" text="Battery:" multilang="0" transparency="0"/>
-    <label number="4" Xpos="2" Ypos="16" font="4" storagemethod="0" text="Temperature: " multilang="0" transparency="0"/>
-    <label number="5" Xpos="110" Ypos="16" font="4" storagemethod="1" text="BATTEMPERATURE" multilang="0" transparency="0"/>
-    <label number="6" Xpos="2" Ypos="31" font="4" storagemethod="0" text="Voltage:" multilang="0" transparency="0"/>
-    <label number="7" Xpos="110" Ypos="31" font="4" storagemethod="1" text="BATVOLTAGE" multilang="0" transparency="0"/>
+    <label number="4" Xpos="2" Ypos="16" font="4" storagemethod="0" text="Mode:" multilang="0" transparency="0"/>
+    <label number="5" Xpos="110" Ypos="16" font="4" storagemethod="1" text="BATMODE" multilang="0" transparency="0"/>
+    <label number="6" Xpos="2" Ypos="31" font="4" storagemethod="0" text="Error:" multilang="0" transparency="0"/>
+    <label number="7" Xpos="110" Ypos="31" font="4" storagemethod="1" text="BATERROR" multilang="0" transparency="0"/>
     <label number="8" Xpos="2" Ypos="46" font="4" storagemethod="0" text="Current:" multilang="0" transparency="0"/>
     <label number="9" Xpos="110" Ypos="46" font="4" storagemethod="1" text="BATCURRENT" multilang="0" transparency="0"/>
-    <label number="10" Xpos="2" Ypos="61" font="4" storagemethod="0" text="Mode:" multilang="0" transparency="0"/>
-    <label number="11" Xpos="110" Ypos="61" font="4" storagemethod="1" text="BATMODE" multilang="0" transparency="0"/>
-    <label number="12" Xpos="2" Ypos="76" font="4" storagemethod="0" text="Error: " multilang="0" transparency="0"/>
-    <label number="13" Xpos="110" Ypos="76" font="4" storagemethod="1" text="BATERROR" multilang="0" transparency="0"/>
-    <label number="14" Xpos="2" Ypos="91" font="4" storagemethod="0" text="Charged:" multilang="0" transparency="0"/>
-    <label number="15" Xpos="110" Ypos="91" font="4" storagemethod="1" text="BATCHARGED" multilang="0" transparency="0"/>
-    <label number="16" Xpos="2" Ypos="106" font="4" storagemethod="0" text="PWM:" multilang="0" transparency="0"/>
-    <label number="17" Xpos="110" Ypos="106" font="4" storagemethod="1" text="BATPWM" multilang="0" transparency="0"/>
+    <label number="10" Xpos="2" Ypos="61" font="4" storagemethod="0" text="Temperature:" multilang="0" transparency="0"/>
+    <label number="11" Xpos="110" Ypos="61" font="4" storagemethod="1" text="BATTEMPERATURE" multilang="0" transparency="0"/>
+    <label number="12" Xpos="2" Ypos="76" font="4" storagemethod="0" text="Voltage: " multilang="0" transparency="0"/>
+    <label number="13" Xpos="110" Ypos="76" font="4" storagemethod="1" text="BATVOLTAGE" multilang="0" transparency="0"/>
+    <label number="14" Xpos="2" Ypos="91" font="4" storagemethod="0" text="PWM:" multilang="0" transparency="0"/>
+    <label number="15" Xpos="110" Ypos="91" font="4" storagemethod="1" text="BATPWM" multilang="0" transparency="0"/>
+    <label number="16" Xpos="2" Ypos="106" font="4" storagemethod="0" text="Charged:" multilang="0" transparency="0"/>
+    <label number="17" Xpos="110" Ypos="106" font="4" storagemethod="1" text="BATCHARGED" multilang="0" transparency="0"/>
     <label number="18" Xpos="2" Ypos="121" font="4" storagemethod="0" text="Total charged" multilang="0" transparency="0"/>
     <label number="19" Xpos="110" Ypos="121" font="4" storagemethod="1" text="BATTOTAL" multilang="0" transparency="0"/>
     <label number="20" Xpos="2" Ypos="136" font="4" storagemethod="0" text="Charge cycles:" multilang="0" transparency="0"/>
     <label number="21" Xpos="110" Ypos="136" font="4" storagemethod="1" text="BATCYCLES" multilang="0" transparency="0"/>
     <label number="22" Xpos="2" Ypos="151" font="4" storagemethod="0" text="Precharge cycles:" multilang="0" transparency="0"/>
     <label number="23" Xpos="110" Ypos="151" font="4" storagemethod="1" text="BATPRECYCLES" multilang="0" transparency="0"/>
-    <shortcut number="24" shortcutkey="2" action="MAINVIEW" screen="window 7"/>
-    <button number="25" Xpos="2" Ypos="170" focusable="1" rectangle="1" Xsize="100" Ysize="18" font="4" fontfocus="6" text="New battery" storagemethod="0" action="" screen="subwindow 9" multilang="0" transparency="0"/>
-    <button number="26" Xpos="2" Ypos="190" focusable="1" rectangle="1" Xsize="100" Ysize="18" font="4" fontfocus="6" text="Force full charge" storagemethod="0" action="BATFORCECHARGE" screen="" multilang="0" transparency="0"/>
-    <button number="27" Xpos="2" Ypos="210" focusable="1" rectangle="1" Xsize="100" Ysize="18" font="4" fontfocus="6" text="Reset statistics" storagemethod="0" action="" screen="subwindow 10" multilang="0" transparency="0"/>
+    <label number="32" Xpos="2" Ypos="166" font="4" storagemethod="0" text="Time:" multilang="0" transparency="0"/>
+    <label number="33" Xpos="110" Ypos="166" font="4" storagemethod="1" text="BATTIME" multilang="0" transparency="0"/>
+    <label number="34" Xpos="200" Ypos="137" font="4" storagemethod="1" text="BATCURRENTMINMAX" multilang="0" transparency="0"/>
+    <label number="35" Xpos="200" Ypos="151" font="4" storagemethod="1" text="BATVOLTAGEMINMAX" multilang="0" transparency="0"/>
+    <label number="36" Xpos="200" Ypos="166" font="4" storagemethod="1" text="GRAPHTIME" multilang="0" transparency="0"/>
+    <button number="25" Xpos="50" Ypos="185" focusable="1" rectangle="1" Xsize="100" Ysize="18" font="4" fontfocus="6" text="New battery" storagemethod="0" action="" screen="subwindow 9" multilang="0" transparency="0"/>
+    <button number="28" Xpos="170" Ypos="185" focusable="1" rectangle="1" Xsize="100" Ysize="18" font="4" fontfocus="6" text="Set max current" storagemethod="0" action="" screen="subwindow 11" multilang="0" transparency="0"/>
+    <button number="26" Xpos="50" Ypos="210" focusable="1" rectangle="1" Xsize="100" Ysize="18" font="4" fontfocus="6" text="Force full charge" storagemethod="0" action="BATFORCECHARGE" screen="" multilang="0" transparency="0"/>
+    <button number="27" Xpos="170" Ypos="210" focusable="-1" rectangle="-1" Xsize="100" Ysize="18" font="4" fontfocus="6" text="Reset statistics" storagemethod="0" action="" screen="subwindow 10" multilang="0" transparency="0"/>
+    <box number="29" Xpos="190" Ypos="47" focusable="0" Xsize="122" Ysize="82" color="0" action="" screen=""/>
+    <gfx number="31" Xpos="191" Ypos="48" focusable="0" rectangle="0" Xsize="120" Ysize="80" text="BATGRAPH" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
+    <box number="37" Xpos="190" Ypos="137" focusable="0" Xsize="8" Ysize="12" color="255" action="" screen=""/>
+    <box number="38" Xpos="190" Ypos="151" focusable="0" Xsize="8" Ysize="12" color="16711680" action="" screen=""/>
   </window>
   <subwindow number="9" Xpos="10" Ypos="10" Xsize="108" Ysize="108" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="New battery">
     <label number="2" Xpos="23" Ypos="20" font="4" storagemethod="0" text="Really reset" multilang="0" transparency="0"/>
@@ -120,5 +145,23 @@
     <label number="3" Xpos="14" Ypos="35" font="4" storagemethod="0" text="battery statistics?" multilang="0" transparency="0"/>
     <button number="9" Xpos="20" Ypos="85" focusable="1" rectangle="-1" Xsize="30" Ysize="18" font="4" fontfocus="6" text="No" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
     <button number="10" Xpos="75" Ypos="85" focusable="1" rectangle="1" Xsize="30" Ysize="18" font="4" fontfocus="6" text="Yes" storagemethod="0" action="BATRESETSTAT" screen="RET" multilang="0" transparency="0"/>
+  </subwindow>
+  <subwindow number="11" Xpos="10" Ypos="10" Xsize="108" Ysize="108" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Current">
+    <label number="2" Xpos="23" Ypos="11" font="4" storagemethod="0" text="Maximum" multilang="0" transparency="0"/>
+    <label number="3" Xpos="23" Ypos="26" font="4" storagemethod="0" text="charging current" multilang="0" transparency="0"/>
+    <radiobutton number="1" Xpos="15" Ypos="45" focusable="-1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="0mA" storagemethod="0" checkname="BATMAX" selectnum="0" action="BATMAX" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="4" Xpos="60" Ypos="45" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="40mA" storagemethod="0" checkname="BATMAX" selectnum="1" action="BATMAX" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="5" Xpos="15" Ypos="60" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="70mA" storagemethod="0" checkname="BATMAX" selectnum="2" action="BATMAX" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="7" Xpos="60" Ypos="60" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="100mA" storagemethod="0" checkname="BATMAX" selectnum="3" action="BATMAX" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="6" Xpos="15" Ypos="75" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="150mA" storagemethod="0" checkname="BATMAX" selectnum="4" action="BATMAX" screen="" multilang="0" transparency="0"/>
+    <button number="9" Xpos="40" Ypos="95" focusable="1" rectangle="-1" Xsize="50" Ysize="17" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
+  </subwindow>
+  <subwindow number="12" Xpos="10" Ypos="10" Xsize="108" Ysize="108" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Confirm LED">
+    <label number="2" Xpos="23" Ypos="11" font="4" storagemethod="0" text="LED confirms" multilang="0" transparency="0"/>
+    <label number="3" Xpos="23" Ypos="26" font="4" storagemethod="0" text="every SPI" multilang="0" transparency="0"/>
+    <label number="10" Xpos="23" Ypos="41" font="4" storagemethod="0" text="command" multilang="0" transparency="0"/>
+    <radiobutton number="1" Xpos="40" Ypos="60" focusable="-1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Off" storagemethod="0" checkname="CONFIRMSPI" selectnum="0" action="CONFIRMSPI" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="5" Xpos="40" Ypos="80" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="On" storagemethod="0" checkname="CONFIRMSPI" selectnum="1" action="CONFIRMSPI" screen="" multilang="0" transparency="0"/>
+    <button number="9" Xpos="40" Ypos="95" focusable="1" rectangle="-1" Xsize="50" Ysize="17" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
   </subwindow>
 </MenuConfig>

@@ -56,16 +56,19 @@ $(BOXLIB)/peripheral.c \
 $(BOXLIB)/flash.c \
 $(BOXLIB)/lcd.c \
 $(BOXLIB)/coproc.c \
+$(BOXLIB)/mcu.c \
 $(HALLIB)/simulated.c \
 $(FATFS)/ff.c \
 $(FATFS)/ffunicode.c \
 $(FATFS)/diskio.c \
-$(ALGORITHM)/framebufferBwFast.c \
+$(ALGORITHM)/framebufferColor.c \
 $(ALGORITHM)/utility.c \
 $(ALGORITHM)/libcMinsize.c \
 $(ALGORITHM)/femtoVsnprintf.c \
 $(ALGORITHM)/json.c \
 $(ALGORITHM)/filesystem.c \
+$(ALGORITHM)/imageDrawer.c \
+$(ALGORITHM)/imageDrawerLowres.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 $(SIMCOMMON)/simhelper.c \
@@ -129,7 +132,7 @@ C_INCLUDES =  \
 
 # compile gcc flags
 
-CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -Wextra -fdata-sections -ffunction-sections
 
 CFLAGS += -fsanitize=address
 LDFLAGS += -fsanitize=address
@@ -173,10 +176,6 @@ test2: $(BUILD_DIR)/$(TARGET)
 test3: $(BUILD_DIR)/$(TARGET)
 	rm -f emulatedFlash.bin
 	./$(BUILD_DIR)/$(TARGET) 320x240
-
-test4: $(BUILD_DIR)/$(TARGET)
-	rm -f emulatedFlash.bin
-	./$(BUILD_DIR)/$(TARGET) 320x240 "Another text" "And even more text" "Lets test more" "And another line" "Some lines to provoke scrolling" "The answer" "is 42." "And the last line"
 
 
 #######################################

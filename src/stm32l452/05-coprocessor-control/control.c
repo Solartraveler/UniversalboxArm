@@ -31,6 +31,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "gui.h"
 #include "filesystem.h"
 
+uint32_t g_cycleTick;
+
 void ControlHelp(void) {
 	printf("h: Print help\r\n");
 	printf("r: Reset\r\n");
@@ -40,7 +42,7 @@ void ControlHelp(void) {
 	printf("f: Force full charge\r\n");
 	printf("c: Set maximum current\r\n");
 	printf("o: Power down - off\r\n");
-	printf("a: Set alarm\r\n");
+	printf("x: Set alarm\r\n");
 	printf("m: Set mode on disconnect\r\n");
 	printf("w-a-s-d: Send key code to GUI\r\n");
 }
@@ -58,7 +60,8 @@ void ControlInit(void) {
 	FlashEnable(64); //250kHz
 	FilesystemMount();
 	GuiInit();
-	Led1Green();
+	Led1Off();
+	g_cycleTick = HAL_GetTick();
 }
 
 void ExecReset(void) {
@@ -68,14 +71,14 @@ void ExecReset(void) {
 }
 
 void TemperatureToString(char * output, size_t len, int16_t temperature) {
-	char sign = ' ';
+	char sign[2] = {0};
 	if (temperature < 0) {
-		sign = '-';
+		sign[0] = '-';
 		temperature *= -1;
 	}
 	unsigned int degree = temperature / 10;
 	unsigned int degree10th = temperature % 10;
-	femtoSnprintf(output, len, "%c%u.%u°C", sign, degree, degree10th);
+	femtoSnprintf(output, len, "%s%u.%u°C", sign, degree, degree10th);
 }
 
 const char * g_chargerState[STATES_MAX] = {
@@ -158,6 +161,11 @@ void ExecPrintStats(void) {
 
 	uint16_t batPwm = CoprocReadChargerPwm();
 	printf("Battery PWM: %u\r\n", batPwm);
+
+	uint16_t batTime = CoprocReadBatteryChargeTime();
+	uint16_t min = batTime / 60;
+	uint16_t sec = batTime % 60;
+	printf("Battery started charge %u:%02u", min, sec);
 }
 
 void ReadSerialLine(char * input, size_t len) {
@@ -247,12 +255,12 @@ void ExecMode(void) {
 void ControlCycle(void) {
 	static uint32_t ledCycle = 0;
 	//led flash
-	if (ledCycle < 250) {
+	if (ledCycle < 500) {
 		Led2Green();
 	} else {
 		Led2Off();
 	}
-	if (ledCycle >= 500) {
+	if (ledCycle >= 1000) {
 		ledCycle = 0;
 	}
 	ledCycle++;
@@ -284,7 +292,7 @@ void ControlCycle(void) {
 		if (input == 'o') {
 			CoprocWritePowerdown();
 		}
-		if (input == 'a') {
+		if (input == 'x') {
 			ExecAlarm();
 		}
 		if (input == 'm') {
@@ -292,5 +300,18 @@ void ControlCycle(void) {
 		}
 	}
 	GuiCycle(input);
-	HAL_Delay(1); //call this loop ~1000x per second
+	/* Call this function 1000x per second, if one cycle took more than 1ms,
+	   we skip the wait to catch up with calling.
+	   cycleTick last is needed to prevent endless wait in the case of a 32bit
+	   overflow.
+	*/
+	uint32_t cycleTickLast = g_cycleTick;
+	g_cycleTick++; //next call expected tick value
+	uint32_t tick;
+	do {
+		tick = HAL_GetTick();
+		if (tick < g_cycleTick) {
+			HAL_Delay(1);
+		}
+	} while ((tick < g_cycleTick) && (tick >= cycleTickLast));
 }

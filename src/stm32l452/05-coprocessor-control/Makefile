@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Coprocessor-control
 #Version of this application, to be used in the metadata
-VERSION  = 0.2.0
+VERSION  = 0.3.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -54,7 +54,7 @@ STARTADDR=`grep "_Code_Start.=" $(LDSCRIPTRAM) | cut -d " " -f3 | sed 's/[;\r]//
 # debug build?
 DEBUG = 1
 # optimization
-OPT = -Os
+OPT = -O3
 
 
 #######################################
@@ -111,18 +111,21 @@ $(BOXLIB)/peripheralDma.c \
 $(BOXLIB)/flash.c \
 $(BOXLIB)/lcd.c \
 $(BOXLIB)/coproc.c \
+$(BOXLIB)/mcu.c \
 $(DISPLAYLIB1)/st7735.c \
 $(DISPLAYLIB2)/ili9341.c \
 $(FATFS)/ff.c \
 $(FATFS)/ffunicode.c \
 $(FATFS)/diskio.c \
 $(ALGORITHM)/tarextract.c \
-$(ALGORITHM)/framebufferBwFast.c \
+$(ALGORITHM)/framebufferColor.c \
 $(ALGORITHM)/utility.c \
 $(ALGORITHM)/libcMinsize.c \
 $(ALGORITHM)/femtoVsnprintf.c \
 $(ALGORITHM)/json.c \
 $(ALGORITHM)/filesystem.c \
+$(ALGORITHM)/imageDrawer.c \
+$(ALGORITHM)/imageDrawerLowres.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 control.c \

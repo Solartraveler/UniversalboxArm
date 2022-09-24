@@ -50,7 +50,7 @@
 
 //Depending of the target platform, its best to use 8, 16, 32 or 64 bit for the bitmask
 #define FB_BITMAP_TYPE uint32_t
-//How many bits should be saved in FB_BITMAP_TYPE? There may *not* be bits left unused!
+//Should be sizeof(FB_BITMAP_TYPE) * 8. As this is to be resolved by the preprocessor, sizeof can not be used here
 #define FB_BITMAP_BITS 32
 
 /*Must be a fraction of FB_SIZEX, FB_SIZEY
