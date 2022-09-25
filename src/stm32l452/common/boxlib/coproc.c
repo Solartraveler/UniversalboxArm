@@ -37,9 +37,10 @@ static void CoprocDataSet(bool state) {
 }
 
 static void CoprocCycleDelay(void) {
-	//625µs minimum
-	HAL_Delay(1);
-	//McuDelayUs(700);
+	/*Tests show a delay of 1200µs works in every case, so we use 1400 to be safe.
+	 HAL_Delay(1) only worked, because it does a 2ms nearly every time
+	*/
+	McuDelayUs(1400);
 }
 
 uint16_t CoprocSendCommand(uint8_t command, uint16_t data) {
@@ -93,6 +94,22 @@ uint16_t CoprocReadOptime(void) {
 	return CoprocSendCommand(CMD_OPTIME, 0);
 }
 
+uint8_t CoprocReadLed(void) {
+	return CoprocSendCommand(CMD_LED_READ, 0);
+}
+
+uint16_t CoprocReadWatchdogCtrl(void) {
+	return CoprocSendCommand(CMD_WATCHDOG_CTRL_READ, 0);
+}
+
+uint8_t CoprocReadPowermode(void) {
+	return CoprocSendCommand(CMD_POWERMODE_READ, 0);
+}
+
+uint16_t CoprocReadAlarm(void) {
+	return CoprocSendCommand(CMD_ALARM_READ, 0);
+}
+
 int16_t CoprocReadBatteryTemperature(void) {
 	int16_t temperature = CoprocSendCommand(CMD_BAT_TEMPERATURE, 0);
 	return temperature;
@@ -135,7 +152,7 @@ uint16_t CoprocReadChargerPwm(void) {
 }
 
 uint16_t CoprocReadBatteryCurrentMax(void) {
-	return CoprocSendCommand(CMD_BAT_CURRENT_MAX_R, 0);
+	return CoprocSendCommand(CMD_BAT_CURRENT_MAX_READ, 0);
 }
 
 //read back the time since starting of current charge in [s]

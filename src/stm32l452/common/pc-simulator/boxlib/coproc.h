@@ -31,6 +31,19 @@ uint16_t CoprocReadUptime(void);
 //output will be in [days]
 uint16_t CoprocReadOptime(void);
 
+//read back the value set by CoprocWriteLed
+uint8_t CoprocReadLed(void);
+
+//read back the value set by CoprocWatchdogCtrl
+uint16_t CoprocReadWatchdogCtrl(void);
+
+//read back the value set by CoprocWritePowermode
+uint8_t CoprocReadPowermode(void);
+
+//read back the value set by CoprocWriteAlarm in [s]
+uint16_t CoprocReadAlarm(void);
+
+
 //output result is in [0.1°C]
 int16_t CoprocReadBatteryTemperature(void);
 

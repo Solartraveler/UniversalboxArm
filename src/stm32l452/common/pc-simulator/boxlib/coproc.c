@@ -15,6 +15,10 @@ SPDX-License-Identifier:  BSD-3-Clause
 uint32_t g_coprocChargeStartTime;
 bool g_coprocChargeStart;
 uint16_t g_coprocMaxCharge = 70;
+uint8_t g_coprocLedMode = 1;
+uint8_t g_coprocPowerMode;
+uint16_t g_coprocAlarm;
+uint16_t g_coprocWatchdog;
 
 
 bool CoprocInGet(void) {
@@ -42,7 +46,6 @@ uint16_t CoprocReadVcc(void) {
 	return 3210 + noise;
 }
 
-
 int16_t CoprocReadCpuTemperature(void) {
 	static uint16_t noise = 0;
 	noise = (noise + 1) % 3;
@@ -56,6 +59,22 @@ uint16_t CoprocReadUptime(void) {
 
 uint16_t CoprocReadOptime(void) {
 	return 4;
+}
+
+uint8_t CoprocReadLed(void) {
+	return g_coprocLedMode;
+}
+
+uint16_t CoprocReadWatchdogCtrl(void) {
+	return g_coprocWatchdog;
+}
+
+uint8_t CoprocReadPowermode(void) {
+	return g_coprocPowerMode;
+}
+
+uint16_t CoprocReadAlarm(void) {
+	return g_coprocAlarm;
 }
 
 int16_t CoprocReadBatteryTemperature(void) {
@@ -135,11 +154,11 @@ void CoprocWriteReboot(uint8_t mode) {
 }
 
 void CoprocWriteLed(uint8_t mode) {
-	(void)mode;
+	g_coprocLedMode = mode;
 }
 
 void CoprocWatchdogCtrl(uint16_t timeout) {
-	(void)timeout;
+	g_coprocWatchdog = timeout;
 }
 
 void CoprocWatchdogReset(void) {
@@ -147,11 +166,11 @@ void CoprocWatchdogReset(void) {
 
 
 void CoprocWritePowermode(uint8_t powermode) {
-	(void)powermode;
+	g_coprocPowerMode = powermode;
 }
 
 void CoprocWriteAlarm(uint16_t alarm) {
-	(void)alarm;
+	g_coprocAlarm = alarm;
 }
 
 void CoprocWritePowerdown(void) {

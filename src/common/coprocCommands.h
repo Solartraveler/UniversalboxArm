@@ -13,6 +13,10 @@
   Read temperature    0x04 xx xx     00 yy yy (int16_t in [0.1°C])
   Read uptime         0x05 xx xx     00 yy yy (uint16_t, time since last wakeup from deep sleep in [h])
   Read optime         0x06 xx xx     00 yy yy (uint16_t, time not in deep sleep in [d])
+  Read signal LED     0x07 xx xx     00 00 yy (value set by Signal LED command)
+  Read watchdog ctrl  0x08 xx xx     00 yy yy (value set by watchdog control)
+  Read power mode     0x09 xx xx     00 00 yy (value set by power mode)
+  Read wakeup alarm   0x0A xx xx     00 yy yy (value set by wakeup alarm)
   Read batt temp      0x10 xx xx     00 yy yy (int16_t in [0.1°C])
   Read batt voltage   0x11 xx xx     00 yy yy (uint16_t in [mV])
   Read batt current   0x12 xx xx     00 yy yy (uint16_t in [mA])
@@ -23,7 +27,7 @@
   Read charged cycles 0x17 xx xx     00 yy yy (number of times a charge has started)
   Read pre charged cy 0x18 xx xx     00 yy yy (number of times a precharge has started)
   Read current PWM    0x19 xx xx     00 00 yy (current PWM value)
-  Read current max    0x20 xx xx     00 yy yy (maximum current value, set by charge current max command, [mA])
+  Read current max    0x20 xx xx     00 yy yy (maximum current value, value set by charge current max command, [mA])
   Read charge time    0x21 xx xx     00 yy yy (time since charging started, [s])
   Reboot              0x80 A6 00     00 00 00 (resets with user selected bootmode)
   Reboot              0x80 A6 01     00 00 00 (resets with program bootmode)
@@ -60,7 +64,11 @@ of 200ms until a new transfer is started.
 #define CMD_CPU_TEMPERATURE   0x4
 #define CMD_UPTIME            0x5
 #define CMD_OPTIME            0x6
-//reserved 0x7...0xF
+#define CMD_LED_READ          0x7
+#define CMD_WATCHDOG_CTRL_READ 0x8
+#define CMD_POWERMODE_READ    0x9
+#define CMD_ALARM_READ        0xA
+//reserved 0xB...0xF
 #define CMD_BAT_TEMPERATURE   0x10
 #define CMD_BAT_VOLTAGE       0x11
 #define CMD_BAT_CURRENT       0x12
@@ -71,7 +79,7 @@ of 200ms until a new transfer is started.
 #define CMD_BAT_CHARGE_CYC    0x17
 #define CMD_BAT_PRECHARGE_CYC 0x18
 #define CMD_BAT_PWM           0x19
-#define CMD_BAT_CURRENT_MAX_R 0x20
+#define CMD_BAT_CURRENT_MAX_READ 0x20
 #define CMD_BAT_TIME          0x21
 
 //write commands
