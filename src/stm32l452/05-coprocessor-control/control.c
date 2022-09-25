@@ -22,6 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "boxlib/flash.h"
 #include "boxlib/peripheral.h"
 #include "boxlib/coproc.h"
+#include "boxlib/mcu.h"
 
 #include "main.h"
 
@@ -38,11 +39,11 @@ void ControlHelp(void) {
 	printf("r: Reset\r\n");
 	printf("p: Read out all data from the coprocessor\r\n");
 	printf("n: New battery\r\n");
-	printf("x: Reset stats\r\n");
+	printf("x: Reset battery stats\r\n");
 	printf("f: Force full charge\r\n");
 	printf("c: Set maximum current\r\n");
 	printf("o: Power down - off\r\n");
-	printf("x: Set alarm\r\n");
+	printf("t: Set alarm\r\n");
 	printf("m: Set mode on disconnect\r\n");
 	printf("w-a-s-d: Send key code to GUI\r\n");
 }
@@ -55,7 +56,11 @@ void ControlInit(void) {
 	Rs232Init();
 	printf("\r\nCoprocessor control %s\r\n", APPVERSION);
 	printf("h: Print help\r\n");
-
+	Rs232Flush();
+	uint8_t error = McuClockToHsiPll(32000000, RCC_HCLK_DIV2);
+	if (error) {
+		printf("Error, failed to increase CPU clock - %u\r\n", error);
+	}
 	PeripheralInit();
 	FlashEnable(64); //250kHz
 	FilesystemMount();
@@ -107,6 +112,8 @@ const char * g_chargerError[ERRORS_MAX] = {
 void ExecPrintStats(void) {
 	char text[16];
 
+	uint32_t tStart = HAL_GetTick();
+
 	uint16_t version = CoprocReadVersion();
 	printf("Coproc firmware: %u, version %u\r\n", version >> 8, version & 0xFF);
 
@@ -122,6 +129,18 @@ void ExecPrintStats(void) {
 
 	uint16_t optime = CoprocReadOptime();
 	printf("Optime: %udays\r\n", optime);
+
+	uint8_t led = CoprocReadLed();
+	printf("LED mode: %u\r\n", led);
+
+	uint16_t watchdog = CoprocReadWatchdogCtrl();
+	printf("Watchdog ctrl: %ums\r\n", watchdog);
+
+	uint16_t powermode = CoprocReadPowermode();
+	printf("Power mode: %u\r\n", powermode);
+
+	uint16_t alarm = CoprocReadAlarm();
+	printf("Alarm: %us\r\n", alarm);
 
 	uint16_t batTemperature = CoprocReadBatteryTemperature();
 	TemperatureToString(text, sizeof(text), batTemperature);
@@ -165,7 +184,10 @@ void ExecPrintStats(void) {
 	uint16_t batTime = CoprocReadBatteryChargeTime();
 	uint16_t min = batTime / 60;
 	uint16_t sec = batTime % 60;
-	printf("Battery started charge %u:%02u", min, sec);
+	printf("Battery started charge %u:%02u\r\n", min, sec);
+
+	uint32_t tStop = HAL_GetTick();
+	printf("Printing took %ums\r\n", (unsigned int)(tStop - tStart));
 }
 
 void ReadSerialLine(char * input, size_t len) {
@@ -219,6 +241,7 @@ void ExecMaxCurrent(void) {
 	if (current <= 200) {
 		printf("Set maximum current to %umA\r\n", current);
 		CoprocBatteryCurrentMax(current);
+		GuiUpdateBatteryCurrentMax(current);
 	} else {
 		printf("Error, out of range\r\n");
 	}
@@ -233,6 +256,7 @@ void ExecAlarm(void) {
 	if (alarm <= 65565) {
 		printf("Set wakeup alarm to %us\r\n", alarm);
 		CoprocWriteAlarm(alarm);
+		GuiUpdateAlarmTime(alarm);
 	} else {
 		printf("Error, out of range\r\n");
 	}
@@ -247,6 +271,7 @@ void ExecMode(void) {
 	if (mode <= 1) {
 		printf("Set mode to %u\r\n", mode);
 		CoprocWritePowermode(mode);
+		GuiUpdatePowerMode(mode);
 	} else {
 		printf("Error, out of range\r\n");
 	}
@@ -283,7 +308,7 @@ void ControlCycle(void) {
 			ExecResetStats();
 		}
 		if (input == 'f') {
-			printf("Force max charge\r\n");
+			printf("Force full charge\r\n");
 			CoprocBatteryForceCharge();
 		}
 		if (input == 'c') {
@@ -292,7 +317,7 @@ void ControlCycle(void) {
 		if (input == 'o') {
 			CoprocWritePowerdown();
 		}
-		if (input == 'x') {
+		if (input == 't') {
 			ExecAlarm();
 		}
 		if (input == 'm') {

@@ -107,19 +107,43 @@ uint8_t menu_action(MENUACTION action) {
 }
 
 
-void GuiInit(void) {
-	printf("Starting GUI\r\n");
-	for (uint32_t i = 0; i < MENU_TEXT_MAX; i++) {
-		menu_strings[i] = g_gui.textbuffers[i];
-	}
-	uint16_t charingCurrentMax = CoprocReadBatteryCurrentMax();
+void GuiUpdateBatteryCurrentMax(uint16_t charingCurrentMax) {
 	uint8_t selection = 0;
 	if (charingCurrentMax >= 40) selection = 1;
 	if (charingCurrentMax >= 70) selection = 2;
 	if (charingCurrentMax >= 100) selection = 3;
 	if (charingCurrentMax >= 150) selection = 4;
 	menu_radiobuttonstate[MENU_RBUTTON_BATMAX] = selection;
-	menu_radiobuttonstate[MENU_RBUTTON_CONFIRMSPI] = 1; //default is confirm
+}
+
+void GuiUpdateLedMode(uint8_t newMode) {
+	menu_radiobuttonstate[MENU_RBUTTON_CONFIRMSPI] = newMode & 1;
+}
+
+void GuiUpdatePowerMode(uint8_t newMode) {
+	menu_radiobuttonstate[MENU_RBUTTON_MODE] = newMode & 1;
+}
+
+void GuiUpdateAlarmTime(uint16_t newTime) {
+	uint8_t selection = 0;
+	if (newTime >= 10) selection = 1;
+	if (newTime >= 60) selection = 2;
+	if (newTime >= 60 * 10) selection = 3;
+	if (newTime >= 60 * 60) selection = 4;
+	if (newTime >= 60 * 60 * 12) selection = 5;
+	menu_radiobuttonstate[MENU_RBUTTON_WAKEUP] = selection;
+}
+
+void GuiInit(void) {
+	printf("Starting GUI\r\n");
+	for (uint32_t i = 0; i < MENU_TEXT_MAX; i++) {
+		menu_strings[i] = g_gui.textbuffers[i];
+	}
+	GuiUpdateBatteryCurrentMax(CoprocReadBatteryCurrentMax());
+	GuiUpdateLedMode(CoprocReadLed());
+	GuiUpdatePowerMode(CoprocReadPowermode());
+	GuiUpdateAlarmTime(CoprocReadAlarm());
+
 	menu_gfxdata[MENU_GFX_BATGRAPH] = g_gui.gfx;
 	memset(g_gui.gfx, 0xFE, GFX_MEMORY * sizeof(uint8_t));
 	g_gui.type = FilesystemReadLcd();
@@ -149,11 +173,6 @@ void GuiInit(void) {
 		menu_screen_size(g_gui.pixelX, g_gui.pixelY);
 		menu_keypress(action);
 	}
-}
-
-void GuiScreenResolutionGet(uint16_t * x, uint16_t * y) {
-	*x = g_gui.pixelX;
-	*y = g_gui.pixelY;
 }
 
 void GuiUpdateGraph(void) {
@@ -347,6 +366,12 @@ void GuiCycle(char key) {
 			  With O3 optimization:
 			  Mainscreen @ 320x240: 168ms total
 			  Battery screen @ 320x240: 494ms total
+			  With O3 optimization and menu with version 0.4:
+			  Battery screen @ 320x240: 444ms total
+			  With O3 optimization, 32MHz CPU frequency and menu with version 0.4:
+			  Battery screen @ 320x240: 279ms total
+			  With O3 optimization, 64MHz CPU frequency and menu with version 0.4:
+			  Battery screen @ 320x240: 206ms total
 			*/
 			//uint32_t timeStart = HAL_GetTick();
 			menu_redraw();

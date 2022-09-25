@@ -55,7 +55,10 @@
     <shortcut number="1" shortcutkey="2" action="MAINVIEW" screen="window 1"/>
     <label number="2" Xpos="1" Ypos="0" font="4" storagemethod="0" text="Battery:" multilang="0" transparency="0"/>
     <label number="6" Xpos="50" Ypos="0" font="4" storagemethod="1" text="GRAPHTIME" multilang="0" transparency="0"/>
-    <box number="7" Xpos="3" Ypos="16" focusable="0" Xsize="122" Ysize="82" color="0" action="" screen=""/>
+    <box number="7" Xpos="3" Ypos="16" focusable="0" Xsize="122" Ysize="1" color="0" action="" screen=""/>
+    <box number="10" Xpos="3" Ypos="97" focusable="0" Xsize="122" Ysize="1" color="0" action="" screen=""/>
+    <box number="11" Xpos="3" Ypos="17" focusable="0" Xsize="1" Ysize="80" color="0" action="" screen=""/>
+    <box number="12" Xpos="124" Ypos="17" focusable="0" Xsize="1" Ysize="80" color="0" action="" screen=""/>
     <gfx number="3" Xpos="4" Ypos="17" focusable="0" rectangle="0" Xsize="120" Ysize="80" text="BATGRAPH" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
     <label number="4" Xpos="13" Ypos="100" font="4" storagemethod="1" text="BATCURRENTMINMAX" multilang="0" transparency="0"/>
     <label number="5" Xpos="13" Ypos="114" font="4" storagemethod="1" text="BATVOLTAGEMINMAX" multilang="0" transparency="0"/>
@@ -129,7 +132,10 @@
     <button number="28" Xpos="170" Ypos="185" focusable="1" rectangle="1" Xsize="100" Ysize="18" font="4" fontfocus="6" text="Set max current" storagemethod="0" action="" screen="subwindow 11" multilang="0" transparency="0"/>
     <button number="26" Xpos="50" Ypos="210" focusable="1" rectangle="1" Xsize="100" Ysize="18" font="4" fontfocus="6" text="Force full charge" storagemethod="0" action="BATFORCECHARGE" screen="" multilang="0" transparency="0"/>
     <button number="27" Xpos="170" Ypos="210" focusable="-1" rectangle="-1" Xsize="100" Ysize="18" font="4" fontfocus="6" text="Reset statistics" storagemethod="0" action="" screen="subwindow 10" multilang="0" transparency="0"/>
-    <box number="29" Xpos="190" Ypos="47" focusable="0" Xsize="122" Ysize="82" color="0" action="" screen=""/>
+    <box number="29" Xpos="190" Ypos="47" focusable="0" Xsize="122" Ysize="1" color="0" action="" screen=""/>
+    <box number="39" Xpos="190" Ypos="128" focusable="0" Xsize="122" Ysize="1" color="0" action="" screen=""/>
+    <box number="40" Xpos="190" Ypos="48" focusable="0" Xsize="1" Ysize="80" color="0" action="" screen=""/>
+    <box number="41" Xpos="311" Ypos="48" focusable="0" Xsize="1" Ysize="80" color="0" action="" screen=""/>
     <gfx number="31" Xpos="191" Ypos="48" focusable="0" rectangle="0" Xsize="120" Ysize="80" text="BATGRAPH" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
     <box number="37" Xpos="190" Ypos="137" focusable="0" Xsize="8" Ysize="12" color="255" action="" screen=""/>
     <box number="38" Xpos="190" Ypos="151" focusable="0" Xsize="8" Ysize="12" color="16711680" action="" screen=""/>
