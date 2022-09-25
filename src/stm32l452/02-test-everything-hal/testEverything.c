@@ -304,69 +304,22 @@ void checkHseCrystal(void) {
 	ClockToHse();
 }
 
-//divider = 2 -> 16*8/2=64MHz
-//divider = 4 -> 16*8/4=32MHz
-//divider = 8 -> 16*8/8=16MHz
-void clockWithPll(uint32_t divider) {
-	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-	//using only 2^n values allows the peripheral clocks to stay the same
+void clockWithPll(uint32_t frequency, uint32_t apbDivider) {
 	ClockToHsi();
-	uint32_t latency = FLASH_LATENCY_3; //div 2
-	if (divider == 4) {
-		latency = FLASH_LATENCY_1;
-	}
-	if (divider == 8) {
-		latency = FLASH_LATENCY_0;
-	}
-	//first set new latency
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, latency) != HAL_OK) {
-		printf("Error, failed to set flash latency\r\n");
-		return;
-	}
-
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-	RCC_OscInitStruct.PLL.PLLM = 1;
-	RCC_OscInitStruct.PLL.PLLN = 8;
-	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
-	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
-	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
-	if (divider == 4) {
-		RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV4;
-		RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV4;
-	}
-	if (divider == 8) {
-		RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV8;
-		RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV8;
-	}
-	HAL_StatusTypeDef result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
-	if (result != HAL_OK) {
-		printf("Error, failed to start PLL, %u\r\n", (unsigned int)result);
-		return;
-	}
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-	                          |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV8; //for divider 2
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV8; //for divider 2
-	if (divider == 4) {
-		RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-		RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV4;
-	}
-	if (divider == 8) {
-		RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-		RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
-	}
-	//now set new dividers
 	Rs232Flush();
-	result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, latency);
-	if (result != HAL_OK) {
-		printf("Error, returned %u\r\n", (unsigned int)result);
-		return;
+	uint8_t result = McuClockToHsiPll(frequency, apbDivider);
+	if (result == 1) {
+		printf("Error, unsupported frequency\r\n");
 	}
-	SystemCoreClockUpdate();
+	if (result == 2) {
+		printf("Error, failed to set flash latency\r\n");
+	}
+	if (result == 3) {
+		printf("Error, failed to start PLL\r\n");
+	}
+	if (result == 4) {
+		printf("Error, failed to set divider or latency\r\n");
+	}
 }
 
 //debug prints may not work after changing. As the prescalers are not recalculated
@@ -390,7 +343,7 @@ bool g_highSpeed;
 void speed32M(void) {
 	if (!g_highSpeed) {
 		printf("\r\nSwitching to 32MHz...\r\n");
-		clockWithPll(4);
+		clockWithPll(32000000, RCC_HCLK_DIV4);
 		printf("Now running with 32MHz\r\n");
 		g_highSpeed = true;
 	} else {
@@ -406,7 +359,7 @@ void speed32M(void) {
 void speed64M(void) {
 	if (!g_highSpeed) {
 		printf("\r\nSwitching to 64MHz...\r\n");
-		clockWithPll(2);
+		clockWithPll(64000000, RCC_HCLK_DIV8);
 		printf("Now running with 64MHz\r\n");
 		g_highSpeed = true;
 	} else {

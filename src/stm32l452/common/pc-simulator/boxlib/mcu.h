@@ -36,5 +36,18 @@ void McuStartOtherProgram(void * startAddress, bool ledSignalling);
 */
 bool McuClockToMsi(uint32_t frequency, uint32_t apbDivider);
 
+#define RCC_HCLK_DIV1 1
+#define RCC_HCLK_DIV2 2
+#define RCC_HCLK_DIV4 4
+#define RCC_HCLK_DIV8 8
+#define RCC_HCLK_DIV16 16
+
+//Always returns 0, meaning success
+uint8_t McuClockToHsiPll(uint32_t frequency, uint32_t apbDivider);
+
 //GPIOs, which may not be an output, can be locked to a function
 void McuLockCriticalPins(void);
+
+uint64_t McuTimestampUs(void);
+
+void McuDelayUs(uint32_t us);

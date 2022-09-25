@@ -116,6 +116,65 @@ bool McuClockToMsi(uint32_t frequency, uint32_t apbDivider) {
 	return true;
 }
 
+/* supported frequencies: 16, 32 and 64MHz
+returns:
+  0: ok
+  1: frequency unsupported
+  2: setting latency failed
+  3: failed to start PLL
+  4: failed to set new divider and latency
+
+*/
+uint8_t McuClockToHsiPll(uint32_t frequency, uint32_t apbDivider) {
+	uint32_t latency; //div 2
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+	RCC_OscInitStruct.PLL.PLLM = 1;
+	RCC_OscInitStruct.PLL.PLLN = 8;
+	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
+
+	if (frequency == 16000000) {
+		latency = FLASH_LATENCY_0;
+		RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV8;
+		RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV8;
+	} else if (frequency == 32000000) {
+		latency = FLASH_LATENCY_1;
+		RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV4;
+		RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV4;
+	} else if (frequency == 64000000) {
+		latency = FLASH_LATENCY_3;
+		RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+		RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+	} else {
+		return 1;
+	}
+	//first set slowest latency, suitable for all frequencies
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK) {
+		return 2;
+	}
+	HAL_StatusTypeDef result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
+	if (result != HAL_OK) {
+		return 3;
+	}
+
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+	                          |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = apbDivider;
+	RCC_ClkInitStruct.APB2CLKDivider = apbDivider;
+	//now set new dividers
+	result = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, latency);
+	if (result != HAL_OK) {
+		return 4;
+	}
+	SystemCoreClockUpdate();
+	return 0;
+}
+
 void McuLockCriticalPins(void) {
 	/*The bootloader seems not to reset the GPIO ports, so we can lock the pin for
 	  SPI2 MISO and prevent it becoming a high level output
@@ -131,3 +190,27 @@ void McuLockCriticalPins(void) {
 	HAL_GPIO_LockPin(PerSpiMiso_GPIO_Port, PerSpiMiso_Pin);
 }
 
+uint64_t McuTimestampUs(void) {
+	uint32_t stamp1, stamp2;
+	uint32_t substamp;
+	//get the data
+	do {
+		stamp1 = HAL_GetTick();
+		substamp = SysTick->VAL;
+		stamp2 = HAL_GetTick();
+	} while (stamp1 != stamp2); //don't read VAL while an overflow happened
+	uint32_t load = SysTick->LOAD;
+	//now calculate
+	substamp = load - substamp; //this counts down, so invert it
+	substamp = substamp * 1000 / load;
+	uint64_t stamp = stamp1;
+	stamp *= 1000;
+	stamp += substamp;
+	//printf("Stamp: %x-%x\r\n", (uint32_t)(stamp >> 32LLU), (uint32_t)stamp);
+	return stamp;
+}
+
+void McuDelayUs(uint32_t us) {
+	uint64_t tEnd = McuTimestampUs() + us;
+	while (tEnd > McuTimestampUs());
+}

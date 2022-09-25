@@ -18,7 +18,7 @@
 #Name of this application
 NAME     = Test-everything
 #Version of this application, to be used in the metadata
-VERSION  = 0.7.0
+VERSION  = 0.8.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
