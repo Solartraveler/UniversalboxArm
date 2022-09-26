@@ -13,4 +13,4 @@
 
 #define USE_WATCHDOG
 
-#define CMD_READ_MAX 0x19
+#define CMD_READ_MAX 0x21

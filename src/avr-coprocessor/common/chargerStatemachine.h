@@ -90,3 +90,6 @@ inline static uint32_t ChargerGetPreCycles(chargerState_t * pCS) {
 	return pCS->prechargingCycles;
 }
 
+inline static uint32_t ChargerGetTime(chargerState_t * pCS) {
+	return pCS->chargingTime;
+}

@@ -164,9 +164,10 @@ upload: program
 program: $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
-#set to 128Khz internal resonator, no self programming, brown out at 1.8V, no clock div, fastest startup
+#set to 128Khz internal resonator, no self programming, brown out at 1.8V, no clock div,
+#preserve eeprom on chiperase, fastest startup
 fuses:
-	$(AVRDUDE) $(AVRDUDE_FLAGS) -U lfuse:w:0xC3:m -U hfuse:w:0xDE:m -U efuse:w:0xff:m
+	$(AVRDUDE) $(AVRDUDE_FLAGS) -U lfuse:w:0xC3:m -U hfuse:w:0xD6:m -U efuse:w:0xff:m
 
 # Convert ELF to COFF for use in debugging / simulating in AVR Studio or VMLAB.
 COFFCONVERT=$(OBJCOPY) --debugging \

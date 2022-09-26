@@ -162,6 +162,12 @@ void simulateReadExtendedStates(void) {
 	dataIn = simulateSpiCommand(dataOut, false);
 	printf("Charger PWM: %u\n", dataIn);
 
+	dataOut = CMD_BAT_TIME << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	uint16_t min = dataIn / 60;
+	uint16_t sec = dataIn % 60;
+	printf("Battery started charge %u:%02u\r\n", min, sec);
+
 	dataOut = CMD_CPU_TEMPERATURE << 16;
 	dataIn = simulateSpiCommand(dataOut, false);
 	temperature = ((float)((int16_t)dataIn)) / 10;
@@ -174,6 +180,23 @@ void simulateReadExtendedStates(void) {
 	dataOut = CMD_OPTIME << 16;
 	dataIn = simulateSpiCommand(dataOut, false);
 	printf("Operating time: %udays\n", dataIn);
+
+	dataOut = CMD_LED_READ << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("LED mode: %u\r\n", dataIn);
+
+	dataOut = CMD_WATCHDOG_CTRL_READ << 16;
+	dataIn = simulateSpiCommand(dataOut, false);;
+	printf("Watchdog ctrl: %ums\r\n", dataIn);
+
+	dataOut = CMD_POWERMODE_READ << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Power mode: %u\r\n", dataIn);
+
+	dataOut = CMD_ALARM_READ << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Alarm: %us\r\n", dataIn);
+
 }
 
 void simulateWakeupTimer(void) {

@@ -269,7 +269,7 @@ int main(void) {
 	ArmBatteryOn();
 	SensorsOn();
 	SpiInit();
-	SpiDataSet(CMD_VERSION, 0x0503); //05 for the program (folder name), 03 for the version
+	SpiDataSet(CMD_VERSION, 0x0504); //05 for the program (folder name), 04 for the version
 	uint8_t pressedLeft = 0, pressedRight = 0; //Time the left or right button is hold down [10ms]
 	uint8_t resetHold = 0; //count down until the reset of the ARM CPU is released [10ms]
 	uint8_t armNormal = 1; //startup mode of the ARM cpu 0: DFU bootloader, 1: normal program start
@@ -298,6 +298,8 @@ int main(void) {
 	persistent_t settings;
 	SettingsLoad(&settings);
 	SpiDataSet(CMD_OPTIME, settings.opTotal / (60UL * 24UL));
+	SpiDataSet(CMD_LED_READ, ledFlashOnSpiCommand);
+	SpiDataSet(CMD_BAT_CURRENT_MAX_READ, inMax);
 	ChargerInit(&CS, settings.chargerError, settings.chargingCycles, settings.prechargingCycles, settings.chargingSumAllTimes);
 	for (;;) { //Main loop, we run every 10ms
 		if (KeyPressedLeft()) {
@@ -380,13 +382,16 @@ int main(void) {
 				}
 			} else if (command == CMD_LED) {
 				ledFlashOnSpiCommand = parameter & 1;
+				SpiDataSet(CMD_LED_READ, ledFlashOnSpiCommand);
 			} else if (command == CMD_WATCHDOG_CTRL) {
 				watchdogHighest = parameter;
 				watchdogCurrent = watchdogHighest;
+				SpiDataSet(CMD_WATCHDOG_CTRL_READ, watchdogHighest);
 			} else if ((command == CMD_WATCHDOG_RESET) && (parameter == 0x42)) {
 				watchdogCurrent = watchdogHighest;
 			} else if ((command == CMD_BAT_CURRENT_MAX) && (parameter <= 200)) {
 				inMax = parameter;
+				SpiDataSet(CMD_BAT_CURRENT_MAX_READ, inMax);
 			} else if ((command == CMD_BAT_FORCE_CHARGE) && (parameter == 0)) {
 				requestFullCharge = 1;
 			} else if ((command == CMD_BAT_NEW) && (parameter == 0x1291)) {
@@ -403,8 +408,10 @@ int main(void) {
 				SettingsSave(&settings);
 			} else if ((command == CMD_POWERMODE) && (parameter < 2)) {
 				batteryMode = parameter;
+				SpiDataSet(CMD_POWERMODE_READ, batteryMode);
 			} else if (command == CMD_ALARM) {
 				batteryWakeupTime = parameter; // 0 == never
+				SpiDataSet(CMD_ALARM_READ, batteryWakeupTime);
 			} else if (command == CMD_POWERDOWN) {
 				requestPowerDown = 1;
 			}
@@ -472,6 +479,8 @@ int main(void) {
 			settings.prechargingCycles = ChargerGetPreCycles(&CS);
 			SpiDataSet(CMD_BAT_PRECHARGE_CYC, settings.prechargingCycles);
 			SpiDataSet(CMD_BAT_PWM, battPwm);
+			uint32_t timeS = ChargerGetTime(&CS) / 1000;
+			SpiDataSet(CMD_BAT_TIME, timeS);
 		}
 		if (adcCycle == 7) {
 			uint16_t cpuTemperature = SensorsChiptemperatureGet();

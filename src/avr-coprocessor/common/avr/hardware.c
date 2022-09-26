@@ -52,7 +52,9 @@ Uin = Uref *(R1 + R2) * AD/(R2*1023)
 */
 
 
-//in 0.1°C units
+/*in 0.1°C units. Can only measured when on USB power.
+If on battery power, INT16_MIN is retuned.
+*/
 int16_t SensorsBatterytemperatureGet(void) {
 	AdStartAvccRef(ADPRESCALER, 8); //temperature sensor
 	uint32_t ad1 = AdGet();
@@ -97,10 +99,14 @@ int16_t SensorsBatterytemperatureGet(void) {
 	Typically ad1 reads as 302 @ 20°C and 5V
 	And ad2 reads as 326 @ 5V
 	*/
-	uint32_t ohm = (70500ULL*ad1)/((ad2*48ULL) - 15ULL*ad1);
-	uint32_t gradcelsius10th = (-(ohm*ohm*10/141996) + (ohm*100/108) - 1306);
-	return gradcelsius10th;
-	//return ohm;
+	uint32_t divisor = (ad2*48ULL) - 15ULL*ad1;
+	if ((ad2 > 100) && (divisor != 0)) { //USB must be connected
+		uint32_t ohm = (70500ULL*ad1)/divisor;
+		uint32_t gradcelsius10th = (-(ohm*ohm*10/141996) + (ohm*100/108) - 1306);
+		return gradcelsius10th;
+	} else {
+		return INT16_MIN;
+	}
 }
 
 uint16_t VccRaw(void) {

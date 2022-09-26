@@ -72,7 +72,13 @@ static inline void HardwareInit(void) {
 
 //only the pullups are left
 static inline void PinsPowerdown(void) {
-	DIDR0 = 0xFF;
+	/* We should be able to set DIDR0 = 0xFF here, but for some unknown reason
+	   then we do not get a high level after running PinsPowerup on 3.3V battery
+	   power.
+	   On ~4.7V USB power it works.
+	   TODO: Dig down deeper why this is the case.
+	*/
+	DIDR0 = 0xFE;
 	DIDR1 = (1<<7) | (1<<5) | (1<<4);
 }
 
@@ -81,16 +87,14 @@ static inline void PinsPowerup(void) {
 	DIDR1 = (1<<7) | (1<<5) | (1<<4);
 }
 
-static inline void PinsWakeupByKeyPressOn(void)
-{
+static inline void PinsWakeupByKeyPressOn(void) {
 	//only a low level ISR can wake up the CPU from powerdown
 	//not compatible with the software SPI
 	MCUCR &= ~((1<<ISC00) | (1<<ISC01));
 	GIMSK |= (1<<INT0); //allows waking up the CPU by the left key press
 }
 
-static inline void PinsWakeupByKeyPressOff(void)
-{
+static inline void PinsWakeupByKeyPressOff(void) {
 	GIMSK &= ~(1<<INT0);
 }
 
