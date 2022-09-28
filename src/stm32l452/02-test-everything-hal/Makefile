@@ -273,6 +273,22 @@ clean:
 	-rm -fR $(BUILD_DIR)
 
 #######################################
+# uploading
+#######################################
+upload:
+	../../utilities/dfu-upload.sh $(BUILD_DIR)/$(TARGET)
+
+uploadExtflash:
+	../../utilities/dfu-upload.sh --store $(BUILD_DIR)/$(TARGET)
+
+uploadNostart:
+	../../utilities/dfu-upload.sh --nostart $(BUILD_DIR)/$(TARGET)
+
+uploadExtflashNostart:
+	../../utilities/dfu-upload.sh --store --nostart $(BUILD_DIR)/$(TARGET)
+
+
+#######################################
 # dependencies
 #######################################
 -include $(wildcard $(BUILD_DIR)/*.d)
