@@ -13,6 +13,9 @@ SPDX-License-Identifier:  BSD-3-Clause
    Of course, the real hardware can use the keys without a LCD.
 */
 
+__attribute__((weak)) void KeysInit(void) {
+}
+
 __attribute__((weak)) bool KeyRightPressed(void) {
 	return false;
 }

@@ -11,6 +11,9 @@ SPDX-License-Identifier: BSD-3-Clause
 #include "main.h"
 
 
+void KeysInit(void) {
+}
+
 bool KeyRightPressed(void) {
 	if (HAL_GPIO_ReadPin(KeyRight_GPIO_Port, KeyRight_Pin) == GPIO_PIN_RESET)
 	{

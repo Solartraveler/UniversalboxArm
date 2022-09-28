@@ -2,6 +2,8 @@
 
 #include <stdbool.h>
 
+void KeysInit(void);
+
 bool KeyRightPressed(void);
 
 bool KeyLeftPressed(void);
