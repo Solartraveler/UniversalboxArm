@@ -102,6 +102,7 @@ const char * g_adcNames[CHANNELS] = {
 };
 
 void readSensors() {
+	KeysInit();
 	bool right = KeyRightPressed();
 	bool left = KeyLeftPressed();
 	bool up = KeyUpPressed();

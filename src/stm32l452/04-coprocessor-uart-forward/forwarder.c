@@ -46,6 +46,7 @@ void ForwarderInit(void) {
 	Rs232Init();
 	printf("\r\nCoprocessor UART forwarder %s\r\n", APPVERSION);
 	printf("\r\nReset with 'r' or key up\r\n");
+	KeysInit();
 	PeripheralInit();
 	FlashEnable(64); //250kHz
 	FilesystemMount();

@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Coprocessor-control
 #Version of this application, to be used in the metadata
-VERSION  = 0.4.0
+VERSION  = 0.5.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -104,7 +104,7 @@ $(STM_HAL)/Src/stm32l4xx_hal_uart.c \
 $(STM_HAL)/Src/stm32l4xx_hal_uart_ex.c \
 $(STM_HAL)/Src/stm32l4xx_hal_dma.c \
 $(BOXLIB)/leds.c \
-$(BOXLIB)/keys.c \
+$(BOXLIB)/keysIsr.c \
 $(BOXLIB)/rs232debug.c \
 $(BOXLIB)/peripheral.c \
 $(BOXLIB)/peripheralDma.c \

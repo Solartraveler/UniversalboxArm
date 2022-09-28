@@ -552,6 +552,7 @@ void LoaderInit(void) {
 	PeripheralPowerOn();
 	Rs232Init();
 	printf("\r\nLoader %s\r\n", APPVERSION);
+	KeysInit();
 	PeripheralInit();
 	FlashEnable(64); //250kHz
 	LoaderMountFormat(false);

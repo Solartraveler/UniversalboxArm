@@ -61,6 +61,7 @@ void ControlInit(void) {
 	if (error) {
 		printf("Error, failed to increase CPU clock - %u\r\n", error);
 	}
+	KeysInit();
 	PeripheralInit();
 	FlashEnable(64); //250kHz
 	FilesystemMount();
@@ -77,13 +78,18 @@ void ExecReset(void) {
 
 void TemperatureToString(char * output, size_t len, int16_t temperature) {
 	char sign[2] = {0};
-	if (temperature < 0) {
-		sign[0] = '-';
-		temperature *= -1;
+	if (temperature != INT16_MIN)
+	{
+		if (temperature < 0) {
+			sign[0] = '-';
+			temperature *= -1;
+		}
+		unsigned int degree = temperature / 10;
+		unsigned int degree10th = temperature % 10;
+		femtoSnprintf(output, len, "%s%u.%u°C", sign, degree, degree10th);
+	} else {
+		femtoSnprintf(output, len, "n/a");
 	}
-	unsigned int degree = temperature / 10;
-	unsigned int degree10th = temperature % 10;
-	femtoSnprintf(output, len, "%s%u.%u°C", sign, degree, degree10th);
 }
 
 const char * g_chargerState[STATES_MAX] = {
@@ -142,7 +148,7 @@ void ExecPrintStats(void) {
 	uint16_t alarm = CoprocReadAlarm();
 	printf("Alarm: %us\r\n", alarm);
 
-	uint16_t batTemperature = CoprocReadBatteryTemperature();
+	int16_t batTemperature = CoprocReadBatteryTemperature();
 	TemperatureToString(text, sizeof(text), batTemperature);
 	printf("Battery temperature: %s (0x%x)\r\n", text, batTemperature);
 
@@ -184,10 +190,13 @@ void ExecPrintStats(void) {
 	uint16_t batTime = CoprocReadBatteryChargeTime();
 	uint16_t min = batTime / 60;
 	uint16_t sec = batTime % 60;
-	printf("Battery started charge %u:%02u\r\n", min, sec);
+	printf("Battery started charge: %u:%02u\r\n", min, sec);
+
+	uint16_t batMaMax = CoprocReadBatteryCurrentMax();
+	printf("Battery maximum charging current: %umA\r\n", batMaMax);
 
 	uint32_t tStop = HAL_GetTick();
-	printf("Printing took %ums\r\n", (unsigned int)(tStop - tStart));
+	printf("Printing took: %ums\r\n", (unsigned int)(tStop - tStart));
 }
 
 void ReadSerialLine(char * input, size_t len) {
