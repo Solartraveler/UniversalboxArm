@@ -9,6 +9,7 @@ all:
 	$(MAKE) -C 04-charger-unittests/pc-unittest test
 	$(MAKE) -C 05-spi-with-charger
 	$(MAKE) -C 05-spi-with-charger/pc-simulator
+	$(MAKE) -C 06-chip-bug-didr0-test
 
 clean:
 	$(MAKE) clean -C 01-minimal-reset-button
@@ -21,3 +22,4 @@ clean:
 	$(MAKE) clean -C 04-charger-unittests/pc-unittest
 	$(MAKE) clean -C 05-spi-with-charger
 	$(MAKE) clean -C 05-spi-with-charger/pc-simulator
+	$(MAKE) clean -C 06-chip-bug-didr0-test

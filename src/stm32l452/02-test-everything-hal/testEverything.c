@@ -61,6 +61,7 @@ void mainMenu(void) {
 	printf("i: Check IR\r\n");
 	printf("j: Peripheral powercycle (RS232, LCD, flash)\r\n");
 	printf("k: Check coprocessor communication\r\n");
+	printf("n: Manual coprocessor SPI voltage control\r\n");
 	printf("l: Minimize power for 4 seconds\r\n");
 	printf("r: Reboot with reset controller\r\n");
 	printf("s: Jump to DFU bootloader\r\n");
@@ -73,7 +74,7 @@ void testInit(void) {
 	Led1Red();
 	HAL_Delay(100);
 	Rs232Init();
-	printf("Test everything 0.7\r\n");
+	printf("Test everything %s\r\n", APPVERSION);
 	mainMenu();
 }
 
@@ -669,6 +670,29 @@ void checkCoprocComm(void) {
 	}
 }
 
+void manualSpiCoprocLevel(void) {
+	printf("Enter number 0...3. Low bit will be the clock, high bit will be the data level\r\n");
+	char buffer[128];
+	readSerialLine(buffer, sizeof(buffer));
+	printf("\r\n");
+	unsigned int val = 0;
+	sscanf(buffer, "%x", &val);
+	if (val & 2) {
+		HAL_GPIO_WritePin(AvrSpiMosi_GPIO_Port, AvrSpiMosi_Pin, GPIO_PIN_SET);
+		printf("Data pin now high\r\n");
+	} else {
+		HAL_GPIO_WritePin(AvrSpiMosi_GPIO_Port, AvrSpiMosi_Pin, GPIO_PIN_RESET);
+		printf("Data pin now low\r\n");
+	}
+	if (val & 1) {
+		HAL_GPIO_WritePin(AvrSpiSck_GPIO_Port, AvrSpiSck_Pin, GPIO_PIN_SET);
+		printf("Clock pin now high\r\n");
+	} else {
+		HAL_GPIO_WritePin(AvrSpiSck_GPIO_Port, AvrSpiSck_Pin, GPIO_PIN_RESET);
+		printf("Clock pin now low\r\n");
+	}
+}
+
 void rebootToDfu(void) {
 	CoprocWriteReboot(2); //2 for dfu bootloader
 }
@@ -960,6 +984,7 @@ void testCycle(void) {
 		case 'k': checkCoprocComm(); break;
 		case 'l': minPower(); break;
 		case 'm': manualLcdCmd(); break;
+		case 'n': manualSpiCoprocLevel(); break;
 		case 'r': NVIC_SystemReset(); break;
 		case 's': jumpDfu(); break;
 		case 't': rebootToNormal(); break;

@@ -35,3 +35,7 @@ The AVR results are printet with 1200baud to PA1, like 02-test-everything.
 This is the main firmware to use.
 Provides the same functionality as 03-reset-button-with-spi but with all the extras for charging the battery.
 For this a lot of extra SPI commands are available.
+
+## 06-chip-bug-didr0-test ##
+Some tests for tracking down issues found while implementing 05-spi-with-charger. So far this test does not find any bugs.
+

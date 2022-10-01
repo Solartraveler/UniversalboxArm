@@ -59,7 +59,8 @@ static inline void HardwareInit(void) {
 #error "Not supported for prescaler"
 #endif
 
-#elif (F_CPU != 128000)
+//the lowspeed oscillator can really change a lot...
+#elif (F_CPU > 128000) || (F_CPU < 100000)
 
 #error "Not supported for prescaler"
 
