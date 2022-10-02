@@ -48,12 +48,14 @@ static inline void HardwareInit(void) {
 #elif (F_CPU == 1000000)
 	CLKPR = (1<<CLKPS1) | (1<<CLKPS0);
 #elif (F_CPU == 500000)
-	CLKPR = (1<<CLKPS2) | (1<<CLKPS0);
+	CLKPR = (1<<CLKPS2);
 #elif (F_CPU == 250000)
-	CLKPR = (1<<CLKPS2) | (1<<CLKPS1);
+	CLKPR = (1<<CLKPS2) | (1<<CLKPS0);
 #elif (F_CPU == 125000)
-	CLKPR = (1<<CLKPS2) | (1<<CLKPS1) | (1<<CLKPS0);
+	CLKPR = (1<<CLKPS2) | (1<<CLKPS1);
 #elif (F_CPU == 62500)
+	CLKPR = (1<<CLKPS2) | (1<<CLKPS1) | (1<<CLKPS0);
+#elif (F_CPU == 31250)
 	CLKPR = (1<<CLKPS3);
 #else
 #error "Not supported for prescaler"
