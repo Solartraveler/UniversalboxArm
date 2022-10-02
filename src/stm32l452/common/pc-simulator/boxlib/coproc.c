@@ -149,6 +149,10 @@ uint16_t CoprocReadBatteryChargeTime(void) {
 	return 0;
 }
 
+uint8_t CoprocReadCpuLoad(void) {
+	return 10;
+}
+
 void CoprocWriteReboot(uint8_t mode) {
 	(void)mode;
 }

@@ -97,6 +97,9 @@ uint16_t CoprocReadBatteryCurrentMax(void);
 //read back the time since starting of current charge in [s]
 uint16_t CoprocReadBatteryChargeTime(void);
 
+//read back the approximated CPU load in [%]
+uint8_t CoprocReadCpuLoad(void);
+
 //===== Write commands ======
 
 //parameter: 0: user selected mode, 1: program bootmode, 2: bootloader bootmode

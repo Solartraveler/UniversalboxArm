@@ -45,6 +45,7 @@ void ControlHelp(void) {
 	printf("o: Power down - off\r\n");
 	printf("t: Set alarm\r\n");
 	printf("m: Set mode on disconnect\r\n");
+	printf("g: Freeze / unfreeze GUI\r\n");
 	printf("w-a-s-d: Send key code to GUI\r\n");
 }
 
@@ -120,6 +121,8 @@ void ExecPrintStats(void) {
 
 	uint32_t tStart = HAL_GetTick();
 
+	uint16_t cpuLoadNormal = CoprocReadCpuLoad(); //read at the beginning to avoid changes by the following calls
+
 	uint16_t version = CoprocReadVersion();
 	printf("Coproc firmware: %u, version %u\r\n", version >> 8, version & 0xFF);
 
@@ -194,6 +197,10 @@ void ExecPrintStats(void) {
 
 	uint16_t batMaMax = CoprocReadBatteryCurrentMax();
 	printf("Battery maximum charging current: %umA\r\n", batMaMax);
+
+	uint16_t cpuLoadComm = CoprocReadCpuLoad();
+
+	printf("CPU load: normal %u%c, communicating: %u%c\r\n", cpuLoadNormal, '%', cpuLoadComm, '%');
 
 	uint32_t tStop = HAL_GetTick();
 	printf("Printing took: %ums\r\n", (unsigned int)(tStop - tStart));
@@ -288,6 +295,7 @@ void ExecMode(void) {
 
 void ControlCycle(void) {
 	static uint32_t ledCycle = 0;
+	static uint8_t guiUpdate = 1;
 	//led flash
 	if (ledCycle < 500) {
 		Led2Green();
@@ -332,8 +340,14 @@ void ControlCycle(void) {
 		if (input == 'm') {
 			ExecMode();
 		}
+		if (input == 'g') {
+			guiUpdate = 1 - guiUpdate;
+			printf("Gui update: %s\r\n", guiUpdate ? "On" : "Off");
+		}
 	}
-	GuiCycle(input);
+	if (guiUpdate) {
+		GuiCycle(input);
+	}
 	/* Call this function 1000x per second, if one cycle took more than 1ms,
 	   we skip the wait to catch up with calling.
 	   cycleTick last is needed to prevent endless wait in the case of a 32bit

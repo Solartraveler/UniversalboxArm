@@ -160,6 +160,10 @@ uint16_t CoprocReadBatteryChargeTime(void) {
 	return CoprocSendCommand(CMD_BAT_TIME, 0);
 }
 
+uint8_t CoprocReadCpuLoad(void) {
+	return CoprocSendCommand(CMD_CPU_LOAD, 0);
+}
+
 void CoprocWriteReboot(uint8_t mode) {
 	CoprocSendCommand(CMD_REBOOT, 0xA600 | mode);
 }

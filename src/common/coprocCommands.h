@@ -17,6 +17,7 @@
   Read watchdog ctrl  0x08 xx xx     00 yy yy (value set by watchdog control)
   Read power mode     0x09 xx xx     00 00 yy (value set by power mode)
   Read wakeup alarm   0x0A xx xx     00 yy yy (value set by wakeup alarm)
+  Read CPU load       0x0B xx xx     00 00 yy (approximated CPU load of the past second in [%])
   Read batt temp      0x10 xx xx     00 yy yy (int16_t in [0.1°C])
   Read batt voltage   0x11 xx xx     00 yy yy (uint16_t in [mV])
   Read batt current   0x12 xx xx     00 yy yy (uint16_t in [mA])
@@ -68,7 +69,8 @@ of 200ms until a new transfer is started.
 #define CMD_WATCHDOG_CTRL_READ 0x8
 #define CMD_POWERMODE_READ    0x9
 #define CMD_ALARM_READ        0xA
-//reserved 0xB...0xF
+#define CMD_CPU_LOAD          0xB
+//reserved 0xC...0xF
 #define CMD_BAT_TEMPERATURE   0x10
 #define CMD_BAT_VOLTAGE       0x11
 #define CMD_BAT_CURRENT       0x12

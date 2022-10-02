@@ -296,7 +296,8 @@ static void GuiUpdateMain(uint32_t subcycle) {
 
 	if (subcycle == 4) {
 		uint16_t uptime = CoprocReadUptime();
-		femtoSnprintf(menu_strings[MENU_TEXT_UPTIME], TEXT_LEN_MAX, "%uhours", uptime);
+		uint16_t load = CoprocReadCpuLoad();
+		femtoSnprintf(menu_strings[MENU_TEXT_UPTIME], TEXT_LEN_MAX, "%uh, load %u%c", uptime, load, '%');
 	}
 
 	if (subcycle == 5) {

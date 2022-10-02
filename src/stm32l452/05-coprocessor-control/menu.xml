@@ -5,13 +5,13 @@
     <shortcut number="4" shortcutkey="102" action="" screen="window 7"/>
     <label number="5" Xpos="60" Ypos="1" font="4" storagemethod="1" text="FIRMWARE" multilang="0" transparency="0"/>
     <label number="6" Xpos="2" Ypos="16" font="4" storagemethod="0" text="Vcc:" multilang="0" transparency="0"/>
-    <label number="7" Xpos="60" Ypos="16" font="4" storagemethod="1" text="VCC" multilang="0" transparency="0"/>
+    <label number="7" Xpos="48" Ypos="16" font="4" storagemethod="1" text="VCC" multilang="0" transparency="0"/>
     <label number="8" Xpos="2" Ypos="31" font="4" storagemethod="0" text="CPU:" multilang="0" transparency="0"/>
-    <label number="9" Xpos="60" Ypos="31" font="4" storagemethod="1" text="CPUTEMP" multilang="0" transparency="0"/>
+    <label number="9" Xpos="48" Ypos="31" font="4" storagemethod="1" text="CPUTEMP" multilang="0" transparency="0"/>
     <label number="10" Xpos="2" Ypos="46" font="4" storagemethod="0" text="Uptime:" multilang="0" transparency="0"/>
-    <label number="11" Xpos="60" Ypos="46" font="4" storagemethod="1" text="UPTIME" multilang="0" transparency="0"/>
+    <label number="11" Xpos="48" Ypos="46" font="4" storagemethod="1" text="UPTIME" multilang="0" transparency="0"/>
     <label number="12" Xpos="2" Ypos="61" font="4" storagemethod="0" text="Optime: " multilang="0" transparency="0"/>
-    <label number="13" Xpos="60" Ypos="61" font="4" storagemethod="1" text="OPTIME" multilang="0" transparency="0"/>
+    <label number="13" Xpos="48" Ypos="61" font="4" storagemethod="1" text="OPTIME" multilang="0" transparency="0"/>
     <button number="14" Xpos="2" Ypos="81" focusable="-1" rectangle="-1" Xsize="73" Ysize="17" font="4" fontfocus="6" text="Power down" storagemethod="0" action="POWERDOWN" screen="" multilang="0" transparency="0"/>
     <button number="18" Xpos="77" Ypos="81" focusable="1" rectangle="1" Xsize="47" Ysize="17" font="4" fontfocus="6" text="LED" storagemethod="0" action="" screen="subwindow 12" multilang="0" transparency="0"/>
     <button number="15" Xpos="2" Ypos="100" focusable="1" rectangle="1" Xsize="60" Ysize="17" font="4" fontfocus="6" text="Set alarm" storagemethod="0" action="" screen="subwindow 4" multilang="0" transparency="0"/>
