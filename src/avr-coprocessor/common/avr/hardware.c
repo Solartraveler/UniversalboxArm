@@ -37,7 +37,14 @@
 
 #endif
 
-volatile uint8_t g_Timer0Int;
+/* Incremented by an ISR, since only the ISR writes and the main loop reads
+   and one byte is read atomically, no lock is needed.
+*/
+volatile uint8_t g_timer0Cnt;
+/* Stores (if TimerHasOverflown is used) or increments (if TimerHasOverflownIsr
+   is used) each time a difference to g_timer0Cnt is detected.
+*/
+uint8_t g_timer0LastPoll;
 
 void HardwareInitEarly(void) {
 	DDRA = (1<<7) | (1<<1); //bootloader and reset pin
@@ -283,9 +290,5 @@ ISR(INT0_vect) {
 
 //timer 0 generates the 10ms timing
 ISR(TIMER0_COMPA_vect) {
-	g_Timer0Int = 1;
-}
-
-ISR(TIMER0_OVF_vect) {
-	g_Timer0Int = 1;
+	g_timer0Cnt++;
 }

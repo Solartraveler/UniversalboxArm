@@ -519,7 +519,7 @@ bool TimerHasOverflown(void) {
 		minWait = 100;
 	}
 	if ((g_timestamp + minWait) <= stamp) {
-		g_timestamp = stamp;
+		g_timestamp += minWait;
 		return true;
 	}
 	return false;

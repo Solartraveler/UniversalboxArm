@@ -15,7 +15,8 @@
 
 #define PWM_MAX 128
 
-extern volatile uint8_t g_Timer0Int;
+extern volatile uint8_t g_timer0Cnt;
+extern uint8_t g_timer0LastPoll;
 
 /* The .init3 section is done after the stack has been set up, but before
 the bss section is copied. So we can not rely on any global variables,
@@ -248,18 +249,22 @@ static inline void TimerFast(void) {
 	OCR0A = timerMax & 0xFF;
 }
 
-
 static inline bool TimerHasOverflown(void) {
-	if ((TIFR & (1<<OCF0A)) || (g_Timer0Int)) {
+	uint8_t localVal = g_timer0Cnt; //may only be read once
+	if ((TIFR & (1<<OCF0A)) || (localVal != g_timer0LastPoll)) {
+		g_timer0LastPoll = localVal;
 		TIFR |= (1<<OCF0A); //clear compare flag
 		return true;
 	}
 	return false;
 }
 
+/* Unlike TimerHasOverflown, this functions catches up to 255 missed
+   polls. So it allows catching up too slow processing.
+*/
 static inline bool TimerHasOverflownIsr(void) {
-	if (g_Timer0Int) {
-		g_Timer0Int = 0;
+	if (g_timer0Cnt != g_timer0LastPoll) {
+		g_timer0LastPoll++;
 		return true;
 	}
 	return false;
