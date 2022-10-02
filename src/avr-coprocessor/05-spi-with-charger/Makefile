@@ -115,7 +115,7 @@ AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 #AVRDUDE_VERBOSE = -v -v
 
 #Since the internal 128KHz oscillator is used, the programming frequency may not
-#be higher than 32kHz - oscillator derivation
+#be higher than 25kHz - oscillator derivation
 AVRDUDE_BASIC = -p $(MCUAVRDUDE) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER) -B 25kHz
 AVRDUDE_FLAGS = $(AVRDUDE_BASIC) $(AVRDUDE_NO_VERIFY) $(AVRDUDE_VERBOSE) $(AVRDUDE_ERASE_COUNTER)
 
@@ -168,6 +168,8 @@ program: $(TARGET).hex $(TARGET).eep
 #preserve eeprom on chiperase, fastest startup
 fuses:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) -U lfuse:w:0xC3:m -U hfuse:w:0xD6:m -U efuse:w:0xff:m
+#For testing only, use 8MHz oscillator:
+#	$(AVRDUDE) $(AVRDUDE_FLAGS) -U lfuse:w:0xC2:m -U hfuse:w:0xD6:m -U efuse:w:0xff:m
 
 # Convert ELF to COFF for use in debugging / simulating in AVR Studio or VMLAB.
 COFFCONVERT=$(OBJCOPY) --debugging \
@@ -215,7 +217,7 @@ $(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
 
 
 # Compile: create assembler files from C source files.
-$(BUILD_DIR)/%.o: %.S | $(BUILD_DIR)
+$(BUILD_DIR)/%.S: %.c | $(BUILD_DIR)
 	$(CC) -S $(ALL_CFLAGS) $< -o $@
 
 

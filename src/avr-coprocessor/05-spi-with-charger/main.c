@@ -269,14 +269,15 @@ int main(void) {
 	ArmBatteryOn();
 	SensorsOn();
 	SpiInit();
-	SpiDataSet(CMD_VERSION, 0x0504); //05 for the program (folder name), 04 for the version
+	SpiDataSet(CMD_VERSION, 0x0505); //05 for the program (folder name), 05 for the version
 	uint8_t pressedLeft = 0, pressedRight = 0; //Time the left or right button is hold down [10ms]
 	uint8_t resetHold = 0; //count down until the reset of the ARM CPU is released [10ms]
 	uint8_t armNormal = 1; //startup mode of the ARM cpu 0: DFU bootloader, 1: normal program start
 	uint8_t ledFlashCycle = 0; //controls the speed of the LED flashing, counts up. [10ms]
 	uint8_t ledFlashRemaining = 0; //if non 0, the LED is flashing
 	uint8_t ledFlashOnSpiCommand = 1; //if 1, each SPI command is confirmed by a LED flash
-	uint8_t adcCycle = 0; //cycle for measuring the analog inputs and calculating the battery charger logic
+	uint8_t adcCycleFast = 0; //cycle for measuring the analog inputs and calculating the battery charger logic
+	uint8_t adcCycleSlow = 0; //cycle for measuring the analog inputs and calculating the battery charger logic
 	uint8_t reinitSpiDelay = 0; //if reached 0, the SPI interface is reset
 	uint16_t watchdogHighest = 0; //reload value of the ARM cpu watchdog, 0 = disabled [1ms]
 	uint16_t watchdogCurrent = 0; //count down value of the ARM CPU watchdog. On a 0, a reset is issured. [1ms]
@@ -294,6 +295,10 @@ int main(void) {
 	uint16_t batteryWakeupTime = 0; //power up time in [s] when running on battery
 	uint8_t batteryMode = 0; //if on battery, 0 = power down, 1 = continue to operate
 	uint8_t onUsbPower = 1; //current source for the power. 0 = battery, 1 = USB
+	uint8_t timeLoadLast = 0; //timestamp the last time the Load was updated [10ms]
+	uint32_t ticksIdle = 0; //accumulated ticks of noting to do since timeLoadLast was updated
+	uint8_t percentIdlePrevious = 0; //previous value of being idle in [%]
+
 	chargerState_t CS;
 	persistent_t settings;
 	SettingsLoad(&settings);
@@ -301,6 +306,7 @@ int main(void) {
 	SpiDataSet(CMD_LED_READ, ledFlashOnSpiCommand);
 	SpiDataSet(CMD_BAT_CURRENT_MAX_READ, inMax);
 	ChargerInit(&CS, settings.chargerError, settings.chargingCycles, settings.prechargingCycles, settings.chargingSumAllTimes);
+	uint8_t timestampChargeprocessLast = TimerGetValue(); //time in [10ms]
 	for (;;) { //Main loop, we run every 10ms
 		if (KeyPressedLeft()) {
 			if (pressedLeft < 255) {
@@ -446,48 +452,61 @@ int main(void) {
 			LedOff();
 		}
 		//resets every 100ms, but each cycle does something different
-		adcCycle++;
-		if (adcCycle == 1) {
+		adcCycleFast++;
+
+		if (adcCycleFast == 1) {
 			inU = SensorsInputvoltageGet(); //we should do this in the first cycle!
 			SpiDataSet(CMD_VCC, inU);
 		}
-		if (adcCycle == 2) {
+		if (adcCycleFast == 3) {
 			battU = SensorsBatteryvoltageGet();
 			SpiDataSet(CMD_BAT_VOLTAGE, battU);
 		}
-		if (adcCycle == 3) {
+		if (adcCycleFast == 5) {
 			battI = SensorsBatterycurrentGet();
 			SpiDataSet(CMD_BAT_CURRENT, battI);
 		}
-		if (adcCycle == 4) {
-			battTemp = SensorsBatterytemperatureGet();
-			SpiDataSet(CMD_BAT_TEMPERATURE, battTemp);
+		if (adcCycleFast == 7) {
+			uint8_t timestamp = TimerGetValue();
+			uint8_t delta = timestamp - timestampChargeprocessLast;
+			uint16_t msPassed = (uint16_t)delta * 10; //timer is running every 10ms
+			if (msPassed >= 50) { //in the case of a time catchup or first start, calling could be faster than 50ms
+				battPwm = ChargerCycle(&CS, battU, inU, battI, battTemp, inMax, msPassed, requestFullCharge);
+				requestFullCharge = 0;
+				PwmBatterySet(battPwm);
+			}
+			timestampChargeprocessLast = timestamp;
 		}
-		if (adcCycle == 5) {
-			battPwm = ChargerCycle(&CS, battU, inU, battI, battTemp, inMax, 100, requestFullCharge);
-			requestFullCharge = 0;
-			PwmBatterySet(battPwm);
-		}
-		if (adcCycle == 6) {
-			SpiDataSet(CMD_BAT_CHARGE_STATE, ChargerGetState(&CS));
-			SpiDataSet(CMD_BAT_CHARGE_ERR, ChargerGetError(&CS));
-			SpiDataSet(CMD_BAT_CHARGED, ChargerGetCharged(&CS) / (60ULL*60ULL)); //mAs -> mAh
-			settings.chargingSumAllTimes = ChargerGetChargedTotal(&CS);
-			SpiDataSet(CMD_BAT_CHARGED_TOT, settings.chargingSumAllTimes / (60ULL * 60ULL * 1000ULL)); //mAs ->Ah
-			settings.chargingCycles = ChargerGetCycles(&CS);
-			SpiDataSet(CMD_BAT_CHARGE_CYC, settings.chargingCycles);
-			settings.prechargingCycles = ChargerGetPreCycles(&CS);
-			SpiDataSet(CMD_BAT_PRECHARGE_CYC, settings.prechargingCycles);
-			SpiDataSet(CMD_BAT_PWM, battPwm);
-			uint32_t timeS = ChargerGetTime(&CS) / 1000;
-			SpiDataSet(CMD_BAT_TIME, timeS);
-		}
-		if (adcCycle == 7) {
-			uint16_t cpuTemperature = SensorsChiptemperatureGet();
-			SpiDataSet(CMD_CPU_TEMPERATURE, cpuTemperature);
-		}
-		if (adcCycle == 10) {
-			adcCycle = 0;
+		if (adcCycleFast == 10) { //updates every 100ms
+			adcCycleFast = 0;
+			adcCycleSlow++;
+			if (adcCycleSlow == 1) { //call every 500ms
+				//calculation takes 24ms with F_CPU=107000
+				battTemp = SensorsBatterytemperatureGet();
+				SpiDataSet(CMD_BAT_TEMPERATURE, battTemp);
+			}
+			if (adcCycleSlow == 2) {
+				//needs 13ms with F_CPU=107000
+				uint16_t cpuTemperature = SensorsChiptemperatureGet();
+				SpiDataSet(CMD_CPU_TEMPERATURE, cpuTemperature);
+			}
+			if (adcCycleSlow == 3) {
+				SpiDataSet(CMD_BAT_CHARGE_STATE, ChargerGetState(&CS));
+				SpiDataSet(CMD_BAT_CHARGE_ERR, ChargerGetError(&CS));
+				SpiDataSet(CMD_BAT_CHARGED, ChargerGetCharged(&CS) / (60ULL*60ULL)); //mAs -> mAh
+				settings.chargingSumAllTimes = ChargerGetChargedTotal(&CS);
+				SpiDataSet(CMD_BAT_CHARGED_TOT, settings.chargingSumAllTimes / (60ULL * 60ULL * 1000ULL)); //mAs ->Ah
+				settings.chargingCycles = ChargerGetCycles(&CS);
+				SpiDataSet(CMD_BAT_CHARGE_CYC, settings.chargingCycles);
+				settings.prechargingCycles = ChargerGetPreCycles(&CS);
+				SpiDataSet(CMD_BAT_PRECHARGE_CYC, settings.prechargingCycles);
+				SpiDataSet(CMD_BAT_PWM, battPwm);
+				uint32_t timeS = ChargerGetTime(&CS) / 1000;
+				SpiDataSet(CMD_BAT_TIME, timeS);
+			}
+			if (adcCycleSlow == 5) {
+				adcCycleSlow = 0;
+			}
 		}
 		//check if we should power down. Triggers when >= 4500mV and then <= 4000mV
 		if (inU >= 4500) {
@@ -506,7 +525,27 @@ int main(void) {
 			requestPowerDown = 0;
 			if (onUsbPower == 0) {
 				PowerDownLoop(batteryWakeupTime);
+				timestampChargeprocessLast = TimerGetValue();
 				reinitSpiDelay = 100;
+			}
+		}
+		//update CPU load (nees ~400byte flash, so remove, should flash size be a problem)
+		{
+			uint8_t time = TimerGetValue();
+			uint8_t delta = time - timeLoadLast;
+			if (delta >= 100) {
+				/* A delta of 100 would be best. But if not we need to scale down. So:
+				   scaledIdle = ticksIdle * 100 / delta;
+				   To get percent of ticks idle:
+				   percent = scaledIdle * 100 / ticksPerSecond
+				   This merges to:
+				   percent = (ticksIdle * 100000) / (delta * ticksPerSecond)
+				*/
+				uint32_t percentIdle = ((uint32_t)ticksIdle * 10000UL) / ((uint32_t)delta * TimerGetTicksPerSecond());
+				SpiDataSet(CMD_CPU_LOAD, 100 - (uint8_t)percentIdlePrevious); // convert from idle to load
+				percentIdlePrevious = percentIdle; //have 1s delay to poll this value without the polling changing this value
+				timeLoadLast = time;
+				ticksIdle = 0;
 			}
 		}
 		//update statistics and save to eeprom
@@ -524,8 +563,12 @@ int main(void) {
 			}
 		}
 		WatchdogReset();
-		while (TimerHasOverflownIsr() == false) {
-			WaitForInterrupt();
+		uint16_t ticksToInterrupt = TimerGetTicksLeft();
+		if (TimerHasOverflownIsr() == false) {
+			ticksIdle += ticksToInterrupt;
+			while (TimerHasOverflownIsr() == false) {
+				WaitForInterrupt();
+			}
 		}
 	}
 }
