@@ -132,23 +132,51 @@ static void temperatureToString(char * output, size_t len, const char * prefix, 
 static void readSensors(void) {
 	char text[64];
 	size_t len = sizeof(text);
-	temperatureToString(text, len, "Bat:", SensorsBatterytemperatureGet());
+
+	CounterStart();
+	uint16_t temp = SensorsBatterytemperatureGet();
+	uint16_t timePassed1 = CounterGet();
+	temperatureToString(text, len, "Bat:", temp);
 	print(text);
-	temperatureToString(text, len, "MCU:", SensorsChiptemperatureGet());
+
+	CounterStart();
+	temp = SensorsChiptemperatureGet();
+	uint16_t timePassed2 = CounterGet();
+	temperatureToString(text, len, "MCU:", temp);
 	print(text);
+	femtoSnprintf(text, len, "Ticks %u, %u\r\n", timePassed1, timePassed2);
+	print(text);
+
+	CounterStart();
 	uint16_t inputVoltage = SensorsInputvoltageGet();
-	femtoSnprintf(text, len, "Uin:  %umV\r\n", inputVoltage);
+	timePassed1 = CounterGet();
+	femtoSnprintf(text, len, "Uin:  %umV, t: %u\r\n", inputVoltage, timePassed1);
 	print(text);
-	femtoSnprintf(text, len, "Vcc raw: %u\r\n", VccRaw());
+
+	CounterStart();
+	temp = VccRaw();
+	timePassed1 = CounterGet();
+	femtoSnprintf(text, len, "Vcc raw: %u, t: %u\r\n", temp, timePassed1);
 	print(text);
-	femtoSnprintf(text, len, "Drop raw: %u\r\n", DropRaw());
+
+	CounterStart();
+	temp = DropRaw();
+	timePassed1 = CounterGet();
+	femtoSnprintf(text, len, "Drop raw: %u, t: %u\r\n", temp, timePassed1);
 	print(text);
+
+	CounterStart();
 	uint16_t batteryVoltage = SensorsBatteryvoltageGet();
-	femtoSnprintf(text, len, "Ubat: %umV\r\n", batteryVoltage);
+	timePassed1 = CounterGet();
+	femtoSnprintf(text, len, "Ubat: %umV, t: %u\r\n", batteryVoltage, timePassed1);
 	print(text);
+
+	CounterStart();
 	uint16_t batteryCurrent = SensorsBatterycurrentGet();
-	femtoSnprintf(text, len, "Ibat: %umA\r\n", batteryCurrent);
+	timePassed1 = CounterGet();
+	femtoSnprintf(text, len, "Ibat: %umA, t: %u\r\n", batteryCurrent, timePassed1);
 	print(text);
+
 	char sck = SpiSckLevel() ? '1' : '0';
 	char di = SpiDiLevel() ? '1' : '0';
 	femtoSnprintf(text, len, "SPI DI: %c SCK: %c\r\n", sck, di);
@@ -234,7 +262,7 @@ static void chargerTest(uint8_t force) {
 	size_t len = sizeof(text);
 	CounterStart(); //starts an 1ms counter
 	while (KeyPressedLeft() == 0) {
-		uint16_t timePassed = CounterGet();
+		uint16_t timePassed = CounterGetMs();
 		if (timePassed < 100) {
 			waitms(100 - timePassed);
 		}
@@ -242,7 +270,7 @@ static void chargerTest(uint8_t force) {
 		uint16_t inputVoltage = SensorsInputvoltageGet();
 		uint16_t batteryVoltage = SensorsBatteryvoltageGet();
 		uint16_t batteryCurrent = SensorsBatterycurrentGet();
-		timePassed = CounterGet();
+		timePassed = CounterGetMs();
 		CounterStart();
 		uint16_t pwm = ChargerCycle(&cS, batteryVoltage, inputVoltage, batteryCurrent, batteryTemperature, 100, timePassed, force);
 		PwmBatterySet(pwm);
@@ -290,7 +318,7 @@ int main(void) {
 	HardwareInit();
 	softtx_init();
 	waitms(10); //let the uart have one level for a longer time
-	print_p(PSTR("Test everything 0.9\r\n"));
+	print_p(PSTR("Test everything 1.0\r\n"));
 	print_p(g_tests[0].name);
 	uint8_t testSelected = 0;
 	uint8_t pressedLeft = 0, pressedRight = 0, pressedRepeatRight = 0;
