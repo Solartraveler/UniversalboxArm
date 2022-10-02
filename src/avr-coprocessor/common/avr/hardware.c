@@ -99,9 +99,9 @@ int16_t SensorsBatterytemperatureGet(void) {
 	Typically ad1 reads as 302 @ 20°C and 5V
 	And ad2 reads as 326 @ 5V
 	*/
-	uint32_t divisor = (ad2*48ULL) - 15ULL*ad1;
+	uint32_t divisor = (ad2*48UL) - 15UL*ad1; //48 = R1+R2, 15 = R2
 	if ((ad2 > 100) && (divisor != 0)) { //USB must be connected
-		uint32_t ohm = (70500ULL*ad1)/divisor;
+		uint32_t ohm = (70500UL*ad1)/divisor;
 		uint32_t gradcelsius10th = (-(ohm*ohm*10/141996) + (ohm*100/108) - 1306);
 		return gradcelsius10th;
 	} else {
@@ -144,12 +144,15 @@ Uin[V] = 96*AD / 15345
 Uin[V] = 96*AD / 15345
 Uin[mV] = 96000*AD / 15345
 Uin[mV] = 19200*AD / 3069
+faster approximation (error is less than 0.01%):
+Uin[mV] = 51250*AD / 8192
+
 */
 uint16_t SensorsInputvoltageGet(void) {
 	AdStartExtRef(ADPRESCALER, 4);
 	uint32_t ad = AdGet();
-	ad *= 19200UL;
-	ad /= 3069UL;
+	ad *= 51250UL;
+	ad /= 8192UL;
 	return ad;
 }
 
@@ -160,12 +163,14 @@ R2 = 47kΩ
 Uin[V] = 188*AD / 48081
 Uin[mV] = 188000*AD / 48081
 Uin[mV] = 4000*AD / 1023
+Approximate for speed, error is 0.023%)
+Uin[mV] = 4003*AD / 1024
 */
 uint16_t SensorsBatteryvoltageGet(void) {
 	AdStartExtRef(ADPRESCALER, 3);
 	uint32_t ad = AdGet();
-	ad *= 4000UL;
-	ad /= 1023UL;
+	ad *= 4003UL;
+	ad /= 1024UL;
 	return ad;
 }
 
@@ -180,16 +185,18 @@ uint16_t SensorsBatteryvoltageGet(void) {
 	I_R20[mA] = (192mV*AD/119.691Ω)
 	With gain 8:
 	I_R20[mA] = (24mV*AD/119.691Ω)
-	With 5x sample (exactly the number of samples possible within one PWM timer cycle):
+	With 5x sample:
 	I_R20[mA] = (24mV*(Sum(AD0...AD4))/598.455Ω)
 	Approximated:
 	I_R20[mA] = (4mV*Sum(AD0...AD4))/100Ω)
 	Range check:
 	4 * 1023 * 5 = 20460 -> uint16_t is enough
 	With 10x sample:
-	I_R20[mA] = (4mV*Sum(AD0...AD4))/200Ω)
+	I_R20[mA] = (4mV*Sum(AD0...AD9))/200Ω)
 	Maximum current which can be measured with 8x gain:
 	204mA
+	Save the division and use shifts (~0.16% error from perfect calculation):
+	I_R20[mA] = (41mV*(Sum(AD0...AD4))/2048Ω)
 */
 uint16_t SensorsBatterycurrentGet(void) {
 	/* pos: PA5, neg: PA6:
@@ -197,7 +204,7 @@ uint16_t SensorsBatterycurrentGet(void) {
 	  Gain 8x: 0x2D
 	  Gain 20: 0x15
 	  Conversion time: 13 clock cycles -> 9615 conversions/s @ 125kHz clock
-	  Charging is done with 1893Hz PWM -> sample 10 times to get a better average
+	  Charging is done with 250kHz PWM -> sample 10 times to get a better average
 	*/
 	uint16_t adsum = 0;
 	AdStop(); //otherwise the first differential measurement is garbage
@@ -205,9 +212,8 @@ uint16_t SensorsBatterycurrentGet(void) {
 		AdStartExtRefGain(ADPRESCALER, 0x2D);
 		adsum += AdGet();
 	}
-	adsum *= 4;
-	adsum /= 200;
-	return adsum;
+	uint32_t temp = (uint32_t)adsum * 41UL;
+	return temp / 2048;
 }
 
 //in 0.1°C units
@@ -227,8 +233,10 @@ int16_t SensorsChiptemperatureGet(void) {
 	  Temperature[0.1°C] = ((ADC - 230)*10) / 1.12 - 400
 	  Temperature[0.1°C] = ((ADC - 230)*1000) / 112 - 400
 	  Temperature[0.1°C] = ((ADC - 230)*125) / 14 - 400
+	  Speed improvement (error less than 0.1%):
+	  Temperature[0.1°C] = ((ADC - 230)*146286) / 16384 - 400
 	*/
-	int32_t temperature = ((ad - 230) * 125UL / 14UL) - 400;
+	int32_t temperature = ((ad - 230) * 146286UL / 16384UL) - 400;
 	return temperature;
 }
 
