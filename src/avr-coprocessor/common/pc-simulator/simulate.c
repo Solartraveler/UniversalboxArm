@@ -197,6 +197,11 @@ void simulateReadExtendedStates(void) {
 	dataIn = simulateSpiCommand(dataOut, false);
 	printf("Alarm: %us\r\n", dataIn);
 
+	dataOut = CMD_CPU_LOAD << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Cpu load: %u%%\r\n", dataIn);
+
+
 }
 
 void simulateWakeupTimer(void) {
