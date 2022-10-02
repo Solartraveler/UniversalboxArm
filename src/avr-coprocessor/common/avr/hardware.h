@@ -270,6 +270,20 @@ static inline bool TimerHasOverflownIsr(void) {
 	return false;
 }
 
+static inline uint8_t TimerGetValue(void) {
+	return g_timer0Cnt;
+}
+
+static inline uint16_t TimerGetTicksLeft(void) {
+	const uint16_t timerMax = F_CPU/(64UL* 100UL); //10ms timing
+	uint16_t counter = TCNT0L; //low must be read first
+	counter |= (TCNT0H << 8);
+	return timerMax - counter;
+}
+
+static inline uint32_t TimerGetTicksPerSecond(void) {
+	return F_CPU/64UL;
+}
 
 static inline void TimerStop(void) {
 	TCCR0B = 0;

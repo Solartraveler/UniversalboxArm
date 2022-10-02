@@ -81,6 +81,12 @@ bool TimerHasOverflown(void);
 
 bool TimerHasOverflownIsr(void);
 
+uint8_t TimerGetValue(void);
+
+uint16_t TimerGetTicksLeft(void);
+
+uint32_t TimerGetTicksPerSecond(void);
+
 void TimerStop(void);
 
 void WatchdogReset(void);

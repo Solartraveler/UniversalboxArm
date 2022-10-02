@@ -537,6 +537,23 @@ void TimerFast(void) {
 	g_timerSlow = false;
 }
 
+uint8_t TimerGetValue(void) {
+	return TimeGetMs()/10;
+}
+
+uint16_t TimerGetTicksLeft(void) {
+	uint64_t stamp = TimeGetMs();
+	uint32_t minWait = 10;
+	if ((g_timestamp + minWait) <= stamp) {
+		return 0;
+	}
+	return g_timestamp + minWait - stamp;
+}
+
+uint32_t TimerGetTicksPerSecond(void) {
+	return 1000;
+}
+
 void TimerStop(void) {
 	printf("Timer stopped\n");
 }
