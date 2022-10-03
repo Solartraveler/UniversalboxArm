@@ -213,7 +213,7 @@ $(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
 
 
 # Compile: create assembler files from C source files.
-$(BUILD_DIR)/%.o: %.S | $(BUILD_DIR)
+$(BUILD_DIR)/%.s: %.c | $(BUILD_DIR)
 	$(CC) -S $(ALL_CFLAGS) $< -o $@
 
 

@@ -171,7 +171,7 @@ $(BUILD_DIR):
 upload: program
 
 program: $(TARGET).hex $(TARGET).eep
-	$(AVRDUDE) $(AVRDUDE_FLAGS) -B 100kHz $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
+	$(AVRDUDE) $(AVRDUDE_FLAGS) -B 75kHz $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
 #set to 8Mhz internal resonator, no self programming, brown out at 1.8V, no clock div, fastest startup
 fuses:
