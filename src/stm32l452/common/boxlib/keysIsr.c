@@ -19,44 +19,59 @@ The implementation currently does not support other external interrupts on pins
 
 #define KEYS_NUM 4
 
-uint8_t g_keysPressed[KEYS_NUM];
+#define KEY_RIGHT 0
+#define KEY_LEFT 1
+#define KEY_UP 2
+#define KEY_DOWN 3
+
+
+bool g_keysPressed[KEYS_NUM];
 
 //internal ISR state variables
 bool g_keysState[KEYS_NUM];
 uint32_t g_keyDownTimestamp[KEYS_NUM];
 
-
-void KeyUpdateState(uint32_t gpioPort, uint32_t gpioPin, uint8_t index) {
+void KeyUpdateState(GPIO_TypeDef * gpioPort, uint32_t gpioPin, uint8_t index) {
 	bool oldState = g_keysState[index];
-	bool pressed = false;
-	if (HAL_GPIO_ReadPin(gpioPort, gpioPin) == GPIO_PIN_RESET) {
-		pressed = true;
-	}
-	if ((oldState) & (!pressed)) { //key release
-		uint32_t deltaTime = HAL_GetTick() - g_keyDownTimestamp[index];
-		if (deltaTime > 20) { //20ms to make sure we dont trigger on debouncing keys
-			g_keysPressed[index] = 1;
+	if (__HAL_GPIO_EXTI_GET_IT(gpioPin)) {
+		//If this is pending, it *must* always be cleared, otherwise we end up in endless interrupt
+		__HAL_GPIO_EXTI_CLEAR_IT(gpioPin);
+		bool pressed = false;
+		/* By clearing the pending bit before reading the state, we make sure we do
+		  not miss the very last down bounce. Because this will trigger in an additional
+		  ISR and then with the correct pin state.
+		*/
+		if (HAL_GPIO_ReadPin(gpioPort, gpioPin) == GPIO_PIN_RESET) {
+			pressed = true;
 		}
-		g_keysState[index] = false;
-		__HAL_GPIO_EXTI_CLEAR_IT(gpioPin);
-	} else if ((!oldState) & (pressed)) { //key pressed
-		g_keyDownTimestamp[index] = HAL_GetTick();
-		g_keysState[index] = true;
-		__HAL_GPIO_EXTI_CLEAR_IT(gpioPin);
+		if ((oldState) && (!pressed)) { //key release
+			uint32_t deltaTime = HAL_GetTick() - g_keyDownTimestamp[index];
+			if (deltaTime > 10) { //10ms to make sure we don't trigger on debouncing keys
+				g_keysPressed[index] = true;
+				g_keysState[index] = false;
+			}
+		} else if ((!oldState) && (pressed)) {
+			g_keyDownTimestamp[index] = HAL_GetTick();
+			g_keysState[index] = true;
+		}
 	}
 }
 
 void EXTI9_5_IRQHandler(void) {
-	KeyUpdateState(KeyRight_GPIO_Port, KeyRight_Pin, 0);
-	KeyUpdateState(KeyDown_GPIO_Port, KeyDown_Pin, 3);
+	KeyUpdateState(KeyRight_GPIO_Port, KeyRight_Pin, KEY_RIGHT);
+	KeyUpdateState(KeyDown_GPIO_Port, KeyDown_Pin, KEY_DOWN);
 }
 
 void EXTI15_10_IRQHandler(void) {
-	KeyUpdateState(KeyLeft_GPIO_Port, KeyLeft_Pin, 1);
-	KeyUpdateState(KeyUp_GPIO_Port, KeyUp_Pin, 2);
+	KeyUpdateState(KeyLeft_GPIO_Port, KeyLeft_Pin, KEY_LEFT);
+	KeyUpdateState(KeyUp_GPIO_Port, KeyUp_Pin, KEY_UP);
 }
 
 void KeysInit(void) {
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	/* Rising and falling edge for Pin C13, C8, A15, B9 */
@@ -83,32 +98,32 @@ void KeysInit(void) {
 }
 
 bool KeyRightPressed(void) {
-	if (g_keysPressed[0]) {
-		g_keysPressed[0] = 0;
+	if (g_keysPressed[KEY_RIGHT]) {
+		g_keysPressed[KEY_RIGHT] = false;
 		return true;
 	}
 	return false;
 }
 
 bool KeyLeftPressed(void) {
-	if (g_keysPressed[1]) {
-		g_keysPressed[1] = 0;
+	if (g_keysPressed[KEY_LEFT]) {
+		g_keysPressed[KEY_LEFT] = false;
 		return true;
 	}
 	return false;
 }
 
 bool KeyUpPressed(void) {
-	if (g_keysPressed[2]) {
-		g_keysPressed[2] = 0;
+	if (g_keysPressed[KEY_UP]) {
+		g_keysPressed[KEY_UP] = false;
 		return true;
 	}
 	return false;
 }
 
 bool KeyDownPressed(void) {
-	if (g_keysPressed[3]) {
-		g_keysPressed[3] = 0;
+	if (g_keysPressed[KEY_DOWN]) {
+		g_keysPressed[KEY_DOWN] = false;
 		return true;
 	}
 	return false;
