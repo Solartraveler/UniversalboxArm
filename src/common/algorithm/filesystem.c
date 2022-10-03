@@ -86,11 +86,11 @@ void FilesystemWriteLcd(const char * lcdType) {
 		UINT written = 0;
 		FRESULT res = f_write(&f, buffer, strlen(buffer), &written);
 		if (res == FR_OK) {
-			printf("Display set\n");
+			printf("Display set\r\n");
 		}
 		f_close(&f);
 	} else {
-		printf("Error, could not create file\n");
+		printf("Error, could not create file\r\n");
 	}
 }
 
