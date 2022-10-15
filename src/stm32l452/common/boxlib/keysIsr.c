@@ -75,7 +75,7 @@ void KeysInit(void) {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	/* Rising and falling edge for Pin C13, C8, A15, B9 */
-	GPIO_InitStruct.Pin = KeyUp_Pin|KeyDown_Pin;
+	GPIO_InitStruct.Pin = KeyUp_Pin | KeyDown_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
