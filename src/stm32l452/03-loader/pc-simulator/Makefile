@@ -37,12 +37,12 @@ SIMCOMMON=$(COMMON)/pc-simulator
 
 BOXLIB=$(SIMCOMMON)/boxlib
 USBLIB=$(COMMON)/libusb_stm32
-LWIPLIB=$(COMMON)/lwip
+LWIPLIB=$(VERYCOMMON)/lwip
 HALLIB=$(SIMCOMMON)/HAL
 FATFS=$(COMMON)/fatfs
 ALGORITHM=$(VERYCOMMON)/algorithm
-JSMN=$(COMMON)/jsmn
-MENUINTERPRETER=$(COMMON)/menuInterpreter
+JSMN=$(VERYCOMMON)/jsmn
+MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
 
 ######################################
 # source

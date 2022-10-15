@@ -72,11 +72,11 @@ BOXLIB=$(COMMON)/boxlib
 DISPLAYLIB1=$(COMMON)/st7735
 DISPLAYLIB2=$(COMMON)/ili9341
 USBLIB=$(COMMON)/libusb_stm32
-LWIPLIB=$(COMMON)/lwip
+LWIPLIB=$(VERYCOMMON)/lwip
 FATFS=$(COMMON)/fatfs
 ALGORITHM=$(VERYCOMMON)/algorithm
-JSMN=$(COMMON)/jsmn
-MENUINTERPRETER=$(COMMON)/menuInterpreter
+JSMN=$(VERYCOMMON)/jsmn
+MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
 
 ######################################
 # source

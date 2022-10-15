@@ -36,12 +36,12 @@ VERYCOMMON=../../../common
 SIMCOMMON=$(COMMON)/pc-simulator
 
 BOXLIB=$(SIMCOMMON)/boxlib
-LWIPLIB=$(COMMON)/lwip
+LWIPLIB=$(VERYCOMMON)/lwip
 HALLIB=$(SIMCOMMON)/HAL
 FATFS=$(COMMON)/fatfs
 ALGORITHM=$(VERYCOMMON)/algorithm
-JSMN=$(COMMON)/jsmn
-MENUINTERPRETER=$(COMMON)/menuInterpreter
+JSMN=$(VERYCOMMON)/jsmn
+MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
 
 ######################################
 # source
