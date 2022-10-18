@@ -1,5 +1,10 @@
 #pragma once
 
+/*Call to configure GPIOs, otherwise all other functions may be called but have
+  no effect. After init, all LEDs are off.
+*/
+void LedsInit(void);
+
 void Led1Red(void);
 
 void Led1Green(void);

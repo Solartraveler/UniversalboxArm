@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+void EspInit(void);
+
 void EspEnable(void);
 
 void EspStop(void);

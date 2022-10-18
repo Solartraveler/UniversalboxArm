@@ -8,6 +8,9 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include "relays.h"
 
+void RelaysInit(void) {
+}
+
 void Relay1Set(bool state) {
 	(void)state;
 }

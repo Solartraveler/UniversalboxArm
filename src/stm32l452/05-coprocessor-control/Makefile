@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Coprocessor-control
 #Version of this application, to be used in the metadata
-VERSION  = 0.6.1
+VERSION  = 0.7.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -83,7 +83,6 @@ MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
 # C sources
 C_SOURCES =  \
 Core/Src/main.c \
-Core/Src/gpio.c \
 Core/Src/spi.c \
 Core/Src/usart.c \
 Core/Src/stm32l4xx_it.c \

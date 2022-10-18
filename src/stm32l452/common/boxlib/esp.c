@@ -13,6 +13,20 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include "main.h"
 #include "usart.h"
 
+void EspInit(void) {
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+
+	HAL_GPIO_WritePin(EspPower_GPIO_Port, EspPower_Pin, GPIO_PIN_SET);
+
+	GPIO_InitStruct.Pin = EspPower_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(EspPower_GPIO_Port, &GPIO_InitStruct);
+}
+
 void EspEnable(void) {
 	MX_USART3_UART_Init();
 	HAL_GPIO_WritePin(EspPower_GPIO_Port, EspPower_Pin, GPIO_PIN_RESET);

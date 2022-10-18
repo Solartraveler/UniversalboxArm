@@ -39,6 +39,7 @@ volatile uint16_t g_uart4BufferReadIdx;
 volatile uint16_t g_uart4BufferWriteIdx;
 
 void ForwarderInit(void) {
+	LedsInit();
 	Led1Yellow();
 	PeripheralPowerOff();
 	HAL_Delay(500);

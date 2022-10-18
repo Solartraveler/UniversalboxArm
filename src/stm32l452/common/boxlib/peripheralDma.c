@@ -40,6 +40,8 @@ void PeripheralInit(void) {
 	}
 	__HAL_LINKDMA(&hspi2,hdmatx,g_hdma_spi2_tx);
 	HAL_SPI_RegisterCallback(&hspi2, HAL_SPI_TX_COMPLETE_CB_ID, &PeripheralTransferComplete);
+
+	PeripheralGpioInit();
 }
 
 void PeripheralTransferBackground(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {

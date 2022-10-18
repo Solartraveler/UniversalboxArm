@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+void CoprocInit(void);
+
 //for test only. Read the pin state.
 bool CoprocInGet(void);
 

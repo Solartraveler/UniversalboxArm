@@ -8,6 +8,8 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include "ir.h"
 
+void IrInit(void) {
+}
 
 void IrOn(void) {
 }

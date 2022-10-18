@@ -2,6 +2,8 @@
 
 #include "lcd.h"
 
+void LedsInit(void);
+
 /* The LEDs are simulated by the LCD on the PC, but leds.c provides a dummy
    implementation as weak functions
 */

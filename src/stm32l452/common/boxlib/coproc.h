@@ -3,6 +3,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+//Call for setting up the GPIOs
+void CoprocInit(void);
+
 //for test only. Read the pin state.
 bool CoprocInGet(void);
 

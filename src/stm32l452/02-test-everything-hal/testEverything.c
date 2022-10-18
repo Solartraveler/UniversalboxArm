@@ -71,10 +71,12 @@ void mainMenu(void) {
 }
 
 void testInit(void) {
+	LedsInit();
 	Led1Red();
 	HAL_Delay(100);
 	Rs232Init();
 	printf("Test everything %s\r\n", APPVERSION);
+	CoprocInit();
 	mainMenu();
 }
 
@@ -180,6 +182,7 @@ void setLeds() {
 }
 
 void setRelays() {
+	RelaysInit();
 	printf("\r\nToggle relays by entering 1...4. All other keys return\r\n");
 	char c;
 	bool valid;
@@ -509,6 +512,7 @@ void checkEspPrint(const char * buffer) {
 }
 
 void checkEsp(void) {
+	EspInit();
 	char inBuffer[1024] = {0};
 	size_t maxBuffer = sizeof(inBuffer);
 	printf("\r\n==Enabling Esp==\r\n");
@@ -545,6 +549,7 @@ void checkEsp(void) {
 }
 
 void checkIr(void) {
+	IrInit();
 	IrOn();
 	printf("\r\nIR enabled, signal low will be printed every second until a key is pressed\r\n");
 	char input = 0;

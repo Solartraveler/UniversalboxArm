@@ -19,7 +19,28 @@ SPDX-License-Identifier: BSD-3-Clause
 
 SPI_TypeDef * g_spi = (SPI_TypeDef *)SPI2_BASE;
 
+void PeripheralGpioInit(void) {
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	__HAL_RCC_GPIOA_CLK_ENABLE(); //Backlight, power off pin
+	__HAL_RCC_GPIOC_CLK_ENABLE(); //FlashCs, Lcd A0, LcdCs
+
+	HAL_GPIO_WritePin(GPIOC, FlashCs_Pin | LcdA0_Pin | LcdCs_Pin, GPIO_PIN_RESET);
+
+	HAL_GPIO_WritePin(LcdBacklight_GPIO_Port, LcdBacklight_Pin, GPIO_PIN_SET);
+
+	GPIO_InitStruct.Pin = FlashCs_Pin | LcdA0_Pin | LcdCs_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	GPIO_InitStruct.Pin = LcdBacklight_Pin;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
+
 __weak void PeripheralInit(void) {
+	PeripheralGpioInit();
 }
 
 void PeripheralPowerOn(void) {

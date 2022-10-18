@@ -18,7 +18,7 @@
 #Name of this application
 NAME     = Test-everything
 #Version of this application, to be used in the metadata
-VERSION  = 0.9.0
+VERSION  = 0.10.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -81,7 +81,6 @@ ALGORITHM=$(VERYCOMMON)/algorithm
 # C sources
 C_SOURCES =  \
 Core/Src/main.c \
-Core/Src/gpio.c \
 Core/Src/rtc.c \
 Core/Src/spi.c \
 Core/Src/usart.c \

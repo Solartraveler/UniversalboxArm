@@ -546,6 +546,7 @@ void LoaderTextToDescriptor(const char * text, struct usb_string_descriptor * pD
 }
 
 void LoaderInit(void) {
+	LedsInit();
 	Led1Yellow();
 	PeripheralPowerOff();
 	HAL_Delay(500);
@@ -553,6 +554,7 @@ void LoaderInit(void) {
 	Rs232Init();
 	printf("\r\nLoader %s\r\n", APPVERSION);
 	KeysInit();
+	CoprocInit();
 	PeripheralInit();
 	FlashEnable(64); //250kHz
 	LoaderMountFormat(false);

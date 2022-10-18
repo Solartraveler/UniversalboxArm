@@ -6,6 +6,8 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include "leds.h"
 
+void LedsInit(void) {
+}
 
 /* Non weak function can be found in lcd.c
    so the LEDs will be only visualized if an LCD is initialized.

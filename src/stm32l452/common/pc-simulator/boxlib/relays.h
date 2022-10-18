@@ -2,6 +2,8 @@
 
 #include <stdbool.h>
 
+void RelaysInit(void);
+
 void Relay1Set(bool state);
 
 void Relay2Set(bool state);

@@ -16,17 +16,17 @@ SPDX-License-Identifier:  BSD-3-Clause
 //some devices use 512 byte!
 #define FLASHPAGESIZE 256
 
-bool g_FlashInit;
+bool g_flashInit;
 uint32_t g_flashPrescaler;
 
 static void FlashCsOn(void) {
-	if (g_FlashInit) {
+	if (g_flashInit) {
 		HAL_GPIO_WritePin(FlashCs_GPIO_Port, FlashCs_Pin, GPIO_PIN_RESET);
 	}
 }
 
 static void FlashCsOff(void) {
-	if (g_FlashInit) {
+	if (g_flashInit) {
 		HAL_GPIO_WritePin(FlashCs_GPIO_Port, FlashCs_Pin, GPIO_PIN_SET);
 	}
 }
@@ -39,7 +39,7 @@ void FlashEnable(uint32_t clockPrescaler) {
 	state.Speed = GPIO_SPEED_FREQ_HIGH;
 	g_flashPrescaler = clockPrescaler;
 	HAL_GPIO_Init(FlashCs_GPIO_Port, &state);
-	g_FlashInit = true;
+	g_flashInit = true;
 	HAL_Delay(1);
 	FlashCsOff();
 }
@@ -51,11 +51,11 @@ void FlashDisable(void) {
 	state.Mode = GPIO_MODE_INPUT;
 	state.Pull = GPIO_PULLDOWN;
 	HAL_GPIO_Init(FlashCs_GPIO_Port, &state);
-	g_FlashInit = false;
+	g_flashInit = false;
 }
 
 static void FlashTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
-	if (g_FlashInit) {
+	if (g_flashInit) {
 		FlashCsOn();
 		PeripheralTransfer(dataOut, dataIn, len);
 		FlashCsOff();
@@ -115,7 +115,7 @@ bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
 	out[1] = (address >> 16) & 0xFF;
 	out[2] = (address >> 8) & 0xFF;
 	out[3] = address & 0xFF;
-	if (g_FlashInit) {
+	if (g_flashInit) {
 		PeripheralPrescaler(g_flashPrescaler);
 		FlashWaitNonBusy();
 		FlashCsOn();
@@ -161,7 +161,7 @@ bool FlashWrite(uint32_t address, const uint8_t * buffer, size_t len) {
 	if ((address % FLASHPAGESIZE) || (len % FLASHPAGESIZE)) {
 		return false;
 	}
-	if (!g_FlashInit) {
+	if (!g_flashInit) {
 		return false;
 	}
 	PeripheralPrescaler(g_flashPrescaler);
@@ -177,7 +177,7 @@ bool FlashWrite(uint32_t address, const uint8_t * buffer, size_t len) {
 }
 
 bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len) {
-	if (!g_FlashInit) {
+	if (!g_flashInit) {
 		return false;
 	}
 	PeripheralPrescaler(g_flashPrescaler);

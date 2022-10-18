@@ -20,6 +20,10 @@ uint8_t g_coprocPowerMode;
 uint16_t g_coprocAlarm;
 uint16_t g_coprocWatchdog;
 
+void CoprocInit(void) {
+
+
+}
 
 bool CoprocInGet(void) {
 	return false;

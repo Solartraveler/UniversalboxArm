@@ -11,6 +11,9 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include "esp.h"
 
+void EspInit(void) {
+}
+
 void EspEnable(void) {
 }
 

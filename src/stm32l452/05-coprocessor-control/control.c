@@ -50,6 +50,7 @@ void ControlHelp(void) {
 }
 
 void ControlInit(void) {
+	LedsInit();
 	Led1Yellow();
 	PeripheralPowerOff();
 	HAL_Delay(500);
@@ -63,6 +64,7 @@ void ControlInit(void) {
 		printf("Error, failed to increase CPU clock - %u\r\n", error);
 	}
 	KeysInit();
+	CoprocInit();
 	PeripheralInit();
 	FlashEnable(64); //250kHz
 	FilesystemMount();
@@ -79,8 +81,7 @@ void ExecReset(void) {
 
 void TemperatureToString(char * output, size_t len, int16_t temperature) {
 	char sign[2] = {0};
-	if (temperature != INT16_MIN)
-	{
+	if (temperature != INT16_MIN) {
 		if (temperature < 0) {
 			sign[0] = '-';
 			temperature *= -1;
