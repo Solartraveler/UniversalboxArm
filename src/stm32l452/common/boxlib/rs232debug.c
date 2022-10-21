@@ -14,7 +14,6 @@ SPDX-License-Identifier: BSD-3-Clause
 #include "rs232debug.h"
 
 #include "main.h"
-#include "usart.h"
 
 #include "peripheral.h"
 
@@ -26,16 +25,45 @@ volatile uint16_t g_uartBufferReadIdx;
 volatile uint16_t g_uartBufferWriteIdx;
 
 void Rs232Init(void) {
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+
+	GPIO_InitStruct.Pin = Rs232Tx_Pin | Rs232Rx_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 	PeripheralPowerOn();
 	g_uartBufferReadIdx = 0;
 	g_uartBufferWriteIdx = 0;
-	MX_USART1_UART_Init();
+
+	__HAL_RCC_USART1_CLK_ENABLE();
+	__HAL_RCC_USART1_FORCE_RESET();
+	__HAL_RCC_USART1_RELEASE_RESET();
+
+	/* The lib von ST creates following init values for a USART:
+	   CR1: 0xD
+	   CR2: 0x0
+	   CR3: 0x0
+	   BRR: 0x1A1 -> 417 -> 19200 * 417 =>8MHz clock source
+	*/
+
+	uint32_t pclk =  HAL_RCC_GetPCLK2Freq();
+	const uint32_t baudrate = 19200;
+
+	USART1->BRR = pclk / baudrate;
+	USART1->CR1 = USART_CR1_TE | USART_CR1_RE;
+	USART1->CR1 |= USART_CR1_UE;
+
 	NVIC_EnableIRQ(USART1_IRQn);
 }
 
 void Rs232Stop(void) {
 	NVIC_DisableIRQ(USART1_IRQn);
-	HAL_UART_MspDeInit(&huart1);
+	USART1->CR1 &= ~USART_CR1_UE;
 }
 
 //sending fifo get
@@ -55,7 +83,6 @@ char Rs232WriteGetChar(void) {
 //returns true if the char could be put into the queue
 bool Rs232WritePutChar(char out) {
 	bool succeed = false;
-	UART_HandleTypeDef * phuart = &huart1;
 	uint8_t writeThis = g_uartBufferWriteIdx;
 	uint8_t writeNext = (writeThis + 1) % UARTBUFFERLEN;
 	if (writeNext != g_uartBufferReadIdx) {
@@ -64,8 +91,8 @@ bool Rs232WritePutChar(char out) {
 		succeed = true;
 	}
 	__disable_irq();
-	if (__HAL_UART_GET_IT_SOURCE(phuart, UART_IT_TXE) == RESET) {
-		__HAL_UART_ENABLE_IT(phuart, UART_IT_TXE);
+	if ((USART1->CR1 & USART_CR1_TXEIE) == 0) {
+		USART1->CR1 |= USART_CR1_TXEIE;
 	}
 	__enable_irq();
 	return succeed;
@@ -91,17 +118,16 @@ void Rs232Flush(void) {
 }
 
 void USART1_IRQHandler(void) {
-	UART_HandleTypeDef * phuart = &huart1;
-	if (__HAL_UART_GET_FLAG(phuart, UART_FLAG_TXE) == SET) {
+	if (USART1->ISR & USART_ISR_TXE) {
 		char c = Rs232WriteGetChar();
 		if (c) {
-			phuart->Instance->TDR = c;
+			USART1->TDR = c;
 		} else {
-			__HAL_UART_DISABLE_IT(phuart, UART_IT_TXE);
+			USART1->CR1 &= ~USART_CR1_TXEIE;
 		}
 	}
 	//just clear all flags
-	__HAL_UART_CLEAR_FLAG(phuart, UART_CLEAR_PEF | UART_CLEAR_FEF | UART_CLEAR_NEF | UART_CLEAR_OREF | UART_CLEAR_IDLEF | UART_CLEAR_TCF | UART_CLEAR_LBDF | UART_CLEAR_CTSF | UART_CLEAR_CMF | UART_CLEAR_WUF | UART_CLEAR_RTOF);
+	USART1->ICR |= USART_ICR_PECF | USART_ICR_FECF | USART_ICR_NECF | USART_ICR_ORECF | USART_ICR_IDLECF | USART_ICR_TCCF | USART_ICR_TCBGTCF | USART_ICR_LBDCF | USART_ICR_CTSCF | USART_ICR_RTOCF | USART_ICR_EOBCF | USART_ICR_CMCF | USART_ICR_WUCF;
 }
 
 

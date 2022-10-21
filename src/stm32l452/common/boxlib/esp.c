@@ -11,11 +11,13 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include "esp.h"
 
 #include "main.h"
-#include "usart.h"
 
 void EspInit(void) {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
+	__HAL_RCC_USART3_CLK_ENABLE();
+
+	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 
 	HAL_GPIO_WritePin(EspPower_GPIO_Port, EspPower_Pin, GPIO_PIN_SET);
@@ -25,15 +27,30 @@ void EspInit(void) {
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(EspPower_GPIO_Port, &GPIO_InitStruct);
+
+	GPIO_InitStruct.Pin = EspRxArmTx_Pin | EspTxArmRx_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	uint32_t sysclk = HAL_RCC_GetSysClockFreq();
+	const uint32_t baudrate = 115200;
+
+	USART3->BRR = sysclk / baudrate;
+	USART3->CR1 = USART_CR1_TE | USART_CR1_RE;
 }
 
 void EspEnable(void) {
-	MX_USART3_UART_Init();
+	__HAL_RCC_USART3_CLK_ENABLE();
+	USART3->CR1 |= USART_CR1_UE;
 	HAL_GPIO_WritePin(EspPower_GPIO_Port, EspPower_Pin, GPIO_PIN_RESET);
 }
 
 void EspStop(void) {
-	HAL_UART_DeInit(&huart3);
+	USART3->CR1 &= ~USART_CR1_UE;
+	__HAL_RCC_USART3_CLK_DISABLE();
 	HAL_GPIO_WritePin(EspPower_GPIO_Port, EspPower_Pin, GPIO_PIN_SET);
 }
 
@@ -52,8 +69,11 @@ char EspGetChar(void) {
 }
 
 void EspSendString(const char * str) {
-	size_t len = strlen(str);
-	HAL_UART_Transmit(&huart3, (uint8_t*)str, len, 1000);
+	while (*str) {
+		USART3->TDR = *str;
+		str++;
+		while (((USART3->ISR) & USART_ISR_TXE) == 0);
+	}
 }
 
 uint32_t EspCommand(const char * command, char * response, size_t maxResponse, uint32_t timeout) {

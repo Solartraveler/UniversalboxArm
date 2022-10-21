@@ -14,7 +14,6 @@ License: BSD-3-Clause
 #include "testEverything.h"
 
 #include "stm32l4xx_hal.h"
-#include "usart.h"
 
 #include "boxlib/keys.h"
 #include "boxlib/leds.h"

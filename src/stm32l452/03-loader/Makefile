@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Loader
 #Version of this application, to be used in the metadata
-VERSION  = 0.10.0
+VERSION  = 0.11.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -85,7 +85,6 @@ MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
 C_SOURCES =  \
 Core/Src/main.c \
 Core/Src/spi.c \
-Core/Src/usart.c \
 Core/Src/stm32l4xx_it.c \
 Core/Src/stm32l4xx_hal_msp.c \
 $(STM_HAL)/Src/stm32l4xx_hal.c \
@@ -103,8 +102,6 @@ $(STM_HAL)/Src/stm32l4xx_hal_spi.c \
 $(STM_HAL)/Src/stm32l4xx_hal_spi_ex.c \
 $(STM_HAL)/Src/stm32l4xx_hal_tim.c \
 $(STM_HAL)/Src/stm32l4xx_hal_tim_ex.c \
-$(STM_HAL)/Src/stm32l4xx_hal_uart.c \
-$(STM_HAL)/Src/stm32l4xx_hal_uart_ex.c \
 $(STM_HAL)/Src/stm32l4xx_hal_dma.c \
 Core/Src/system_stm32l4xx.c \
 $(BOXLIB)/keys.c \
