@@ -57,10 +57,9 @@
 /**
   * @brief  ST7735 Size
   */
-#define  ST7735_LCD_PIXEL_WIDTH    ((uint16_t)128)
-#define  ST7735_LCD_PIXEL_HEIGHT   ((uint16_t)128)
+#define  ST7735_LCD_PIXEL_WIDTH_MAX ((uint16_t)160)
+#define  ST7735_LCD_PIXEL_HEIGHT    ((uint16_t)128)
 
-#define ST7735_LCD_COLUMN_OFFSET 32
 #define ST7735_LCD_ROW_OFFSET 0
 
 
@@ -150,7 +149,7 @@
 /** @defgroup ADAFRUIT_SPI_LCD_Exported_Functions
   * @{
   */
-void     st7735_Init(void);
+void     st7735_Init(uint8_t width);
 
 void     st7735_DisplayOn(void);
 void     st7735_DisplayOff(void);

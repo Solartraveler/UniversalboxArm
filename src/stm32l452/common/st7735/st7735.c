@@ -76,6 +76,10 @@
   * @{
   */
 
+//By default for a 128x128 LCD: widht = 128, columnOffset = 32
+uint8_t g_st7735Width;
+uint8_t g_st7735ColumnOffset;
+
 
 /**
 * @}
@@ -95,11 +99,14 @@
 
 /**
   * @brief  Initialize the ST7735 LCD Component.
-  * @param  None
+  * @param  width: Supported 128 or 160
   * @retval None
   */
-void st7735_Init(void)
+void st7735_Init(uint8_t width)
 {
+  g_st7735Width = width;
+  g_st7735ColumnOffset = ST7735_LCD_PIXEL_WIDTH_MAX - width;
+
   uint8_t data = 0;
 
   /* Make a software reset */
@@ -153,11 +160,11 @@ void st7735_Init(void)
   LCD_IO_WriteReg(LCD_REG_42);
   data = 0x00;
   LCD_IO_WriteMultipleData(&data, 1); /* high byte */
-  data = ST7735_LCD_COLUMN_OFFSET;
+  data = g_st7735ColumnOffset;
   LCD_IO_WriteMultipleData(&data, 1); /* low byte */
   data = 0x0;
   LCD_IO_WriteMultipleData(&data, 1); /* high byte */
-  data = ST7735_LCD_PIXEL_WIDTH + ST7735_LCD_COLUMN_OFFSET - 1;
+  data = g_st7735Width + g_st7735ColumnOffset - 1;
   LCD_IO_WriteMultipleData(&data, 1); /* low byte */
   /* Row addr set, 4 args, no delay: YSTART = ROW_OFFSET, YEND = 127 + ROW_OFFSET + PIXEL_HEIGHT*/
   LCD_IO_WriteReg(LCD_REG_43);
@@ -254,7 +261,7 @@ void st7735_DisplayOff(void)
 void st7735_SetCursor(uint16_t Xpos, uint16_t Ypos)
 {
   uint8_t data = 0;
-  Xpos += ST7735_LCD_COLUMN_OFFSET;
+  Xpos += g_st7735ColumnOffset;
   Ypos += ST7735_LCD_ROW_OFFSET;
   LCD_IO_WriteReg(LCD_REG_42);
   data = (Xpos) >> 8;
@@ -279,7 +286,7 @@ void st7735_SetCursor(uint16_t Xpos, uint16_t Ypos)
 void st7735_WritePixel(uint16_t Xpos, uint16_t Ypos, uint16_t RGBCode)
 {
   uint8_t data = 0;
-  if((Xpos >= ST7735_LCD_PIXEL_WIDTH) || (Ypos >= ST7735_LCD_PIXEL_HEIGHT))
+  if((Xpos >= g_st7735Width) || (Ypos >= ST7735_LCD_PIXEL_HEIGHT))
   {
     return;
   }
@@ -317,7 +324,7 @@ void st7735_WriteReg(uint8_t LCDReg, uint8_t LCDRegValue)
 void st7735_SetDisplayWindow(uint16_t Xpos, uint16_t Ypos, uint16_t Width, uint16_t Height)
 {
   uint8_t data = 0;
-  Xpos += ST7735_LCD_COLUMN_OFFSET;
+  Xpos += g_st7735ColumnOffset;
   Ypos += ST7735_LCD_ROW_OFFSET;
   /* Column addr set, 4 args, no delay: XSTART = Xpos, XEND = (Xpos + Width - 1) */
   LCD_IO_WriteReg(LCD_REG_42);
@@ -351,11 +358,11 @@ void st7735_SetDisplayWindow(uint16_t Xpos, uint16_t Ypos, uint16_t Width, uint1
   */
 void st7735_DrawHLine(uint16_t RGBCode, uint16_t Xpos, uint16_t Ypos, uint16_t Length)
 {
-  uint16_t ArrayRGB[ST7735_LCD_PIXEL_WIDTH] = {0};
+  uint16_t ArrayRGB[ST7735_LCD_PIXEL_WIDTH_MAX] = {0};
 
   uint8_t counter = 0;
 
-  if(Xpos + Length > ST7735_LCD_PIXEL_WIDTH) return;
+  if(Xpos + Length > ST7735_LCD_PIXEL_WIDTH_MAX) return;
 
   /* Set Cursor */
   st7735_SetCursor(Xpos, Ypos);
@@ -393,7 +400,7 @@ void st7735_DrawVLine(uint16_t RGBCode, uint16_t Xpos, uint16_t Ypos, uint16_t L
   */
 uint16_t st7735_GetLcdPixelWidth(void)
 {
-  return ST7735_LCD_PIXEL_WIDTH;
+  return g_st7735Width;
 }
 
 /**

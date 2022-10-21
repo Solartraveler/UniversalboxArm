@@ -101,8 +101,11 @@ void LcdInit(eDisplay_t lcdType) {
 	}
 	g_lcdType = lcdType;
 	PeripheralPrescaler(g_lcdPrescaler);
-	if ((g_lcdType == ST7735_128) || (g_lcdType == ST7735_160)) {
-		st7735_Init();
+	if (g_lcdType == ST7735_128) {
+		st7735_Init(128);
+	}
+	if (g_lcdType == ST7735_160) {
+		st7735_Init(160);
 	}
 	if (g_lcdType == ILI9341) {
 		ili9341_Init();
