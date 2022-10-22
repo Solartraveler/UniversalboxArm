@@ -37,8 +37,9 @@ void USB_IRQHandler(void) {
 	UsbIrqOnLeave();
 }
 
-int32_t UsbStart(usbd_device * usbDev, usbd_cfg_callback configCallback,
- usbd_ctl_callback controlCallback, usbd_dsc_callback descriptorCallback) {
+int32_t UsbStartAdv(usbd_device * usbDev, usbd_cfg_callback configCallback,
+ usbd_ctl_callback controlCallback, usbd_dsc_callback descriptorCallback,
+ extraInitFunc_t extraInit) {
 	g_pUsbDev = usbDev;
 	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
@@ -77,6 +78,9 @@ int32_t UsbStart(usbd_device * usbDev, usbd_cfg_callback configCallback,
 	}
 	if (descriptorCallback) {
 		usbd_reg_descr(g_pUsbDev, descriptorCallback);
+	}
+	if (extraInit) {
+		extraInit(g_pUsbDev);
 	}
 
 	usbd_enable(g_pUsbDev, true);
