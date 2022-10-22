@@ -17,11 +17,6 @@
 
 #define PAGESIZE FLASHPAGESIZE
 
-//must be at least 512 byte, so the value from FlashBlocksizeGet() can not be used
-#define BLOCKSIZE 512
-
-//let the first 4K for testing other non FS data
-#define RESERVEDOFFSET 4096
 
 uint8_t g_diskState[FF_VOLUMES] = {STA_NOINIT};
 
@@ -55,7 +50,7 @@ DSTATUS disk_initialize (
 	case DEV_EXTFLASH :
 		if (g_diskState[DEV_EXTFLASH] & STA_NOINIT) {
 			if ((FlashReady()) && (FlashPagesizePowertwoGet()) &&
-			    (FlashBlocksizeGet() <= BLOCKSIZE)) {
+			    (FlashBlocksizeGet() <= DISK_BLOCKSIZE)) {
 				g_diskState[DEV_EXTFLASH] = 0;
 			}
 		}
@@ -77,7 +72,7 @@ DRESULT disk_read (
 {
 	switch (pdrv) {
 	case DEV_EXTFLASH:
-		if (FlashRead(RESERVEDOFFSET + sector * BLOCKSIZE, buff, count * BLOCKSIZE)) {
+		if (FlashRead(DISK_RESERVEDOFFSET + sector * DISK_BLOCKSIZE, buff, count * DISK_BLOCKSIZE)) {
 			return RES_OK;
 		} else {
 			return RES_ERROR;
@@ -101,7 +96,7 @@ DRESULT disk_write (
 {
 	switch (pdrv) {
 	case DEV_EXTFLASH:
-		if (FlashWrite(RESERVEDOFFSET + sector * BLOCKSIZE, buff, count * BLOCKSIZE)) {
+		if (FlashWrite(DISK_RESERVEDOFFSET + sector * DISK_BLOCKSIZE, buff, count * DISK_BLOCKSIZE)) {
 			return RES_OK;
 		} else {
 			return RES_ERROR;
@@ -129,16 +124,16 @@ DRESULT disk_ioctl (
 			return RES_OK;
 		}
 		if (cmd == GET_SECTOR_COUNT) {
-			uint32_t sectors = (FlashSizeGet() - RESERVEDOFFSET) / BLOCKSIZE;
+			uint32_t sectors = (FlashSizeGet() - DISK_RESERVEDOFFSET) / DISK_BLOCKSIZE;
 			*((LBA_t*)buff) = sectors;
 			return RES_OK;
 		}
 		if (cmd == GET_SECTOR_SIZE) {
-			*((WORD*)buff) = BLOCKSIZE;
+			*((WORD*)buff) = DISK_BLOCKSIZE;
 			return RES_OK;
 		}
 		if (cmd == GET_BLOCK_SIZE) {
-			*(DWORD*)buff = BLOCKSIZE;
+			*(DWORD*)buff = DISK_BLOCKSIZE;
 			return RES_OK;
 		}
 	}

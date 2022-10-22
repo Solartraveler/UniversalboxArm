@@ -5,9 +5,17 @@
 #ifndef _DISKIO_DEFINED
 #define _DISKIO_DEFINED
 
+#include "ff.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+//let the first 4K for testing other non FS data
+#define DISK_RESERVEDOFFSET 4096
+
+//must be at least 512 byte, so the value from FlashBlocksizeGet() can not be used
+#define DISK_BLOCKSIZE 512
 
 /* Status of Disk Functions */
 typedef BYTE	DSTATUS;
