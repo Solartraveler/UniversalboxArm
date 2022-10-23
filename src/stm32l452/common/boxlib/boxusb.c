@@ -89,6 +89,14 @@ int32_t UsbStartAdv(usbd_device * usbDev, usbd_cfg_callback configCallback,
 	return laneState;
 }
 
+void UsbLock(void) {
+	NVIC_DisableIRQ(USB_IRQn);
+}
+
+void UsbUnlock(void) {
+	NVIC_EnableIRQ(USB_IRQn);
+}
+
 void UsbStop(void) {
 	if (g_pUsbDev) {
 		usbd_connect(g_pUsbDev, false);
@@ -103,4 +111,6 @@ void UsbStop(void) {
 		g_pUsbDev = NULL;
 	}
 }
+
+
 

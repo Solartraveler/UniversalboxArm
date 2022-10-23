@@ -23,7 +23,14 @@ extraInitFunc_t extraInit);
 UsbStartAdv(usbDev, configCallback, controlCallback, descriptorCallback, NULL)
 
 
-void UsbStop();
+void UsbStop(void);
+
+//disables the USB ISR, so the main loop can alter USB data without conflicts
+void UsbLock(void);
+
+//enables the USB ISR
+void UsbUnlock(void);
+
 
 //implement if some special handling like blinking an LED is needed
 void UsbIrqOnEnter(void);
