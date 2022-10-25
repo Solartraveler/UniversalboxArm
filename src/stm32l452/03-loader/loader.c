@@ -1046,8 +1046,8 @@ static void UnixToFatTimeDate(uint32_t unixTime, uint32_t * timeOut, uint32_t * 
 	time_t tIn = unixTime;
 	struct tm tOut;
 	gmtime_r(&tIn, &tOut);
-	*dateOut = (tOut.tm_year - 80) | ((tOut.tm_mon + 1)<< 5) | (tOut.tm_mday << 9);
-	*timeOut = (tOut.tm_sec >> 1) | (tOut.tm_min << 5) | ((tOut.tm_year - 80) << 11);
+	*dateOut = ((tOut.tm_year - 80) << 9) | ((tOut.tm_mon + 1) << 5) | tOut.tm_mday;
+	*timeOut = (tOut.tm_hour << 11) | (tOut.tm_min << 5) | (tOut.tm_sec >> 1);
 }
 
 bool LoaderTarSave(void) {
