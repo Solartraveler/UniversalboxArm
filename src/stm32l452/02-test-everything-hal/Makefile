@@ -18,7 +18,7 @@
 #Name of this application
 NAME     = Test-everything
 #Version of this application, to be used in the metadata
-VERSION  = 0.11.0
+VERSION  = 0.11.1
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -82,7 +82,6 @@ ALGORITHM=$(VERYCOMMON)/algorithm
 C_SOURCES =  \
 Core/Src/main.c \
 Core/Src/rtc.c \
-Core/Src/spi.c \
 Core/Src/stm32l4xx_it.c \
 Core/Src/stm32l4xx_hal_msp.c \
 $(STM_HAL)/Src/stm32l4xx_hal.c \

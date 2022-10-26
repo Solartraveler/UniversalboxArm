@@ -15,14 +15,13 @@ SPDX-License-Identifier: BSD-3-Clause
 #include "lcd.h"
 #include "flash.h"
 
-#include "spi.h"
+SPI_HandleTypeDef g_hspi2;
 
-SPI_TypeDef * g_spi = (SPI_TypeDef *)SPI2_BASE;
-
-void PeripheralGpioInit(void) {
+void PeripheralBaseInit(void) {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	__HAL_RCC_GPIOA_CLK_ENABLE(); //Backlight, power off pin
+	__HAL_RCC_GPIOB_CLK_ENABLE(); //SPI2 pins
 	__HAL_RCC_GPIOC_CLK_ENABLE(); //FlashCs, Lcd A0, LcdCs
 
 	HAL_GPIO_WritePin(GPIOC, FlashCs_Pin | LcdA0_Pin | LcdCs_Pin, GPIO_PIN_RESET);
@@ -37,10 +36,46 @@ void PeripheralGpioInit(void) {
 
 	GPIO_InitStruct.Pin = LcdBacklight_Pin;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	__HAL_RCC_SPI2_CLK_ENABLE();
+
+	GPIO_InitStruct.Pin = PerSpiSck_Pin | PerSpiMosi_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	GPIO_InitStruct.Pin = PerSpiMiso_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	//Copied from the STM cube generator output:
+	g_hspi2.Instance = SPI2;
+	g_hspi2.Init.Mode = SPI_MODE_MASTER;
+	g_hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+	g_hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+	g_hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+	g_hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+	g_hspi2.Init.NSS = SPI_NSS_SOFT;
+	//The scaler is of no real importance here, as it is set before every access anyway
+	g_hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+	g_hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+	g_hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+	g_hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+	g_hspi2.Init.CRCPolynomial = 7;
+	g_hspi2.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
+	g_hspi2.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+	HAL_SPI_Init(&g_hspi2);
+
+
 }
 
 __weak void PeripheralInit(void) {
-	PeripheralGpioInit();
+	PeripheralBaseInit();
 }
 
 void PeripheralPowerOn(void) {
@@ -50,14 +85,13 @@ void PeripheralPowerOn(void) {
 	pinState.Pull = GPIO_PULLDOWN;
 	pinState.Pin = PeripheralNPower_Pin;
 	HAL_GPIO_Init(PeripheralNPower_GPIO_Port, &pinState);
-	HAL_SPI_MspInit(&hspi2);
 }
 
 void PeripheralPowerOff(void) {
 	LcdDisable();
 	FlashDisable();
 
-	HAL_SPI_MspDeInit(&hspi2);
+	__HAL_RCC_SPI2_CLK_DISABLE();
 
 	//disables the LCD, external flash and RS232
 	GPIO_InitTypeDef pinState = {0};
@@ -69,11 +103,11 @@ void PeripheralPowerOff(void) {
 
 __weak void PeripheralTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
 	if ((dataIn) && (dataOut)) {
-		HAL_SPI_TransmitReceive(&hspi2, (uint8_t*)dataOut, dataIn, len, 100);
+		HAL_SPI_TransmitReceive(&g_hspi2, (uint8_t*)dataOut, dataIn, len, 100);
 	} else if (dataOut) {
-		HAL_SPI_Transmit(&hspi2, (uint8_t*)dataOut, len, 100);
+		HAL_SPI_Transmit(&g_hspi2, (uint8_t*)dataOut, len, 100);
 	} else if (dataIn) {
-		HAL_SPI_Receive(&hspi2 ,dataIn, len, 100);
+		HAL_SPI_Receive(&g_hspi2 ,dataIn, len, 100);
 	}
 }
 
@@ -100,10 +134,10 @@ void PeripheralPrescaler(uint32_t prescaler) {
 	} else {
 		bits = SPI_BAUDRATEPRESCALER_256;
 	}
-	uint32_t reg = READ_REG(hspi2.Instance->CR1);
+	uint32_t reg = READ_REG(g_hspi2.Instance->CR1);
 	reg &= ~SPI_CR1_BR_Msk;
 	reg |= bits;
-	WRITE_REG(hspi2.Instance->CR1, reg);
+	WRITE_REG(g_hspi2.Instance->CR1, reg);
 }
 
 __weak void PeripheralTransferWaitDone(void) {

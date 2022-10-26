@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 //Do not call directly, already done by PeripheralInit
-void PeripheralGpioInit();
+void PeripheralBaseInit();
 
 /*Required for GPIO init and if used, for DMA.
   PeripheralPowerOn and Off are independed from this function, so power can be

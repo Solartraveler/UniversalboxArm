@@ -7,9 +7,13 @@
 
 #include "peripheral.h"
 #include "main.h"
-#include "spi.h"
 
 DMA_HandleTypeDef g_hdma_spi2_tx;
+
+
+
+//defined in peripheral.c
+extern SPI_HandleTypeDef g_hspi2;
 
 volatile bool g_PeripheralDmaDone;
 
@@ -22,6 +26,8 @@ void PeripheralTransferComplete(SPI_HandleTypeDef *hspi) {
 }
 
 void PeripheralInit(void) {
+	PeripheralBaseInit(); //must set up g_hspi2 first
+
 	//Copied from the STM cube generator output:
 	__HAL_RCC_DMA1_CLK_ENABLE();
 	HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
@@ -38,23 +44,21 @@ void PeripheralInit(void) {
 	if (HAL_DMA_Init(&g_hdma_spi2_tx) != HAL_OK) {
 		printf("Error, failed to init DMA\r\n");
 	}
-	__HAL_LINKDMA(&hspi2,hdmatx,g_hdma_spi2_tx);
-	HAL_SPI_RegisterCallback(&hspi2, HAL_SPI_TX_COMPLETE_CB_ID, &PeripheralTransferComplete);
-
-	PeripheralGpioInit();
+	__HAL_LINKDMA(&g_hspi2, hdmatx, g_hdma_spi2_tx);
+	HAL_SPI_RegisterCallback(&g_hspi2, HAL_SPI_TX_COMPLETE_CB_ID, &PeripheralTransferComplete);
 }
 
 void PeripheralTransferBackground(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
 	if ((dataIn == NULL) && (len > 7)) {
 		g_PeripheralDmaDone = false;
-		HAL_SPI_Transmit_DMA(&hspi2, (uint8_t*)dataOut, len);
+		HAL_SPI_Transmit_DMA(&g_hspi2, (uint8_t*)dataOut, len);
 	} else {
 		PeripheralTransfer(dataOut, dataIn, len);
 	}
 }
 
 void PeripheralTransferWaitDone(void) {
-	if (hspi2.State != HAL_SPI_STATE_READY) {
+	if (g_hspi2.State != HAL_SPI_STATE_READY) {
 		while (!g_PeripheralDmaDone);
 	}
 }

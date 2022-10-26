@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = USB-Mass-storage
 #Version of this application, to be used in the metadata
-VERSION  = 0.8.1
+VERSION  = 0.8.2
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -84,20 +84,15 @@ MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
 # C sources
 C_SOURCES =  \
 Core/Src/main.c \
-Core/Src/spi.c \
 Core/Src/stm32l4xx_it.c \
 Core/Src/stm32l4xx_hal_msp.c \
 $(STM_HAL)/Src/stm32l4xx_hal.c \
 $(STM_HAL)/Src/stm32l4xx_hal_rcc.c \
 $(STM_HAL)/Src/stm32l4xx_hal_rcc_ex.c \
-$(STM_HAL)/Src/stm32l4xx_hal_flash.c \
-$(STM_HAL)/Src/stm32l4xx_hal_flash_ex.c \
-$(STM_HAL)/Src/stm32l4xx_hal_flash_ramfunc.c \
 $(STM_HAL)/Src/stm32l4xx_hal_gpio.c \
 $(STM_HAL)/Src/stm32l4xx_hal_pwr.c \
 $(STM_HAL)/Src/stm32l4xx_hal_pwr_ex.c \
 $(STM_HAL)/Src/stm32l4xx_hal_cortex.c \
-$(STM_HAL)/Src/stm32l4xx_hal_exti.c \
 $(STM_HAL)/Src/stm32l4xx_hal_spi.c \
 $(STM_HAL)/Src/stm32l4xx_hal_spi_ex.c \
 $(STM_HAL)/Src/stm32l4xx_hal_tim.c \

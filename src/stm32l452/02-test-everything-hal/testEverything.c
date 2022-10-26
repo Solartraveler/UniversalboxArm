@@ -73,9 +73,10 @@ void testInit(void) {
 	LedsInit();
 	Led1Red();
 	HAL_Delay(100);
-	Rs232Init();
+	Rs232Init(); //includes PeripheralPowerOn
 	printf("Test everything %s\r\n", APPVERSION);
 	CoprocInit();
+	PeripheralInit();
 	mainMenu();
 }
 
