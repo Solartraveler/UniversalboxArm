@@ -67,6 +67,7 @@ COMMON=../common
 VERYCOMMON=../../common
 
 STM_HAL=$(COMMON)/STM32L4xx_HAL_Driver
+SHARED_INIT=$(COMMON)/shared-init
 CMSIS=$(COMMON)/CMSIS
 BOXLIB=$(COMMON)/boxlib
 DISPLAYLIB1=$(COMMON)/st7735
@@ -137,7 +138,7 @@ gui.c \
 
 # ASM sources
 ASM_SOURCES =  \
-startup_stm32l452xx.s
+$(SHARED_INIT)/startup_stm32l452xx.s
 
 
 #######################################
@@ -225,6 +226,7 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 # LDFLAGS
 #######################################
 # link script
+# This linker scripts are diffent from the ones of all other firmwares.
 LDSCRIPTFLASH = STM32L452RETx_FLASH.ld
 LDSCRIPTRAM = STM32L452RETx_RAM.ld
 

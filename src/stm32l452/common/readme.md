@@ -42,6 +42,11 @@ Useful for developing and debugging.
 
 License: BSD 3-Clause
 
+## shared-init
+Files from ST. Linker scripts and init assembly routines.
+
+License: Apache 2.0 and BSD 3-Clause
+
 ## st7735 ##
 Files for the 128x128 GLCD
 
