@@ -56,7 +56,7 @@ void ForwarderInit(void) {
 	Led1Green();
 }
 
-//sending fifo get
+//rx fifo get
 char Uart4WriteGetChar(void) {
 	char out = 0;
 	if (g_uart4BufferReadIdx != g_uart4BufferWriteIdx) {

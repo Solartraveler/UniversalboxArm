@@ -371,14 +371,6 @@ bool StorageQueueCsw(usbd_device * dev, uint32_t tag, uint32_t status) {
 	return StorageQueueToHost(dev, &csw, sizeof(csw));
 }
 
-uint32_t BytesFlip(uint32_t in) {
-	uint32_t out = in >> 24;
-	out |= (in & 0xFF0000) >> 8;
-	out |= (in & 0x00FF00) << 8;
-	out |= in << 24;
-	return out;
-}
-
 //called from ISR or the main loop (within the USB lock)
 void EndpointFillDatabuffer(usbd_device *dev, uint8_t ep) {
 	uint32_t index = g_storageState.writeBlockIndex; //reset by main loop

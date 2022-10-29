@@ -533,7 +533,7 @@ void checkEsp(void) {
 		printf("\r\n==Current mode==\r\n");
 		checkEspPrint(inBuffer);
 
-		EspCommand("AT+CWMODE=1\r\n", inBuffer, maxBuffer, 250); //lets become a client
+		EspCommand("AT+CWMODE_CUR=1\r\n", inBuffer, maxBuffer, 250); //lets become a client
 		printf("\r\n==Now a client==\r\n");
 		checkEspPrint(inBuffer);
 
@@ -541,6 +541,11 @@ void checkEsp(void) {
 		EspCommand("AT+CWLAP\r\n", inBuffer, maxBuffer, 7000);
 		printf("\r\n==Available APs==\r\n");
 		checkEspPrint(inBuffer);
+
+		EspCommand("AT+CIPSTART=?\r\n", inBuffer, maxBuffer, 1000);
+		printf("\r\n==Supported connections==\r\n");
+		checkEspPrint(inBuffer);
+
 	} else {
 		printf("Error, no valid answer from ESP detected\r\n");
 	}

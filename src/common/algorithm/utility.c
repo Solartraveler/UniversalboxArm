@@ -7,6 +7,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include <stdint.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "utility.h"
 
@@ -68,3 +69,24 @@ void PrintHex(const uint8_t * data, size_t len) {
 		}
 	}
 }
+
+bool EndsWith(const char * string, const char * ending) {
+	size_t lenStr = strlen(string);
+	size_t lenEnding = strlen(ending);
+	if (lenStr >= lenEnding) {
+		size_t delta = lenStr - lenEnding;
+		if (memcmp(string + delta, ending, lenEnding) == 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
+uint32_t BytesFlip(uint32_t in) {
+	uint32_t out = in >> 24;
+	out |= (in & 0xFF0000) >> 8;
+	out |= (in & 0x00FF00) << 8;
+	out |= in << 24;
+	return out;
+}
+

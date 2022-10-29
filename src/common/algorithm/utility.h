@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 //Use only for variables, as functions returning a value would be evaluated twice
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -19,3 +20,7 @@ uint32_t AsciiScanHex(const char * string);
 uint32_t AsciiScanDec(const char * string);
 
 void PrintHex(const uint8_t * data, size_t len);
+
+bool EndsWith(const char * string, const char * ending);
+
+uint32_t BytesFlip(uint32_t in);
