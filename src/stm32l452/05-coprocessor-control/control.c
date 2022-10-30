@@ -53,7 +53,7 @@ void ControlInit(void) {
 	LedsInit();
 	Led1Yellow();
 	PeripheralPowerOff();
-	HAL_Delay(500);
+	HAL_Delay(100);
 	PeripheralPowerOn();
 	Rs232Init();
 	printf("\r\nCoprocessor control %s\r\n", APPVERSION);
@@ -66,7 +66,7 @@ void ControlInit(void) {
 	KeysInit();
 	CoprocInit();
 	PeripheralInit();
-	FlashEnable(64); //250kHz
+	FlashEnable(4); //4MHz
 	FilesystemMount();
 	GuiInit();
 	Led1Off();

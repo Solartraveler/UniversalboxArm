@@ -549,14 +549,14 @@ void LoaderInit(void) {
 	LedsInit();
 	Led1Yellow();
 	PeripheralPowerOff();
-	HAL_Delay(500);
+	HAL_Delay(100);
 	PeripheralPowerOn();
 	Rs232Init();
 	printf("\r\nLoader %s\r\n", APPVERSION);
 	KeysInit();
 	CoprocInit();
 	PeripheralInit();
-	FlashEnable(64); //250kHz
+	FlashEnable(4); //4MHz
 	LoaderMountFormat(false);
 	g_loaderState.memStart = g_DfuMem;
 	g_loaderState.memSize = g_DfuMemSize;

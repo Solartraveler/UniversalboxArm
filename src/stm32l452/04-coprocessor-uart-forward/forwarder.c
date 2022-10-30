@@ -42,14 +42,14 @@ void ForwarderInit(void) {
 	LedsInit();
 	Led1Yellow();
 	PeripheralPowerOff();
-	HAL_Delay(500);
+	HAL_Delay(100);
 	PeripheralPowerOn();
 	Rs232Init();
 	printf("\r\nCoprocessor UART forwarder %s\r\n", APPVERSION);
 	printf("\r\nReset with 'r' or key up\r\n");
 	KeysInit();
 	PeripheralInit();
-	FlashEnable(64); //250kHz
+	FlashEnable(4); //4MHz
 	FilesystemMount();
 	GuiInit();
 	UartCoprocInit();

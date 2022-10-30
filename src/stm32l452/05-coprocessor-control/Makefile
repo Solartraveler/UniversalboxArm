@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Coprocessor-control
 #Version of this application, to be used in the metadata
-VERSION  = 0.8.3
+VERSION  = 0.9.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata

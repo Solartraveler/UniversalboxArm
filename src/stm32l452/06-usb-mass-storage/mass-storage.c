@@ -53,13 +53,12 @@ The assumptions are:
    support this command. This is ok.
 
 Tested with:
-Linux kernel 5.13: Disk needs 10s to appear
-Windows 10: Disk needs 14s to appear
+Linux kernel 5.13: Disk needs 10s to appear when using 250KHz as flash clock
+Linux kernel 5.13: Disk needs 4s to appear when using 4MHz as flash clock
+Windows 10: Disk needs 14s to appear when using 250KHz as flash clock
 
 TODO:
-1. When the hardware has been modified, the device should be made faster.
-   Reading is really slow.
-2. Get a final USB ID
+1. Get a final USB ID
 */
 
 #include <stdint.h>
@@ -635,7 +634,7 @@ void AppInit(void) {
 	LedsInit();
 	Led1Green();
 	PeripheralPowerOff();
-	HAL_Delay(500);
+	HAL_Delay(100);
 	PeripheralPowerOn();
 	Rs232Init();
 	printf("\r\nUSB Mass-storage %s\r\n", APPVERSION);
@@ -647,8 +646,9 @@ void AppInit(void) {
 	  Divider 32 (500KHz): 37.3kB/s
 	  Divider 16 (1MHz): 60.7kB/s
 	  Divider 8 (2MHz): 81.2kB/s
+	  Divider 4 (4MHz): 97.6kB/s
 	*/
-	FlashEnable(64); //64 = 250kHz
+	FlashEnable(4); //4MHz
 	g_storageState.flashBytes = FlashSizeGet();
 	if (g_storageState.flashBytes >= DISK_RESERVEDOFFSET) {
 		g_storageState.flashBytes -= DISK_RESERVEDOFFSET;
