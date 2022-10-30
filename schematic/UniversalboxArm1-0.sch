@@ -5,8 +5,8 @@ $Descr A2 23386 16535
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "2022-08-21"
-Rev "0.10"
+Date "2022-10-30"
+Rev "0.11"
 Comp ""
 Comment1 ""
 Comment2 ""
@@ -72,7 +72,7 @@ L Device:R R34
 U 1 1 608D64C5
 P 1850 7050
 F 0 "R34" V 1643 7050 50  0000 C CNN
-F 1 "1kΩ" V 1734 7050 50  0000 C CNN
+F 1 "470Ω" V 1734 7050 50  0000 C CNN
 F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 1780 7050 50  0001 C CNN
 F 3 "~" H 1850 7050 50  0001 C CNN
 	1    1850 7050
@@ -2596,7 +2596,7 @@ Spi1Miso
 Text Label 5250 12600 0    50   ~ 0
 Spi1Mosi
 Connection ~ 6800 11800
-Text Notes 3100 11700 0    50   ~ 0
+Text Notes 2700 11700 0    50   ~ 0
 BootPin
 Wire Wire Line
 	15400 9300 16200 9300
@@ -2987,7 +2987,7 @@ L Transistor_FET:BSS138 Q61
 U 1 1 6245C195
 P 14600 13900
 F 0 "Q61" H 14805 13946 50  0000 L CNN
-F 1 "BSS138" H 14805 13855 50  0000 L CNN
+F 1 "IRLML6344" H 14805 13855 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-23" H 14800 13825 50  0001 L CIN
 F 3 "https://www.fairchildsemi.com/datasheets/BS/BSS138.pdf" H 14600 13900 50  0001 L CNN
 	1    14600 13900
@@ -2998,7 +2998,7 @@ L Transistor_FET:BSS138 Q62
 U 1 1 6245CE49
 P 16000 13900
 F 0 "Q62" H 16205 13946 50  0000 L CNN
-F 1 "BSS138" H 16205 13855 50  0000 L CNN
+F 1 "IRLML6344" H 16205 13855 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-23" H 16200 13825 50  0001 L CIN
 F 3 "https://www.fairchildsemi.com/datasheets/BS/BSS138.pdf" H 16000 13900 50  0001 L CNN
 	1    16000 13900
@@ -5417,8 +5417,6 @@ Wire Wire Line
 Connection ~ 9000 8800
 Wire Wire Line
 	9000 8800 9250 8800
-Wire Wire Line
-	9000 9200 9000 9900
 Connection ~ 9000 9900
 Wire Wire Line
 	9000 9900 10550 9900
@@ -5438,8 +5436,6 @@ Wire Wire Line
 Wire Wire Line
 	3100 12400 3750 12400
 Wire Wire Line
-	3100 12300 3750 12300
-Wire Wire Line
 	3050 12200 3050 9900
 Wire Wire Line
 	3050 12200 3750 12200
@@ -5455,7 +5451,7 @@ Wire Notes Line width 12 rgb(255, 0, 0)
 	10800 11800 10350 11800
 Wire Notes Line width 12 rgb(255, 0, 0)
 	10800 11800 10800 11450
-Text Notes 11100 11400 0    50   ~ 0
+Text Notes 11000 11600 0    50   ~ 0
 Replace R53 by Diode\nTS4148 RY
 $Comp
 L pspice:DIODE #D53
@@ -5519,4 +5515,42 @@ Text Notes 11750 15000 0    50   ~ 0
 LED1
 Text Notes 11750 14300 0    50   ~ 0
 LED2
+$Comp
+L Device:R #R55
+U 1 1 6369378A
+P 11200 10950
+F 0 "#R55" V 10993 10950 50  0000 C CNN
+F 1 "4700Ω" V 11084 10950 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 11130 10950 50  0001 C CNN
+F 3 "~" H 11200 10950 50  0001 C CNN
+	1    11200 10950
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	11050 10950 10200 10950
+Wire Wire Line
+	10200 10950 10200 11300
+$Comp
+L power:GND #PWR0109
+U 1 1 6372F3E6
+P 11500 10950
+F 0 "#PWR0109" H 11500 10700 50  0001 C CNN
+F 1 "GND" H 11505 10777 50  0000 C CNN
+F 2 "" H 11500 10950 50  0001 C CNN
+F 3 "" H 11500 10950 50  0001 C CNN
+	1    11500 10950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	11500 10950 11350 10950
+Text Notes 11100 10850 0    50   ~ 0
+Pull down required\nfor >250kHz SPI
+Wire Wire Line
+	9000 9200 9000 9900
+Wire Wire Line
+	3100 12300 3750 12300
+Wire Bus Line
+	9000 9600 3350 9600
+Wire Bus Line
+	3350 9600 3350 12300
 $EndSCHEMATC

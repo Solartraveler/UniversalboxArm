@@ -37,7 +37,7 @@ void LcdCsOff(void) {
 
 #ifndef LcdReset_GPIO_Port
 #define LcdReset_GPIO_Port GPIOC
-#define LcdReset_Pin GPIO_PIN_1
+#define LcdReset_Pin GPIO_PIN_2
 #endif
 
 void LcdResetOff(void) {
