@@ -33,14 +33,14 @@ The assumptions are:
    requests outside of the supported flash, it will silently roll over.
    It would also get struck, should a very large amount of data to be requested
    for reading and writing. Worst case is 2^16 blocks to read, which would take
-   25min at the current speed.
+   minutes at the current speed.
 6. Unknown commands are properly reported as unsupported.
 7. Some commands do nothing and just report everything as fine.
 8. The writeprotect just tells the device is writeprotect, however write
    commands would still work.
 9. The state variables of g_storageState, shared between the main loop and
    the USB ISR, do not use volatile. Volatile is considered deprecated by some
-   newer C++ standards. Instead this implemenation assumes calling to other
+   newer C++ standards. Instead this implementation assumes calling to other
    compilation units (like UsbLock, UsbUnlock in boxusb.c) will enforce the
    compiler to update and re-read global variables as the compiler can not know
    if this can be read or modified there. Some very aggressive optimizing future
@@ -49,13 +49,28 @@ The assumptions are:
 10. Beside the timeouts within QueueBufferToHostWithTimeout and
    QueueCswToHostWithTimeout, this implementation should be free of any side
    effects timing and speed of execution has to the state machine.
-11. Command 0x1B (start/stop unit) is issued by the OS on unmount, we do not
-   support this command. This is ok.
+11. Command 0x1B (start/stop unit) is issued by the OS on unmount, it is not
+   supported. This is ok.
 
 Tested with:
 Linux kernel 5.13: Disk needs 10s to appear when using 250KHz as flash clock
 Linux kernel 5.13: Disk needs 4s to appear when using 4MHz as flash clock
 Windows 10: Disk needs 14s to appear when using 250KHz as flash clock
+
+Reading speed (with 1MiB test) over USB, 16MHz CPU clock, divider for flash:
+Divider 64 (250KHz): 21.8kB/s
+Divider 32 (500KHz): 37.3kB/s
+Divider 16 (1MHz): 60.7kB/s
+Divider 8 (2MHz): 81.2kB/s
+Divider 4 (4MHz): 97.6kB/s
+Divider 4 (4MHz): 94.6kB/s with performance counters, delay in main removed
+Dummy RAM disk: 104kB/s -> need to increase USB, not flash performance
+
+With 64MHz CPU clock and the same as bus speed:
+Divider 16 (4MHz): 104kB/s
+-> USB itself seems to be the bottleneck. It saturates at 3000 ISRs/s, CPU load
+for ISR processing goes down from 13% (16MHz) to 3% (64MHz), but data are just
+waiting to be received from the host.
 
 TODO:
 1. Get a final USB ID
@@ -233,7 +248,8 @@ typedef struct {
 	uint32_t flashBytes; //size of the external flash
 	bool usbEnabled;
 	bool writeProtected;
-	uint8_t usbTraffic; //down counter
+	uint8_t usbTraffic; //down counter for LED control
+	uint32_t timeTrafficChecked;
 	//bulk queue
 	bool toHostBusy; //if true, we need to wait for an event until new data can be sent
 	bulk_t toHost[USB_BULK_QUEUE_LEN];
@@ -264,18 +280,36 @@ typedef struct {
 	uint32_t writeStatus; //accumulate errors of one write request
 } storageState_t;
 
+typedef struct {
+	uint64_t ticksMain; //counts [µs], time processing, accessed from main
+	uint64_t tickUsbIsrStart; //timestmap [µs], only accessed within the ISR
+	uint32_t usbIsrCount; //accessed from main and ISR
+	uint64_t ticksUsbIsr; //counts [µs], time processing, accessed from main and ISR
+	uint32_t tickSampleStart; //stamp [ms] when the values above were resetted last, accessed from main
+	uint64_t ticksMainLast; //relative time consumend within the last ~1s in [µs], accessed from main
+	uint64_t ticksUsbIsrLast; //relative time consumend within the last ~1s in [µs], accessed from main
+	uint32_t usbIsrCountLast; //number usb ISRs processed
+	bool printPerformance;
+} performanceState_t;
+
 storageState_t g_storageState;
+
+performanceState_t g_performanceState;
 
 
 //================== code for USB ==============
 
 void UsbIrqOnEnter(void) {
 	Led1Red();
+	g_performanceState.tickUsbIsrStart = McuTimestampUs();
 }
 
 void UsbIrqOnLeave(void) {
 	Led1Off();
 	g_storageState.usbTraffic = 2;
+	uint64_t tNow = McuTimestampUs();
+	g_performanceState.ticksUsbIsr += tNow - g_performanceState.tickUsbIsrStart;
+	g_performanceState.usbIsrCount++;
 }
 
 static usbd_respond usbGetDesc(usbd_ctlreq *req, void **address, uint16_t *length) {
@@ -322,21 +356,14 @@ static usbd_respond usbGetDesc(usbd_ctlreq *req, void **address, uint16_t *lengt
 	return result;
 }
 
-void EndpointBulkIn(usbd_device *dev, uint8_t event, uint8_t ep) {
-	//printfNowait("Bulk in %u %u\r\n", event, ep);
-}
-
 //Must be called from the USB interrupt, or within the UsbLock from other threads
 void StorageDequeueToHost(usbd_device * dev) {
 	uint32_t thisIndex = g_storageState.toHostR;
 	if (g_storageState.toHostW != thisIndex) { //elements in queue
-		//printfNowait("DE\r\n");
 		usbd_ep_write(dev, USB_ENDPOINT_TOHOST, g_storageState.toHost[thisIndex].data, g_storageState.toHost[thisIndex].len);
 		uint32_t nextIndex = (thisIndex + 1) % USB_BULK_QUEUE_LEN;
 		g_storageState.toHostBusy = true;
 		g_storageState.toHostR = nextIndex;
-	} else {
-		//printfNowait("De\r\n");
 	}
 }
 
@@ -377,17 +404,13 @@ void EndpointFillDatabuffer(usbd_device *dev, uint8_t ep) {
 		if (index < DISK_BLOCKSIZE) {
 			uint32_t toRead = MIN(USB_BULK_BLOCKSIZE, DISK_BLOCKSIZE - index);
 			int32_t res = usbd_ep_read(dev, ep, g_storageState.writeBuffer + index, toRead);
-			//printfNowait("d%u\r\n", res);
 			if (res > 0) {
 				index += res;
 				g_storageState.writeBlockIndex = index;
 				if (index == DISK_BLOCKSIZE) {
 					g_storageState.needWrite = true;
-					//printfNowait("block\r\n");
 				}
 			}
-		} else {
-			//printfNowait("w\r\n");
 		}
 	}
 }
@@ -561,9 +584,6 @@ void EndpointEventTx(usbd_device *dev, uint8_t event, uint8_t ep) {
 	if ((ep == USB_ENDPOINT_TOHOST) && (event == usbd_evt_eptx)) {
 		g_storageState.toHostBusy = false;
 		StorageDequeueToHost(dev);
-		//printfNowait("A\r\n");
-	} else {
-		//printfNowait("B %x %x\r\n", event, ep);
 	}
 }
 
@@ -581,7 +601,6 @@ static usbd_respond usbSetConf(usbd_device *dev, uint8_t cfg) {
 			StorageStateReset();
 			usbd_ep_config(dev, USB_ENDPOINT_TOHOST, USB_EPTYPE_BULK, USB_BULK_BLOCKSIZE);
 			usbd_ep_config(dev, USB_ENDPOINT_FROMHOST, USB_EPTYPE_BULK, USB_BULK_BLOCKSIZE);
-			usbd_reg_endpoint(dev, USB_ENDPOINT_TOHOST, &EndpointBulkIn);
 			usbd_reg_endpoint(dev, USB_ENDPOINT_FROMHOST, &EndpointBulkOut);
 			usbd_reg_event(dev, usbd_evt_eptx, EndpointEventTx);
 			result = usbd_ack;
@@ -627,6 +646,7 @@ void MainMenu(void) {
 	printf("h: This screen\r\n");
 	printf("u: Toggle USB connection\r\n");
 	printf("w: Toggle write protection\r\n");
+	printf("p: Toggle print performance stats\r\n");
 	printf("r: Reboot with reset controller\r\n");
 }
 
@@ -641,13 +661,6 @@ void AppInit(void) {
 	KeysInit();
 	CoprocInit();
 	PeripheralInit();
-	/* Reading speed (with 1MiB test) over USB, 16MHz CPU clock:
-	  Divider 64 (250KHz): 21.8kB/s
-	  Divider 32 (500KHz): 37.3kB/s
-	  Divider 16 (1MHz): 60.7kB/s
-	  Divider 8 (2MHz): 81.2kB/s
-	  Divider 4 (4MHz): 97.6kB/s
-	*/
 	FlashEnable(4); //4MHz
 	g_storageState.flashBytes = FlashSizeGet();
 	if (g_storageState.flashBytes >= DISK_RESERVEDOFFSET) {
@@ -725,38 +738,9 @@ bool QueueCswToHostWithTimeout(usbd_device * dev, uint32_t tag, uint32_t status)
 	return success;
 }
 
-void AppCycle(void) {
-	HAL_Delay(1); //call this loop ~1000x per second
-	char input = Rs232GetChar();
-	if (input) {
-		printf("%c", input);
-	}
-	switch (input) {
-		case 'h': MainMenu(); break;
-		case 'r': NVIC_SystemReset(); break;
-		case 'u': ToggleUsb(); break;
-		case 'w': ToggleWriteprotect(); break;
-		default: break;
-	}
 
-	if (KeyLeftPressed()) {
-		NVIC_SystemReset();
-	}
-	if (KeyUpPressed()) {
-		StorageStart();
-	}
-	if (KeyDownPressed()) {
-		StorageStop();
-	}
-
-	UsbLock();
-	if (g_storageState.usbTraffic) {
-		g_storageState.usbTraffic--;
-	} else {
-		Led1Green(); //no ISR for ~2 cycles
-	}
-	UsbUnlock();
-
+bool ProcessFlashAccess(void) {
+	bool todo = false;
 	if (g_storageState.needRead) {
 		UsbLock();
 		g_storageState.needRead = false;
@@ -790,6 +774,7 @@ void AppCycle(void) {
 		if (!QueueCswToHostWithTimeout(&g_usbDev, g_storageState.tag, status)) {
 			printf("Error, could not queue CSW\r\n");
 		}
+		todo = true;
 	}
 	if (g_storageState.needWrite) {
 		UsbLock();
@@ -832,6 +817,97 @@ void AppCycle(void) {
 				printf("Error, could not queue CSW\r\n");
 			}
 			g_storageState.writeStatus = 0;
+		}
+		todo = true;
+	}
+	return todo;
+}
+
+void PrintPerformance(void) {
+	unsigned int mainPerc = g_performanceState.ticksMainLast / 10000; //µs to percent
+	unsigned int isrPerc = g_performanceState.ticksUsbIsrLast / 10000; //µs to percent
+	unsigned int numIsr = g_performanceState.usbIsrCountLast;
+	printf("CPU load of flash rw: %2u%c, Usb ISR: %03u - %2u%c, \r\n", mainPerc, '%', numIsr, isrPerc, '%');
+}
+
+void TogglePrintPerformance(void) {
+	g_performanceState.printPerformance = !g_performanceState.printPerformance;
+}
+
+void AppCycle(void) {
+	//call this loop as fast as possible to get the maxium flash read/write performance
+	char input = Rs232GetChar();
+	if (input) {
+		printf("%c", input);
+	}
+	switch (input) {
+		case 'h': MainMenu(); break;
+		case 'r': NVIC_SystemReset(); break;
+		case 'u': ToggleUsb(); break;
+		case 'w': ToggleWriteprotect(); break;
+		case 'p': TogglePrintPerformance(); break;
+		default: break;
+	}
+
+	if (KeyLeftPressed()) {
+		NVIC_SystemReset();
+	}
+	if (KeyUpPressed()) {
+		StorageStart();
+	}
+	if (KeyDownPressed()) {
+		StorageStop();
+	}
+
+	uint32_t stamp = HAL_GetTick();
+	if ((stamp - g_storageState.timeTrafficChecked) > 0) {
+		g_storageState.timeTrafficChecked = stamp;
+		UsbLock();
+		if (g_storageState.usbTraffic) {
+			g_storageState.usbTraffic--;
+		} else {
+			Led1Green(); //no ISR for ~2 cycles
+		}
+		UsbUnlock();
+	}
+	uint64_t tStart = McuTimestampUs();
+	UsbLock();
+	uint64_t ticksIsrStart = g_performanceState.ticksUsbIsr;
+	UsbUnlock();
+	bool todo = ProcessFlashAccess();
+	if (todo) { //otherwise we would measure only the polling and have a higher value the more we poll
+		UsbLock();
+		uint64_t ticksIsrStop = g_performanceState.ticksUsbIsr;
+		UsbUnlock();
+		uint32_t tStop = McuTimestampUs();
+		g_performanceState.ticksMain += tStop - tStart;
+		/* Because the USB ISR runs while the ProcessFlashAccess has been processed,
+		   the time for the ISRs is parts of the ticksMain too, so they must be
+		   substracted to avoid a result of > 100%.
+		   Since the variable is reset in the main loop, it can not overflow
+		   during the measurement here.
+		*/
+		g_performanceState.ticksMain -= (ticksIsrStop - ticksIsrStart);
+	}
+	if ((HAL_GetTick() - g_performanceState.tickSampleStart) >= 1000) { //1s passed
+		uint32_t lastStart = g_performanceState.tickSampleStart;
+		UsbLock(); //atomic update
+		uint32_t thisStart = HAL_GetTick();
+		uint64_t ticksUsb = g_performanceState.ticksUsbIsr;
+		g_performanceState.ticksUsbIsr = 0;
+		g_performanceState.tickSampleStart = thisStart;
+		uint32_t isrCount = g_performanceState.usbIsrCount;
+		g_performanceState.usbIsrCount = 0;
+		UsbUnlock();
+		uint64_t ticksMain = g_performanceState.ticksMain;
+		g_performanceState.ticksMain = 0;
+		//if this is run after more than 1000ms, the values needs to be adjusted
+		uint32_t delta = thisStart - lastStart;
+		if ((delta > 0) && (g_performanceState.printPerformance)) {
+			g_performanceState.ticksMainLast = ticksMain * 1000 / delta;
+			g_performanceState.ticksUsbIsrLast = ticksUsb * 1000 / delta;
+			g_performanceState.usbIsrCountLast = isrCount * 1000 / delta;
+			PrintPerformance();
 		}
 	}
 }
