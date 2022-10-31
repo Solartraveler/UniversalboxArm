@@ -200,6 +200,24 @@ uint64_t McuTimestampUs(void) {
 		stamp2 = HAL_GetTick();
 	} while (stamp1 != stamp2); //don't read VAL while an overflow happened
 	uint32_t load = SysTick->LOAD;
+	//NVIC_GetPendingIRQ(SysTick_IRQn) does not work!
+	if (SCB->ICSR & SCB_ICSR_PENDSTSET_Msk) {
+		/* Looks like the systick interrupts is locked, and 2x HAL_GetTick
+		   just got the same timestamp because the increment could not be done.
+		   So if the substamp is > load/2, it has underflown before the readout and
+		   the stamp value needs to be increased.
+		   Note: The pending alredy gets set when the value switches from 1 -> 0,
+		   but we only want to add 1ms when a 0 -> load underflow happened.
+		   The 1 -> 0 never is a problem with ISRs enabled, because this case is
+		   catched by the stamp1 != stamp2 comparison.
+		   Important: This logic assumes SCB_ICSR_PENDSTSET_Msk could never be set
+		   as pending, when the ISR is not blocked (and this function is not called
+		   from within the systick interrupt itself).
+		*/
+		if (substamp > (load / 2)) {
+			stamp1++;
+		}
+	}
 	//now calculate
 	substamp = load - substamp; //this counts down, so invert it
 	substamp = substamp * 1000 / load;
