@@ -43,14 +43,8 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 
-/*
-Incrementing the buffer size to 3084 (and incrementing the USB descriptor
-accordingly, only increases the download speed by ~5%. So the benefit is
-negligible.
-*/
-#define USB_BUFFERSIZE_BYTES 2060
+#define USB_BUFFERSIZE_BYTES 256
 
-#define ROM_BOOTLOADER_START_ADDRESS 0x1FFF0000
 
 /* USER CODE END EC */
 
@@ -159,8 +153,6 @@ void Error_Handler(void);
 #define KeyRight_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
-extern uint8_t * g_DfuMem;
-extern size_t g_DfuMemSize;
 
 /* USER CODE END Private defines */
 

@@ -33,7 +33,7 @@ The assumptions are:
    requests outside of the supported flash, it will silently roll over.
    It would also get struck, should a very large amount of data to be requested
    for reading and writing. Worst case is 2^16 blocks to read, which would take
-   minutes at the current speed.
+   more than a minute at the current speed.
 6. Unknown commands are properly reported as unsupported.
 7. Some commands do nothing and just report everything as fine.
 8. The writeprotect just tells the device is writeprotect, however write
@@ -53,10 +53,13 @@ The assumptions are:
    supported. This is ok.
 
 Tested with:
-Linux kernel 5.13: Disk needs 10s to appear when using 250KHz as flash clock
-Linux kernel 5.13: Disk needs 4s to appear when using 4MHz as flash clock
-Windows 10: Disk needs 14s to appear when using 250KHz as flash clock
+Linux kernel 5.13: Disk needs 10s to appear when using 250KHz as flash clock, no double buffering
+Linux kernel 5.13: Disk needs 4s to appear when using 4MHz as flash clock, no double buffering
+Windows 10: Disk needs 14s to appear when using 250KHz as flash clock, no double buffering
 
+Measurements are done with 1MiB test size:
+dd if=/dev/sdX of=foo.bin count=2048
+Without USB doublebuffering:
 Reading speed (with 1MiB test) over USB, 16MHz CPU clock, divider for flash:
 Divider 64 (250KHz): 21.8kB/s
 Divider 32 (500KHz): 37.3kB/s
@@ -71,6 +74,19 @@ Divider 16 (4MHz): 104kB/s
 -> USB itself seems to be the bottleneck. It saturates at 3000 ISRs/s, CPU load
 for ISR processing goes down from 13% (16MHz) to 3% (64MHz), but data are just
 waiting to be received from the host.
+
+With USB doublebuffering and 16MHz:
+Divider 4 (4MHz): 93.7kB/s -> nothing changed - looks like the queue is not filled fast enough
+and 32MHz:
+Divider 8 (4MHz): 160kB/s -> processing 4100 ISR/s (9% of the CPU time)
+and 64MHz:
+Divider 16 (4MHz): 240kB/s -> processing 5600 ISR/s (6% of the CPU time)
+Divider 8 (8MHz): 319kB/s -> (might not work reliable) processing 7160 ISR/s (9% of the CPU time)
+
+64MHz, using 4MiB test size:
+dummy RAM disk: 1.1MB/s -> close to the theoretical maximum of 1.2MB/s,
+                              processing 18900 ISR/s (31% of the CPU time)
+Divider 8 (8MHz): 372kB/s -> Might not work reliable, but would be a satisfying speed :)
 
 TODO:
 1. Get a final USB ID
@@ -220,20 +236,20 @@ uint8_t g_DeviceConfiguration[] = {
 	0x05, //endpoint descriptor
 	USB_ENDPOINT_TOHOST, //endpoint address - in, number 1
 	0x02, //bulk endpoint
-	USB_BULK_BLOCKSIZE, 0, //max 32byte per packet
+	USB_BULK_BLOCKSIZE, 0, //max 64byte per packet
 	0x00, //interval, ignored
 	//bulk-out endpoint descriptor
 	7,    //length
 	0x05, //endpoint descriptor
 	USB_ENDPOINT_FROMHOST, //endpoint address - out, number 2
 	0x02, //bulk endpoint
-	USB_BULK_BLOCKSIZE, 0, //max 32byte per packet
+	USB_BULK_BLOCKSIZE, 0, //max 64byte per packet
 	0x00, //interval, ignored
 };
 
 static struct usb_string_descriptor g_lang_desc     = USB_ARRAY_DESC(USB_LANGID_ENG_US);
 static struct usb_string_descriptor g_manuf_desc_en = USB_STRING_DESC("marwedels.de");
-static struct usb_string_descriptor g_prod_desc_en  = USB_STRING_DESC("UniversalboxARM");
+static struct usb_string_descriptor g_prod_desc_en  = USB_STRING_DESC("UniversalboxARM-Storage");
 //specs allow only 0...9 and A...F as serial number for mass storage
 static struct usb_string_descriptor g_serial_desc   = USB_STRING_DESC("31337");
 
@@ -251,7 +267,7 @@ typedef struct {
 	uint8_t usbTraffic; //down counter for LED control
 	uint32_t timeTrafficChecked;
 	//bulk queue
-	bool toHostBusy; //if true, we need to wait for an event until new data can be sent
+	uint8_t toHostFree; //Number of free entries in the hardware buffer. Allowed: 0, 1 or with double buffering 2.
 	bulk_t toHost[USB_BULK_QUEUE_LEN];
 	uint32_t toHostR;
 	uint32_t toHostW;
@@ -273,6 +289,7 @@ typedef struct {
 	*/
 	bool needWrite; //main thread should write buffer
 	bool needWriteRx;
+	bool writeFirstBlock; //only marker for printf notification
 	uint32_t writeBlockIndex;
 	uint32_t writeBlock;
 	uint32_t writeBlockNum;
@@ -359,11 +376,15 @@ static usbd_respond usbGetDesc(usbd_ctlreq *req, void **address, uint16_t *lengt
 //Must be called from the USB interrupt, or within the UsbLock from other threads
 void StorageDequeueToHost(usbd_device * dev) {
 	uint32_t thisIndex = g_storageState.toHostR;
-	if (g_storageState.toHostW != thisIndex) { //elements in queue
-		usbd_ep_write(dev, USB_ENDPOINT_TOHOST, g_storageState.toHost[thisIndex].data, g_storageState.toHost[thisIndex].len);
-		uint32_t nextIndex = (thisIndex + 1) % USB_BULK_QUEUE_LEN;
-		g_storageState.toHostBusy = true;
-		g_storageState.toHostR = nextIndex;
+	if ((g_storageState.toHostW != thisIndex) && (g_storageState.toHostFree > 0)) { //elements in queue
+		size_t len = g_storageState.toHost[thisIndex].len;
+		if (usbd_ep_write(dev, USB_ENDPOINT_TOHOST, g_storageState.toHost[thisIndex].data, len) == len) {
+			uint32_t nextIndex = (thisIndex + 1) % USB_BULK_QUEUE_LEN;
+			g_storageState.toHostFree--;
+			g_storageState.toHostR = nextIndex;
+		} else {
+			printfNowait("Err, write\r\n");
+		}
 	}
 }
 
@@ -378,9 +399,7 @@ bool StorageQueueToHost(usbd_device * dev, const void * data, size_t len) {
 		g_storageState.toHostW = nextIndex;
 		queued = true;
 	}
-	if (g_storageState.toHostBusy == false) { //let's send the first packet
-		StorageDequeueToHost(dev);
-	}
+	StorageDequeueToHost(dev); //try to send if there is space in the hardware buffer
 	return queued;
 }
 
@@ -514,8 +533,7 @@ void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 				}
 				StorageQueueToHost(dev, data, sizeof(data));
 				StorageQueueCsw(dev, cbw->tag, 0);
-			}
-			else if ((command == 0x1E) && (cbw->length >= 6)) { //prevent medium removal (5. request by the host)
+			} else if ((command == 0x1E) && (cbw->length >= 6)) { //prevent medium removal (5. request by the host)
 				uint32_t status = 0;
 				if (cbw->data[4] & 1) { //prevents removal -> not supported
 					status = 1; //command failed
@@ -524,8 +542,7 @@ void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 					g_storageState.additionalSenseCode = 0x24;
 				}
 				StorageQueueCsw(dev, cbw->tag, status);
-			}
-			else if ((command == 0x28) && (cbw->length >= 10)) { //read(10) data
+			} else if ((command == 0x28) && (cbw->length >= 10)) { //read(10) data
 				Led2Green();
 				uint32_t block;
 				uint32_t num;
@@ -537,8 +554,7 @@ void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 				g_storageState.readBlock = block;
 				g_storageState.readBlockNum = num;
 				g_storageState.tag = cbw->tag; //no response yet
-			}
-			else if ((command == 0x2A) && (cbw->length >= 10)) { //write(10) data
+			} else if ((command == 0x2A) && (cbw->length >= 10)) { //write(10) data
 				Led2Red();
 				uint32_t block;
 				uint32_t num;
@@ -547,12 +563,12 @@ void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 				num = (cbw->data[7] << 8) | (cbw->data[8]);
 				//printfNowait("W %u, len %u\r\n", block, num);
 				g_storageState.needWriteRx = true;
+				g_storageState.writeFirstBlock = true;
 				g_storageState.writeBlockIndex = 0;
 				g_storageState.writeBlock = block;
 				g_storageState.writeBlockNum = num;
 				g_storageState.tag = cbw->tag; //no response yet
-			}
-			else if ((command == 0x2F) && (cbw->length >= 10)) { //verify data
+			} else if ((command == 0x2F) && (cbw->length >= 10)) { //verify data
 				//nothing to do. We simply tell everything is ok :P
 				StorageQueueCsw(dev, cbw->tag, 0);
 			} else { //unsupported command
@@ -572,7 +588,7 @@ void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 void StorageStateReset(void) {
 	g_storageState.senseKey = 0;
 	g_storageState.additionalSenseCode = 0;
-	g_storageState.toHostBusy = false;
+	g_storageState.toHostFree = 0;
 	g_storageState.toHostR = 0;
 	g_storageState.toHostW = 0;
 	g_storageState.needRead = false;
@@ -582,7 +598,7 @@ void StorageStateReset(void) {
 
 void EndpointEventTx(usbd_device *dev, uint8_t event, uint8_t ep) {
 	if ((ep == USB_ENDPOINT_TOHOST) && (event == usbd_evt_eptx)) {
-		g_storageState.toHostBusy = false;
+		g_storageState.toHostFree++;
 		StorageDequeueToHost(dev);
 	}
 }
@@ -592,6 +608,7 @@ static usbd_respond usbSetConf(usbd_device *dev, uint8_t cfg) {
 	switch (cfg) {
 		case 0:
 			//deconfig
+			printfNowait("Deconfig\r\n");
 			usbd_ep_deconfig(dev, USB_ENDPOINT_TOHOST);
 			usbd_ep_deconfig(dev, USB_ENDPOINT_FROMHOST);
 			break;
@@ -599,8 +616,14 @@ static usbd_respond usbSetConf(usbd_device *dev, uint8_t cfg) {
 			//set config
 			printfNowait("Set config\r\n");
 			StorageStateReset();
-			usbd_ep_config(dev, USB_ENDPOINT_TOHOST, USB_EPTYPE_BULK, USB_BULK_BLOCKSIZE);
-			usbd_ep_config(dev, USB_ENDPOINT_FROMHOST, USB_EPTYPE_BULK, USB_BULK_BLOCKSIZE);
+			if (!usbd_ep_config(dev, USB_ENDPOINT_TOHOST, USB_EPTYPE_BULK | USB_EPTYPE_DBLBUF, USB_BULK_BLOCKSIZE)) {
+				printfNowait("Error, configure ep to host\r\n");
+			} else {
+				g_storageState.toHostFree = 2;
+			}
+			if (!usbd_ep_config(dev, USB_ENDPOINT_FROMHOST, USB_EPTYPE_BULK | USB_EPTYPE_DBLBUF, USB_BULK_BLOCKSIZE)) {
+				printfNowait("Error, configure ep from host\r\n");
+			}
 			usbd_reg_endpoint(dev, USB_ENDPOINT_FROMHOST, &EndpointBulkOut);
 			usbd_reg_event(dev, usbd_evt_eptx, EndpointEventTx);
 			result = usbd_ack;
@@ -653,6 +676,7 @@ void MainMenu(void) {
 void AppInit(void) {
 	LedsInit();
 	Led1Green();
+	McuClockToHsiPll(64000000, RCC_HCLK_DIV1);
 	PeripheralPowerOff();
 	HAL_Delay(100);
 	PeripheralPowerOn();
@@ -661,7 +685,7 @@ void AppInit(void) {
 	KeysInit();
 	CoprocInit();
 	PeripheralInit();
-	FlashEnable(4); //4MHz
+	FlashEnable(16); //4MHz
 	g_storageState.flashBytes = FlashSizeGet();
 	if (g_storageState.flashBytes >= DISK_RESERVEDOFFSET) {
 		g_storageState.flashBytes -= DISK_RESERVEDOFFSET;
@@ -751,7 +775,11 @@ bool ProcessFlashAccess(void) {
 		uint32_t address = DISK_RESERVEDOFFSET + block * DISK_BLOCKSIZE;
 		uint32_t status = 0; //ok
 		for (uint32_t i = 0; i < blocks; i++) {
-			uint8_t buffer[DISK_BLOCKSIZE];
+			/* In order to simulate a RAM disk for speed measurements, set buffer to = {0}
+			   and replace the if (Flash(...)) by if (1).
+			   Don't forget to disable writing too.
+			*/
+			uint8_t buffer[DISK_BLOCKSIZE] = {0};
 			uint32_t address2 = address + i * DISK_BLOCKSIZE;
 			if (FlashRead(address2, buffer, DISK_BLOCKSIZE)) {
 				for (uint32_t j = 0; j < DISK_BLOCKSIZE; j += USB_BULK_BLOCKSIZE) {
@@ -784,7 +812,10 @@ bool ProcessFlashAccess(void) {
 		uint32_t writeBlock = g_storageState.writeBlock;
 		g_storageState.writeBlockIndex = 0; //this allows reception of the next block
 		g_storageState.writeBlock++;
+		bool firstBlock = g_storageState.writeFirstBlock;
+		g_storageState.writeFirstBlock = false;
 		bool lastBlock = false;
+		uint32_t blocks = g_storageState.writeBlockNum;
 		if (g_storageState.writeBlockNum) {
 			g_storageState.writeBlockNum--;
 		}
@@ -802,14 +833,18 @@ bool ProcessFlashAccess(void) {
 		UsbUnlock();
 		uint32_t address = DISK_RESERVEDOFFSET + writeBlock * DISK_BLOCKSIZE;
 #if 1
-		printf("Write block %u\r\n", (unsigned int)writeBlock);
+		if (firstBlock) {
+			printf("Write block %u, len %u\r\n", (unsigned int)writeBlock, (unsigned int)blocks);
+		}
 		if (!FlashWrite(address, buffer, DISK_BLOCKSIZE)) {
 			g_storageState.writeStatus = 1; //command failed
 			g_storageState.senseKey = 0x3; //medium error
 			g_storageState.additionalSenseCode = 0x3; //write fault
 		}
 #else
-		printf("Sim write block %u\r\n", (unsigned int)writeBlock);
+		if (firstBlock) {
+			printf("Sim write block %u, len %u\r\n", (unsigned int)writeBlock, (unsigned int)blocks);
+		}
 #endif
 		if (lastBlock) {
 			Led2Off();
@@ -836,6 +871,8 @@ void TogglePrintPerformance(void) {
 
 void AppCycle(void) {
 	//call this loop as fast as possible to get the maxium flash read/write performance
+
+	//handle debug input
 	char input = Rs232GetChar();
 	if (input) {
 		printf("%c", input);
@@ -858,7 +895,7 @@ void AppCycle(void) {
 	if (KeyDownPressed()) {
 		StorageStop();
 	}
-
+	//handle LED
 	uint32_t stamp = HAL_GetTick();
 	if ((stamp - g_storageState.timeTrafficChecked) > 0) {
 		g_storageState.timeTrafficChecked = stamp;
@@ -870,6 +907,7 @@ void AppCycle(void) {
 		}
 		UsbUnlock();
 	}
+	//handle flash read-write
 	uint64_t tStart = McuTimestampUs();
 	UsbLock();
 	uint64_t ticksIsrStart = g_performanceState.ticksUsbIsr;
@@ -889,6 +927,7 @@ void AppCycle(void) {
 		*/
 		g_performanceState.ticksMain -= (ticksIsrStop - ticksIsrStart);
 	}
+	//handle performance statistics
 	if ((HAL_GetTick() - g_performanceState.tickSampleStart) >= 1000) { //1s passed
 		uint32_t lastStart = g_performanceState.tickSampleStart;
 		UsbLock(); //atomic update
