@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = USB-Mass-storage
 #Version of this application, to be used in the metadata
-VERSION  = 0.11.0
+VERSION  = 0.11.1
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -104,7 +104,6 @@ $(BOXLIB)/keys.c \
 $(BOXLIB)/leds.c \
 $(BOXLIB)/rs232debug.c \
 $(BOXLIB)/peripheral.c \
-$(BOXLIB)/peripheralDma.c \
 $(BOXLIB)/flash.c \
 $(BOXLIB)/coproc.c \
 $(BOXLIB)/boxusb.c \

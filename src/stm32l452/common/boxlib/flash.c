@@ -120,7 +120,8 @@ bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
 		FlashWaitNonBusy();
 		FlashCsOn();
 		PeripheralTransfer(out, NULL, sizeof(out));
-		PeripheralTransfer(NULL, buffer, len);
+		PeripheralTransferBackground(NULL, buffer, len);
+		PeripheralTransferWaitDone();
 		FlashCsOff();
 		return true;
 	}

@@ -13,7 +13,7 @@ void PeripheralBaseInit();
 
   Recommended init sequence:
   1. PeripheralPowerOff()
-  2. Wait some time for capacitors to discharge, 500ms should be very safe
+  2. Wait some time for capacitors to discharge, 100ms should be very safe
   3. PeripheralPowerOn()
   Enable RS232 or prepare for SPI peripherals:
   4.1 Rs232Init()
