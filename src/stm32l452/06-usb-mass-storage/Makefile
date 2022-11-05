@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = USB-Mass-storage
 #Version of this application, to be used in the metadata
-VERSION  = 0.11.1
+VERSION  = 0.12.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -54,7 +54,7 @@ STARTADDR=`grep "_Code_Start.=" $(LDSCRIPTRAM) | cut -d " " -f3 | sed 's/[;\r]//
 # debug build?
 DEBUG = 1
 # optimization
-OPT = -Os
+OPT = -O3
 
 
 #######################################
@@ -104,6 +104,7 @@ $(BOXLIB)/keys.c \
 $(BOXLIB)/leds.c \
 $(BOXLIB)/rs232debug.c \
 $(BOXLIB)/peripheral.c \
+$(BOXLIB)/peripheralDma.c \
 $(BOXLIB)/flash.c \
 $(BOXLIB)/coproc.c \
 $(BOXLIB)/boxusb.c \

@@ -53,40 +53,52 @@ The assumptions are:
    supported. This is ok.
 
 Tested with:
-Linux kernel 5.13: Disk needs 10s to appear when using 250KHz as flash clock, no double buffering
+Linux kernel 5.13: Disk needs 10s to appear when using 250kHz as flash clock, no double buffering
 Linux kernel 5.13: Disk needs 4s to appear when using 4MHz as flash clock, no double buffering
-Windows 10: Disk needs 14s to appear when using 250KHz as flash clock, no double buffering
+Windows 10: Disk needs 14s to appear when using 250kHz as flash clock, no double buffering
 
-Measurements are done with 1MiB test size:
-dd if=/dev/sdX of=foo.bin count=2048
-Without USB doublebuffering:
-Reading speed (with 1MiB test) over USB, 16MHz CPU clock, divider for flash:
-Divider 64 (250KHz): 21.8kB/s
-Divider 32 (500KHz): 37.3kB/s
-Divider 16 (1MHz): 60.7kB/s
-Divider 8 (2MHz): 81.2kB/s
-Divider 4 (4MHz): 97.6kB/s
-Divider 4 (4MHz): 94.6kB/s with performance counters, delay in main removed
-Dummy RAM disk: 104kB/s -> need to increase USB, not flash performance
+Performance, measured with dd if=/dev/sdX of=foo.bin count=2048 for 1MiB test size
+and dd if=/dev/sdX of=foo.bin count=8192 for 4MiB test size
+Code = Memory where the program code is executed from
+Data = Memory where stacks and variables are stored
+CPU = CPU clock
+Opt = Compilation optimization level
+SPI = SPI clock speed for the external flash. If Dummy no SPI transfer is done and just zeros are delivered.
+Queue = Number of 64 byte packets which can be queued to communicate from the main loop to the USB ISR (USB_BULK_QUEUE_LEN)
+Dbl buffer = Does the USB uses the hardware double buffering feature?
+DMA = Does the SPI read uses polling (No) or DMA (Yes)?
+Test sz = Read size with dd
+Int spd = Speed while reading just from the flash (benchmark command), no USB transfer
+USB spd = Speed value returned by dd command
+Internal speed = Value returned by performance debug command
+USB ISRs = Number of USB isr while reading
+USB load = Computing time of the CPU consumed by the USB ISRs while reading
 
-With 64MHz CPU clock and the same as bus speed:
-Divider 16 (4MHz): 104kB/s
--> USB itself seems to be the bottleneck. It saturates at 3000 ISRs/s, CPU load
-for ISR processing goes down from 13% (16MHz) to 3% (64MHz), but data are just
-waiting to be received from the host.
-
-With USB doublebuffering and 16MHz:
-Divider 4 (4MHz): 93.7kB/s -> nothing changed - looks like the queue is not filled fast enough
-and 32MHz:
-Divider 8 (4MHz): 160kB/s -> processing 4100 ISR/s (9% of the CPU time)
-and 64MHz:
-Divider 16 (4MHz): 240kB/s -> processing 5600 ISR/s (6% of the CPU time)
-Divider 8 (8MHz): 319kB/s -> (might not work reliable) processing 7160 ISR/s (9% of the CPU time)
-
-64MHz, using 4MiB test size:
-dummy RAM disk: 1.1MB/s -> close to the theoretical maximum of 1.2MB/s,
-                              processing 18900 ISR/s (31% of the CPU time)
-Divider 8 (8MHz): 372kB/s -> Might not work reliable, but would be a satisfying speed :)
+Code   Data   CPU    Opt  SPI     Queue  Dbl buff  DMA  Test sz  Int spd  USB spd   USB ISRs  USB load  Note
+SRAM1  SRAM1  16MHz  s    250kHz  8      No        No   1MiB              21.8kB/s
+SRAM1  SRAM1  16MHz  s    500kHz  8      No        No   1MiB              37.3kB/s
+SRAM1  SRAM1  16MHz  s    1MHz    8      No        No   1MiB              60.7kB/s
+SRAM1  SRAM1  16MHz  s    2MHz    8      No        No   1MiB              81.2kB/s
+SRAM1  SRAM1  16MHz  s    4MHz    8      No        No   1MiB              97.7kB/s
+SRAM1  SRAM1  16MHz  s    4MHz    8      No        No   1MiB              94.6kB/s                      Performance counters added
+SRAM1  SRAM1  16MHz  s    Dummy   8      No        No   1MiB              104kB/s   3000/s    13%
+SRAM1  SRAM1  64MHz  s    4MHz    8      No        No   1MiB              104kB/s   3000/s    3%
+SRAM1  SRAM1  16MHz  s    4MHz    8      Yes       No   1MiB              93.7kB/s
+SRAM1  SRAM1  32MHz  s    4MHz    8      Yes       No   1MiB              160kB/s   4100/s    9%
+SRAM1  SRAM1  64MHz  s    4MHz    8      Yes       No   1MiB              240kB/s   5600/s    6%
+SRAM1  SRAM1  64MHz  s    8MHz    8      Yes       No   1MiB              319kB/s   7160/s    9%        SPI not guaranteed to be reliable
+SRAM1  SRAM1  64MHz  s    8MHz    8      Yes       No   4MiB              372kB/s   7160/s    9%        SPI not guaranteed to be reliable
+SRAM1  SRAM1  64MHz  s    Dummy   8      Yes       No   4MiB              1100kB/s  18900/s   31%
+SRAM1  SRAM1  80MHz  s    5MHz    8      Yes       No   1MiB    408kiB/s  299kB/s
+SRAM1  SRAM1  80MHz  s    5MHz    8      Yes       Yes  1MiB    584kiB/s  450kB/s   9700/s    10%
+SRAM1  SRAM1  48MHz  s    6MHz    8      Yes       Yes  1MiB    678kiB/s  482kB/s   10300/s   19%
+SRAM1  SRAM1  48MHz  s    6MHz    8      Yes       Yes  4MiB              563kB/s
+SRAM1  SRAM1  48MHz  s    6MHz    24     Yes       Yes  4MiB              564kB/s
+SRAM1  SRAM1  24MHz  s    6MHz    24     Yes       Yes  4MiB    636kiB/s  479kB/s   8950/s    34%
+SRAM1  SRAM2  24MHz  s    6MHz    24     Yes       Yes  4MiB    636kiB/s  479kB/s
+SRAM1  SRAM1  24MHz  s    6MHz    24     Yes       Yes  4MiB    644kiB/s  480kB/s
+SRAM1  SRAM1  48MHz  3    6MHz    24     Yes       Yes  1MiB    682kiB/s  513kB/s   10900/s   18%       Now in use
+SRAM1  SRAM1  48MHz  3    6MHz    24     Yes       Yes  4MiB              598kB/s
 
 TODO:
 1. Get a final USB ID
@@ -126,17 +138,24 @@ TODO:
 #define USB_STRING_PRODUCT 2
 #define USB_STRING_SERIAL 3
 
+#define USB_USE_DOUBLEBUFFERING
+
+//Only 64 works
 #define USB_BULK_BLOCKSIZE 64
 
 /* Minimum is 2. 8 allows a full FLASH_BLOCK to be queued, and then the next
    can already be read while the previous one is still transmitted over USB.
+   When there is no data, USB seems to poll again after 1ms, so to avoid
+   the flash from doing nothing, the buffer can store data for 1ms to
+   transfer, which would be 1.2KB -> next block size is 1.5KiB, which is 24
+   packets. But compared to 8 blocks, the speed gain is hardly measureable.
 */
-#define USB_BULK_QUEUE_LEN 8
+#define USB_BULK_QUEUE_LEN 24
 
-//from host to device
+//from host to device (out)
 #define USB_ENDPOINT_FROMHOST 0x02
 
-//from device to host
+//from device to host (in)
 #define USB_ENDPOINT_TOHOST 0x81
 
 
@@ -596,10 +615,37 @@ void StorageStateReset(void) {
 	g_storageState.writeStatus = 0;
 }
 
+
+#ifdef USB_USE_DOUBLEBUFFERING
+//function copied from usb stack:
+inline static volatile uint16_t *EPR(uint8_t ep) {
+    return (uint16_t*)((ep & 0x07) * 4 + USB_BASE);
+}
+#endif
+
 void EndpointEventTx(usbd_device *dev, uint8_t event, uint8_t ep) {
 	if ((ep == USB_ENDPOINT_TOHOST) && (event == usbd_evt_eptx)) {
 		g_storageState.toHostFree++;
-		StorageDequeueToHost(dev);
+#ifdef USB_USE_DOUBLEBUFFERING
+		g_storageState.toHostFree = MIN(g_storageState.toHostFree, 2);
+		/*The problem, when there is a high CPU load, not every sent USB tx packet
+		  gets a proper callback. So there is the need to fix toHostFree back to 2
+		  if this happens. Without the fix, the device continues to work as if only
+		  one buffer is used.
+		  This is the case when DTOG and SW_BUF have the same value.
+		  See RM0394 chapter 45.5.3
+		*/
+		if (g_storageState.toHostFree == 1) {
+			uint16_t reg = *EPR(USB_ENDPOINT_TOHOST);
+			uint16_t swbuf = reg & USB_EP_DTOG_RX; //used as swbuf bit with double buffering
+			uint16_t dtog = reg & USB_EP_DTOG_TX;
+			if (((swbuf) && (dtog)) || ((swbuf == 0) && (dtog == 0))) {
+				g_storageState.toHostFree = 2;
+			}
+		}
+		StorageDequeueToHost(dev); //extra call if a callback was forgotten
+#endif
+		StorageDequeueToHost(dev); //normal call
 	}
 }
 
@@ -616,12 +662,20 @@ static usbd_respond usbSetConf(usbd_device *dev, uint8_t cfg) {
 			//set config
 			printfNowait("Set config\r\n");
 			StorageStateReset();
-			if (!usbd_ep_config(dev, USB_ENDPOINT_TOHOST, USB_EPTYPE_BULK | USB_EPTYPE_DBLBUF, USB_BULK_BLOCKSIZE)) {
+			uint8_t epType = USB_EPTYPE_BULK;
+#ifdef USB_USE_DOUBLEBUFFERING
+			epType |= USB_EPTYPE_DBLBUF;
+#endif
+			if (!usbd_ep_config(dev, USB_ENDPOINT_TOHOST, epType, USB_BULK_BLOCKSIZE)) {
 				printfNowait("Error, configure ep to host\r\n");
 			} else {
+#ifdef USB_USE_DOUBLEBUFFERING
 				g_storageState.toHostFree = 2;
+#else
+				g_storageState.toHostFree = 1;
+#endif
 			}
-			if (!usbd_ep_config(dev, USB_ENDPOINT_FROMHOST, USB_EPTYPE_BULK | USB_EPTYPE_DBLBUF, USB_BULK_BLOCKSIZE)) {
+			if (!usbd_ep_config(dev, USB_ENDPOINT_FROMHOST, epType, USB_BULK_BLOCKSIZE)) {
 				printfNowait("Error, configure ep from host\r\n");
 			}
 			usbd_reg_endpoint(dev, USB_ENDPOINT_FROMHOST, &EndpointBulkOut);
@@ -670,13 +724,14 @@ void MainMenu(void) {
 	printf("u: Toggle USB connection\r\n");
 	printf("w: Toggle write protection\r\n");
 	printf("p: Toggle print performance stats\r\n");
+	printf("b: Run read benchmark\r\n");
 	printf("r: Reboot with reset controller\r\n");
 }
 
 void AppInit(void) {
 	LedsInit();
 	Led1Green();
-	McuClockToHsiPll(64000000, RCC_HCLK_DIV1);
+	McuClockToHsiPll(48000000, RCC_HCLK_DIV1);
 	PeripheralPowerOff();
 	HAL_Delay(100);
 	PeripheralPowerOn();
@@ -685,7 +740,7 @@ void AppInit(void) {
 	KeysInit();
 	CoprocInit();
 	PeripheralInit();
-	FlashEnable(16); //4MHz
+	FlashEnable(8); //6MHz
 	g_storageState.flashBytes = FlashSizeGet();
 	if (g_storageState.flashBytes >= DISK_RESERVEDOFFSET) {
 		g_storageState.flashBytes -= DISK_RESERVEDOFFSET;
@@ -869,6 +924,22 @@ void TogglePrintPerformance(void) {
 	g_performanceState.printPerformance = !g_performanceState.printPerformance;
 }
 
+#define BENCH_BLOCK 512
+#define BENCH_SIZE (1024 * 512)
+
+void BenchmarkRead() {
+	printf("Reading %uKiB\r\n", BENCH_SIZE / 1024);
+	uint8_t buffer[BENCH_BLOCK];
+	uint64_t tStart = McuTimestampUs();
+	for (uint32_t i = 0; i < BENCH_SIZE; i+= BENCH_BLOCK) {
+		FlashRead(i, buffer, BENCH_BLOCK);
+	}
+	uint64_t tStop = McuTimestampUs();
+	uint32_t deltaMs = (tStop - tStart) / 1000;
+	uint32_t kbs = BENCH_SIZE * 1000 / deltaMs / 1024;
+	printf("Took %ums -> %uKiB/s\r\n", (unsigned int)deltaMs, (unsigned int)kbs);
+}
+
 void AppCycle(void) {
 	//call this loop as fast as possible to get the maxium flash read/write performance
 
@@ -883,6 +954,7 @@ void AppCycle(void) {
 		case 'u': ToggleUsb(); break;
 		case 'w': ToggleWriteprotect(); break;
 		case 'p': TogglePrintPerformance(); break;
+		case 'b': BenchmarkRead(); break;
 		default: break;
 	}
 
