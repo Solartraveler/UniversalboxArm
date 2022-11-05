@@ -116,7 +116,7 @@ bool McuClockToMsi(uint32_t frequency, uint32_t apbDivider) {
 	return true;
 }
 
-/* supported frequencies: 16, 32 and 64MHz
+/* supported frequencies: 16, 24, 32 48, 64 and 80MHz.
 returns:
   0: ok
   1: frequency unsupported
@@ -140,19 +140,34 @@ uint8_t McuClockToHsiPll(uint32_t frequency, uint32_t apbDivider) {
 		latency = FLASH_LATENCY_0;
 		RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV8;
 		RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV8;
+	} else if (frequency == 24000000) {
+		latency = FLASH_LATENCY_1;
+		RCC_OscInitStruct.PLL.PLLN = 12;
+		RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV8;
+		RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV8;
 	} else if (frequency == 32000000) {
 		latency = FLASH_LATENCY_1;
+		RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV4;
+		RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV4;
+	} else if (frequency == 48000000) {
+		latency = FLASH_LATENCY_2;
+		RCC_OscInitStruct.PLL.PLLN = 12;
 		RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV4;
 		RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV4;
 	} else if (frequency == 64000000) {
 		latency = FLASH_LATENCY_3;
 		RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
 		RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+	} else if (frequency == 80000000) {
+		latency = FLASH_LATENCY_4;
+		RCC_OscInitStruct.PLL.PLLN = 10;
+		RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+		RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
 	} else {
 		return 1;
 	}
 	//first set slowest latency, suitable for all frequencies
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK) {
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK) {
 		return 2;
 	}
 	HAL_StatusTypeDef result = HAL_RCC_OscConfig(&RCC_OscInitStruct);
@@ -160,8 +175,8 @@ uint8_t McuClockToHsiPll(uint32_t frequency, uint32_t apbDivider) {
 		return 3;
 	}
 
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-	                          |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK |
+	                              RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = apbDivider;

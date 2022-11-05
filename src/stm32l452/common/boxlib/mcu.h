@@ -39,7 +39,10 @@ bool McuClockToMsi(uint32_t frequency, uint32_t apbDivider);
 
 /*
 This assumens the MCU is already running on the Hsi, the PLL is started with
-128MHz, and then 16, 32 or 64MHz can be used for the CPU.
+128MHz when 16, 32 or 64MHz are requested for the CPU.
+192MHz when 24 or 48MHz are wanted.
+160MHz when 80MHz are wanted.
+Other frequencies are currently not supported.
 
 Valid values for apbDivider:
 RCC_HCLK_DIV1
