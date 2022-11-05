@@ -30,7 +30,7 @@
   The following commands are supported:
   All written in coprocCommands.h
 
-  The minium clock of the SPI is 10Hz, the maximum ~1kHz.
+  The minimum clock of the SPI is 10Hz, the maximum ~1kHz.
   If there is no clock for 150ms, the SPI resets its state to the first bit.
   If a write command (beginning with 0x80) has been sent, there should be a
   delay of at least 20ms until the next write command is sent.
@@ -64,7 +64,7 @@
   PINB.5 = With PCB Fix: Input, battery temperature measurement
            Without PC fix: Output, pull down to power the ARM by battery.
   PINB.6 = Input with pullup, left key (allows wakeup from power down by Int0)
-           If workaround for teperature sensor is applied: Input without pullup,
+           If workaround for temperature sensor is applied: Input without pullup,
            temperature sensor can be read as long as key is not pressed
   PINB.7 = reset pin
 
@@ -173,14 +173,22 @@ static void DeepDischargePrevention(void) {
 	TimerSlow();
 }
 
-//if alarm is non 0, its a timout in [s] until a wakeup of the ARM CPU occurrs
-//after the return of the function, reinitSpiDelay should be set
-static void PowerDownLoop(uint16_t alarm) {
+/*if alarm is non 0, its a timeout in [s] until a wakeup of the ARM CPU occurs
+  after the return of the function, reinitSpiDelay should be set
+  The return value tells the reason for the wakeup:
+  0: undefined
+  1: wakeup by alarm
+  2: wakeup by USB power applied
+  3: wakeup by user keypress
+*/
+
+static uint8_t PowerDownLoop(uint16_t alarm) {
 	uint8_t checkInputVoltage = 0;
 	uint8_t checkBatteryVoltage = 0;
 	uint8_t checkAlarm = 0;
 	//we must first release the keys, otherwise the power up will be instantly follow a power down
 	uint8_t powerByKeyState = 0;
+	uint8_t wakeupReason = 0;
 	PwmBatterySet(0);
 	SpiDisable();
 	SensorsOff();
@@ -200,6 +208,7 @@ static void PowerDownLoop(uint16_t alarm) {
 			waitms(1);
 			uint16_t inputVoltage = SensorsInputvoltageGet();
 			if (inputVoltage >= VCC_CONNECTED) {
+				wakeupReason = 2;
 				break;
 			}
 			if (checkBatteryVoltage == 0) { //check every 10s
@@ -219,6 +228,7 @@ static void PowerDownLoop(uint16_t alarm) {
 			if (checkAlarm == 0) { //1s passed
 				alarm--;
 				if (alarm == 0) {
+					wakeupReason = 1;
 					break; //wakeup
 				}
 				checkAlarm = 10;
@@ -237,6 +247,7 @@ static void PowerDownLoop(uint16_t alarm) {
 		} else if (powerByKeyState == 10) {
 			LedOn();
 			if ((KeyPressedLeft() == 0) && (KeyPressedRight() == 0)) {
+				wakeupReason = 1;
 				break;
 			}
 		}
@@ -254,6 +265,7 @@ static void PowerDownLoop(uint16_t alarm) {
 	ArmBatteryOn();
 	waitms(10);
 	ArmRun(); //we still have the pin set to start the usermode application
+	return wakeupReason;
 }
 
 int main(void) {
@@ -269,7 +281,7 @@ int main(void) {
 	ArmBatteryOn();
 	SensorsOn();
 	SpiInit();
-	SpiDataSet(CMD_VERSION, 0x0505); //05 for the program (folder name), 05 for the version
+	SpiDataSet(CMD_VERSION, 0x0506); //05 for the program (folder name), 06 for the version
 	uint8_t pressedLeft = 0, pressedRight = 0; //Time the left or right button is hold down [10ms]
 	uint8_t resetHold = 0; //count down until the reset of the ARM CPU is released [10ms]
 	uint8_t armNormal = 1; //startup mode of the ARM cpu 0: DFU bootloader, 1: normal program start
@@ -524,9 +536,16 @@ int main(void) {
 		if (requestPowerDown) {
 			requestPowerDown = 0;
 			if (onUsbPower == 0) {
-				PowerDownLoop(batteryWakeupTime);
+				uint8_t wakeupReason = PowerDownLoop(batteryWakeupTime);
 				timestampChargeprocessLast = TimerGetValue();
 				reinitSpiDelay = 100;
+				if (wakeupReason == 2) {
+					/* Otherwise the device would stay on, when the USB power is only
+					   applied for a very short time, enough for only one measurement.
+					   This happens at least on one PC, when it is shut down.
+					*/
+					onUsbPower = 1;
+				}
 			}
 		}
 		//update CPU load (nees ~400byte flash, so remove, should flash size be a problem)
