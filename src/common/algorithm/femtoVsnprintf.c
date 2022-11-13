@@ -25,6 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 Changelog:
 2021-02-14: Version 1.0
 2021-11-24: Version 1.1
+2022-11-13: Version 1.2
 
 */
 
@@ -45,6 +46,7 @@ Changelog:
 	%c
 	%s
 	%u
+	%i
 	%X
 	%Wu where W is in the range 1...9
 	%WX where W is in the range 1...9
@@ -53,9 +55,9 @@ Changelog:
 The output is always \0 terminated
 */
 
-#if defined(FEMTO_SUPPORT_DECIMAL) || defined(FEMTO_SUPPORT_HEX)
+#if defined(FEMTO_SUPPORT_DECIMAL) || defined(FEMTO_SUPPORT_HEX) || defined(FEMTO_SUPPORT_DECIMAL_NEGATIVE)
 
-//converted, but chars in reverse order
+//converted, but chars in reverse order. Returns the string length (not counting the \0 termination)
 static size_t utoaReversed(unsigned int value, char * out, size_t outLen, unsigned int radix)
 {
 	size_t i;
@@ -87,6 +89,28 @@ static size_t utoaReversed(unsigned int value, char * out, size_t outLen, unsign
 	}
 	out[i] = '\0';
 	return i;
+}
+#endif
+
+#if defined(FEMTO_SUPPORT_DECIMAL_NEGATIVE)
+
+//converted, but chars in reverse order
+static size_t itoaReversed(int value, char * out, size_t outLen, unsigned int radix)
+{
+	int negative = 0;
+	if (value < 0)
+	{
+		value = -value;
+		negative = 1;
+	}
+	size_t len = utoaReversed(value, out, outLen, radix);
+	if (((len + 1) < outLen) && (negative))
+	{
+		out[len] = '-';
+		out[len + 1] = '\0';
+		len++;
+	}
+	return len;
 }
 #endif
 
@@ -161,12 +185,18 @@ void femtoVsnprintf(char * output, size_t outLen, const char * format, va_list a
 					}
 #endif
 				}
-				char buffer[11];
+				char buffer[12];
 				size_t len = 0;
 #ifdef FEMTO_SUPPORT_DECIMAL
 				if (input == 'u')
 				{
 					len = utoaReversed(x, buffer, sizeof(buffer), 10);
+				}
+#endif
+#ifdef FEMTO_SUPPORT_DECIMAL_NEGATIVE
+				if (input == 'i')
+				{
+					len = itoaReversed(x, buffer, sizeof(buffer), 10);
 				}
 #endif
 #if defined(FEMTO_SUPPORT_DECIMAL) && defined(FEMTO_SUPPORT_HEX)
@@ -235,7 +265,7 @@ void testMe(const char * format, ...) {
 	char buffer[128];
 	femtoVsnprintf(buffer, 128, format, args);
 	va_end(args);
-	printf(buffer);
+	printf("%s", buffer);
 }
 
 int main(void) {
@@ -250,7 +280,7 @@ int main(void) {
 	testMe("A hex number 8 chars wide: >%8X<\n", 0xABC);
 	testMe("Decimal leading zeros: >%06u<\n", 665);
 	testMe("A char: >%c< and a number >%u< and another number >%u<\n", 'X', 23, 123);
-
+	testMe("A positive and negative number: >%i< and >%i<\n", 123, -54321);
 	return 0;
 }
 
