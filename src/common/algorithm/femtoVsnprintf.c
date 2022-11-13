@@ -23,9 +23,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Changelog:
-2021-02-14: Version 1.0
-2021-11-24: Version 1.1
-2022-11-13: Version 1.2
+2021-02-14: Version 1.0.0
+2021-11-24: Version 1.1.0
+2022-11-13: Version 1.2.1
 
 */
 
@@ -192,21 +192,20 @@ void femtoVsnprintf(char * output, size_t outLen, const char * format, va_list a
 				{
 					len = utoaReversed(x, buffer, sizeof(buffer), 10);
 				}
+				else
 #endif
 #ifdef FEMTO_SUPPORT_DECIMAL_NEGATIVE
 				if (input == 'i')
 				{
 					len = itoaReversed(x, buffer, sizeof(buffer), 10);
 				}
-#endif
-#if defined(FEMTO_SUPPORT_DECIMAL) && defined(FEMTO_SUPPORT_HEX)
 				else
 #endif
-#ifdef FEMTO_SUPPORT_HEX
 				{
+#ifdef FEMTO_SUPPORT_HEX
 					len = utoaReversed(x, buffer, sizeof(buffer), 16);
-				}
 #endif
+				}
 				size_t resultLen = len;
 				while ((resultLen < minWidht) && (outLen > 1)) //fill leading spaces/zeros
 				{
@@ -259,29 +258,45 @@ void femtoSnprintf(char * output, size_t outLen, const char * format, ...) {
 
 #ifdef TEST_PC
 
-void testMe(const char * format, ...) {
+int testMe(const char * format, ...) {
 	va_list args;
+	char bufferA[128];
+	char bufferB[128];
 	va_start(args, format);
-	char buffer[128];
-	femtoVsnprintf(buffer, 128, format, args);
+	femtoVsnprintf(bufferA, sizeof(bufferA), format, args);
 	va_end(args);
-	printf("%s", buffer);
+	va_start(args, format);
+	vsnprintf(bufferB, sizeof(bufferB), format, args);
+	va_end(args);
+	if (strcmp(bufferA, bufferB) == 0)
+	{
+		printf("OK: %s", bufferA);
+		return 0;
+	}
+	else
+	{
+		printf("Does not match:\n");
+		printf("should: %s", bufferB);
+		printf("is:     %s", bufferA);
+		return 1;
+	}
 }
 
 int main(void) {
-	testMe("Hello World\n");
-	testMe("A char: >%c<\n", 'X');
+	int result = 0;
+	result |= testMe("Hello World\n");
+	result |= testMe("A char: >%c<\n", 'X');
 	const char * teststring = "More Hello";
-	testMe("A string: >%s<\n", teststring);
-	testMe("A decimal number: >%u<\n", 1234567890);
-	testMe("A decimal zero: >%u<\n", 0);
-	testMe("A hex number: >%X<\n", 0xFEDCBA98);
-	testMe("A decimal number 4 chars wide: >%4u<\n", 42);
-	testMe("A hex number 8 chars wide: >%8X<\n", 0xABC);
-	testMe("Decimal leading zeros: >%06u<\n", 665);
-	testMe("A char: >%c< and a number >%u< and another number >%u<\n", 'X', 23, 123);
-	testMe("A positive and negative number: >%i< and >%i<\n", 123, -54321);
-	return 0;
+	result |= testMe("A string: >%s<\n", teststring);
+	result |= testMe("A decimal number: >%u<\n", 1234567890);
+	result |= testMe("A decimal zero: >%u<\n", 0);
+	result |= testMe("A hex number: >%X<\n", 0xFEDCBA98);
+	result |= testMe("A decimal number 4 chars wide: >%4u<\n", 42);
+	result |= testMe("A hex number 8 chars wide: >%8X<\n", 0xABC);
+	result |= testMe("Decimal leading zeros: >%06u<\n", 665);
+	result |= testMe("A char: >%c< and a number >%u< and another number >%u<\n", 'X', 23, 123);
+	result |= testMe("A positive and negative number: >%i< and >%i<\n", 123, -54321);
+	return result;
 }
 
 #endif
