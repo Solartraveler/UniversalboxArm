@@ -1,32 +1,30 @@
+BUILD_DIR = build
+
 all: compileHighres compileLowres compileDateTime compileFemtoVsnprintf
 
-compileHighres:
-	mkdir -p bin
-	gcc -DTESTHIGHRES testImageDrawer.c ../imageDrawer.c ../imageDrawerHighres.c ../utility.c -o bin/testImageDrawerHighres
+buildDir:
+	mkdir -p $(BUILD_DIR)
 
-compileLowres:
-	mkdir -p bin
-	gcc -DTESTLOWRES testImageDrawer.c ../imageDrawer.c ../imageDrawerLowres.c ../utility.c -o bin/testImageDrawerLowres
+compileHighres: buildDir
+	gcc -DTESTHIGHRES testImageDrawer.c ../imageDrawer.c ../imageDrawerHighres.c ../utility.c -o $(BUILD_DIR)/testImageDrawerHighres
 
-compileDateTime:
-	mkdir -p bin
-	gcc testDateTime.c ../dateTime.c -o bin/testDateTime
+compileLowres: buildDir
+	gcc -DTESTLOWRES testImageDrawer.c ../imageDrawer.c ../imageDrawerLowres.c ../utility.c -o $(BUILD_DIR)/testImageDrawerLowres
 
-compileFemtoVsnprintf:
-	mkdir -p bin
-	gcc -DTEST_PC -I. ../femtoVsnprintf.c -o bin/testFemtoVsnprintf
+compileDateTime: buildDir
+	gcc testDateTime.c ../dateTime.c -o $(BUILD_DIR)/testDateTime
+
+compileFemtoVsnprintf: buildDir
+	gcc -DTEST_PC -I. ../femtoVsnprintf.c -o $(BUILD_DIR)/testFemtoVsnprintf
 
 
 test: all
-	./bin/testImageDrawerHighres
-	./bin/testImageDrawerLowres
-	./bin/testDateTime
-	./bin/testFemtoVsnprintf
+	./$(BUILD_DIR)/testImageDrawerHighres
+	./$(BUILD_DIR)/testImageDrawerLowres
+	./$(BUILD_DIR)/testDateTime
+	./$(BUILD_DIR)/testFemtoVsnprintf
 
 clean:
-	rm -f bin/testImageDrawerHighres
-	rm -f bin/testImageDrawerLowres
-	rm -f bin/testDateTime
-	rm -f bin/testFemtoVsnprintf
-	rmdir bin
+	rm -f $(BUILD_DIR)/*
+	rmdir $(BUILD_DIR)
 
