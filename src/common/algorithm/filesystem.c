@@ -45,7 +45,7 @@ eDisplay_t FilesystemReadLcd(void) {
 	char lcdtype[32];
 	FIL f;
 	UINT r = 0;
-	if (FR_OK == f_open(&f, CONFIGFILENAME, FA_READ)) {
+	if (FR_OK == f_open(&f, DISPLAYFILENAME, FA_READ)) {
 		FRESULT res = f_read(&f, displayconf, sizeof(displayconf) - 1, &r);
 		if (res != FR_OK) {
 			printf("Warning, could not read display config file\r\n");
@@ -77,18 +77,30 @@ eDisplay_t FilesystemReadLcd(void) {
 	return NONE;
 }
 
-void FilesystemWriteLcd(const char * lcdType) {
-	char buffer[256];
-	f_mkdir("/etc");
-	snprintf(buffer, sizeof(buffer), "{\n  \"lcd\": \"%s\"\n}\n", lcdType);
+bool FilesystemWriteFile(const char * filename, const void * data, size_t dataLen) {
 	FIL f;
-	if (FR_OK == f_open(&f, CONFIGFILENAME, FA_WRITE | FA_CREATE_ALWAYS)) {
+	bool success = false;
+	if (FR_OK == f_open(&f, filename, FA_WRITE | FA_CREATE_ALWAYS)) {
 		UINT written = 0;
-		FRESULT res = f_write(&f, buffer, strlen(buffer), &written);
-		if (res == FR_OK) {
-			printf("Display set\r\n");
+		FRESULT res = f_write(&f, data, dataLen, &written);
+		if ((res == FR_OK) && (written == dataLen)) {
+			success = true;
 		}
 		f_close(&f);
+	}
+	return success;
+}
+
+bool FilesystemWriteEtcFile(const char * filename, const void * data, size_t dataLen) {
+	f_mkdir("/etc");
+	return FilesystemWriteFile(filename, data, dataLen);
+}
+
+void FilesystemWriteLcd(const char * lcdType) {
+	char buffer[256];
+	snprintf(buffer, sizeof(buffer), "{\n  \"lcd\": \"%s\"\n}\n", lcdType);
+	if (FilesystemWriteEtcFile(DISPLAYFILENAME, buffer, strlen(buffer))) {
+		printf("Display set\r\n");
 	} else {
 		printf("Error, could not create file\r\n");
 	}
