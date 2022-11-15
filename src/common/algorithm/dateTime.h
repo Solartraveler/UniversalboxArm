@@ -30,7 +30,7 @@ uint8_t WeekdayFromDoy(uint16_t dayofyear, uint16_t year);
    A positive returned value menas, the clock should have run slower.
    The newTimestamp must be between 8h and 28 days in the future compared
    to oldTimestamp.
-
+   Returns true if the conditions are met and pDerivation is set.
 */
 bool DerivationPPB(uint32_t oldTimestamp, uint16_t oldTimestampMs,
                    uint32_t currentTimestamp, uint16_t currentTimestampMs,

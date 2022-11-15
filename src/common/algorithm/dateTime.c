@@ -98,7 +98,7 @@ bool DerivationPPB(uint32_t oldTimestamp, uint16_t oldTimestampMs,
 		return false;
 	}
 	uint32_t timePassed = newTimestamp - oldTimestamp;
-	if ((timePassed < (60 * 60 * 8)) || (timePassed > (60 * 60 * 24 * 28))) {
+	if ((timePassed < (60UL * 60UL * 8UL)) || (timePassed > (60UL * 60UL * 24UL * 28UL))) {
 		return false;
 	}
 	timePassed *= 1000; //make miliseconds

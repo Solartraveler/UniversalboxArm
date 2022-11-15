@@ -184,6 +184,22 @@ int TestDerivation4(void) {
 	return result;
 }
 
+int TestDerivation5(void) {
+	int result = 0;
+	const uint32_t oldTime = 1668371990;
+	const uint32_t oldTimeMs = 0;
+	const uint32_t currTime = 1668372451;
+	const uint32_t currTimeMs = 936;
+	const uint32_t newTime = 1668372451;
+	const uint32_t newTimeMs = 0;
+	int32_t derivation = 0;
+	bool success = DerivationPPB(oldTime, oldTimeMs, currTime, currTimeMs, newTime, newTimeMs, &derivation);
+	CHECK(success, true);
+	CHECK(derivation, 2030368);
+	return result;
+}
+
+
 
 int main(void) {
 	int result = 0;
@@ -199,6 +215,6 @@ int main(void) {
 	result |= TestDerivation2();
 	result |= TestDerivation3();
 	result |= TestDerivation4();
-
+	result |= TestDerivation5();
 	return result;
 }
