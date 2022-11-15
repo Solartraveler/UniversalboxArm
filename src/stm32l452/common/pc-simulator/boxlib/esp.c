@@ -84,6 +84,10 @@ uint32_t EspUdpRequestResponse(const char * domain, uint16_t port, uint8_t * req
 
 		if (bind(s, (struct sockaddr *)&sourceAddr, sizeof(sourceAddr)) == 0) {
 			if (sendto(s, requestIn, requestInLen, 0, (struct sockaddr *)&destAddr, sizeof(destAddr)) == (ssize_t)requestInLen) {
+				struct timeval t;
+				t.tv_sec = 3;
+				t.tv_usec = 0;
+				setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &t, sizeof(t));
 				ssize_t got = recvfrom(s, requestOut, requestOutMax, 0, NULL, NULL);
 				if (got >= 0) {
 					*requestOutLen = got;
