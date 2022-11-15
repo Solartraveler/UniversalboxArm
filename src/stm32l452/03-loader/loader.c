@@ -196,6 +196,7 @@ typedef struct {
 	uint32_t unixTimestamp;
 	bool watchdogEnforced;
 	bool watchdogEnabled;
+	uint16_t watchdogCounter; //counts up every main loop cycle [10ms], resets the watchdog every 10s
 } loaderState_t;
 
 //Only functions starting with Loader shall use this global variable directly
@@ -444,7 +445,7 @@ static usbd_respond usbControl(usbd_device *dev, usbd_ctlreq *req, usbd_rqc_call
 	return usbd_fail;
 }
 
-void mainMenu(void) {
+void MainMenu(void) {
 	printf("\r\nSelect operation:\r\n");
 	printf("l: List flash content\r\n");
 	printf("h: This screen\r\n");
@@ -590,11 +591,12 @@ void LoaderInit(void) {
 	if (result >= 0) {
 		g_loaderState.usbEnabled = true;
 	}
+	CoprocWatchdogCtrl(20000);
 	Led1Green();
 	printf("Ready. Press h for available commands\r\n");
 }
 
-void listFiles(const char * path) {
+void ListFiles(const char * path) {
 	DIR d;
 	FILINFO fi;
 	printf("Files of %s\r\n", path);
@@ -610,27 +612,10 @@ void listFiles(const char * path) {
 	}
 }
 
-void listStorage(void) {
-	listFiles("/");
-	listFiles("/bin");
-	listFiles("/etc");
-}
-
-void readSerialLine(char * input, size_t len) {
-	memset(input, 0, len);
-	size_t i = 0;
-	while (i < (len - 1)) {
-		char c = Rs232GetChar();
-		if (c != 0) {
-			input[i] = c;
-			i++;
-			printf("%c", c);
-		}
-		if ((c == '\r') || (c == '\n'))
-		{
-			break;
-		}
-	}
+void ListStorage(void) {
+	ListFiles("/");
+	ListFiles("/bin");
+	ListFiles("/etc");
 }
 
 void PrepareOtherProgam(void) {
@@ -645,6 +630,7 @@ void PrepareOtherProgam(void) {
 }
 
 void JumpDfu(void) {
+	CoprocWatchdogCtrl(0);
 	uintptr_t dfuStart = ROM_BOOTLOADER_START_ADDRESS;
 	Led1Green();
 	printf("\r\nDirectly jump to the DFU bootloader\r\n");
@@ -746,7 +732,8 @@ void ProgTarStart(void * tarStart, size_t tarLen, bool watchdogEnforced, bool wa
 			if ((programStart >= (uintptr_t)g_DfuMem) && ((programStart + fileLen) <= ((uintptr_t)g_DfuMem+ g_DfuMemSize))) {
 				ramStart = (void *)programStart;
 			} else {
-				printf("Warning, address 0x%x out of bounds\r\n", (unsigned int)programStart);
+				printf("Error, address 0x%x out of bounds\r\n", (unsigned int)programStart);
+				return;
 			}
 			memmove(ramStart, fileStart, fileLen);
 			uint8_t md5sum[16] = {0};
@@ -766,6 +753,8 @@ void ProgTarStart(void * tarStart, size_t tarLen, bool watchdogEnforced, bool wa
 			if (watchdogTimeout) {
 				CoprocWatchdogCtrl(watchdogTimeout);
 				printf("Watchdog enabled. Timeout %ums\r\n", (unsigned int)watchdogTimeout);
+			} else {
+				CoprocWatchdogCtrl(0);
 			}
 			volatile uint32_t * pProgramStart = (uint32_t *)((uintptr_t)ramStart + 0x4);
 			printf("Program start will be at 0x%x\r\n", (unsigned int)(*pProgramStart));
@@ -832,26 +821,26 @@ void ToggleUsb(void) {
 	}
 }
 
-void loaderMemLock(void) {
+void LoaderMemLock(void) {
 	g_dfuState.commMainProcessing = true;
 	__sync_synchronize();
 }
 
-void loaderMemUnlock(void) {
+void LoaderMemUnlock(void) {
 	__sync_synchronize();
 	g_dfuState.commMainProcessing = false; //now the ISR may access again
 	__sync_synchronize();
 }
 
 void LoaderProgramStart(void) {
-	loaderMemLock();
+	LoaderMemLock();
 	if (ProgTarCheck(g_loaderState.memStart, g_loaderState.tarSize)) {
 		ProgTarStart(g_loaderState.memStart, g_loaderState.tarSize,
 		  g_loaderState.watchdogEnforced, g_loaderState.watchdogEnabled); //usually does not return
 	}
 	__disable_irq();
 	g_dfuState.commStartProgram = false;
-	loaderMemUnlock();
+	LoaderMemUnlock();
 	__enable_irq();
 }
 
@@ -859,21 +848,15 @@ bool LoaderAutostartSet(bool enabled) {
 	bool success = false;
 	char buffer[TARFILENAME_MAX + 64];
 	const char * autostart = "";
-	FIL f;
 	if (enabled) {
 		autostart = g_loaderState.filename;
 	}
 	snprintf(buffer, sizeof(buffer), "{\n  \"filename\": \"%s\"\n}\n", autostart);
-	if (FR_OK == f_open(&f, AUTOSTARTFILE, FA_WRITE | FA_CREATE_ALWAYS)) {
-		UINT written = 0;
-		FRESULT res = f_write(&f, buffer, strlen(buffer), &written);
-		if (res == FR_OK) {
-			success = true;
-			printf("New autostart value set to \"%s\"\r\n", autostart);
-		}
-		f_close(&f);
-		LoaderUpdateFsGui();
+	if (FilesystemWriteEtcFile(AUTOSTARTFILE, buffer, strlen(buffer))) {
+		success = true;
+		printf("New autostart value set to \"%s\"\r\n", autostart);
 	}
+	LoaderUpdateFsGui();
 	return success;
 }
 
@@ -960,7 +943,7 @@ void LoaderGfxUpdate(void) {
 	uint16_t ix = 0;
 	uint16_t iy = 0;
 	size_t imageLen = 0;
-	loaderMemLock();
+	LoaderMemLock();
 	if (ProgTarCheck(tarStart, tarLen)) {
 		if ((sx >= 320) && (sy >= 240)) {
 			if (TarFileStartGet("image320x240.bin", tarStart, tarLen, &imageStart, &imageLen, NULL)) {
@@ -985,7 +968,7 @@ void LoaderGfxUpdate(void) {
 			GuiShowGfxData(imageStart, imageLen, ix, iy);
 		}
 	}
-	loaderMemUnlock();
+	LoaderMemUnlock();
 	if (ix == 0) {
 		printf("No image present\r\n");
 		uint8_t fourPixel = ((4-1)<<3) | 0x7; //compressed 4 pixel (4-1), white color (0x7)
@@ -1010,7 +993,7 @@ bool LoaderTarLoad(const char * filename) {
 	bool success = false;
 	FIL f;
 	if (FR_OK == f_open(&f, filename, FA_READ)) {
-		loaderMemLock();
+		LoaderMemLock();
 		UINT r = 0;
 		FRESULT res = f_read(&f, g_loaderState.memStart, g_loaderState.memSize, &r);
 		if (res == FR_OK) {
@@ -1027,7 +1010,7 @@ bool LoaderTarLoad(const char * filename) {
 				success = LoaderUpdateGui();
 			}
 		}
-		loaderMemUnlock();
+		LoaderMemUnlock();
 		f_close(&f);
 	} else {
 		printf("Error, could not open %s\r\n", filename);
@@ -1112,6 +1095,7 @@ void LoaderFormatAsk(void) {
 		input = Rs232GetChar();
 	} while (input == 0);
 	if (input == 'y') {
+		CoprocWatchdogReset(); //no reset during formatting, please
 		printf("Formatting...\r\n");
 		LoaderFormat();
 	}
@@ -1134,8 +1118,8 @@ void LoaderCycle(void) {
 		printf("%c", input);
 	}
 	switch (input) {
-		case 'l': listStorage(); break;
-		case 'h': mainMenu(); break;
+		case 'l': ListStorage(); break;
+		case 'h': MainMenu(); break;
 		case 'r': NVIC_SystemReset(); break;
 		case 'b': JumpDfu(); break;
 		case 'u': ToggleUsb(); break;
@@ -1158,7 +1142,7 @@ void LoaderCycle(void) {
 	//startProgram can be set in an other cycle than transferDone becomes true
 	bool startProgram = g_dfuState.commStartProgram;
 	if (transferDone) {
-		loaderMemLock();
+		LoaderMemLock();
 	}
 	__enable_irq();
 	if (transferDone) {
@@ -1186,7 +1170,7 @@ void LoaderCycle(void) {
 		}
 		GuiTransferDone();
 		g_dfuState.commTransferDone = false;
-		loaderMemUnlock();
+		LoaderMemUnlock();
 	}
 	if (startProgram) {
 		LoaderProgramStart();
@@ -1197,5 +1181,10 @@ void LoaderCycle(void) {
 	//if (input) {
 	//	printf("Processing took %uticks\r\n", (unsigned int)(timeStop - timeStart));
 	//}
+	g_loaderState.watchdogCounter++;
+	if (g_loaderState.watchdogCounter >= 1000) { //reset every 10s
+		g_loaderState.watchdogCounter = 0;
+		CoprocWatchdogReset();
+	}
 	HAL_Delay(10); //call this loop ~100x per second
 }
