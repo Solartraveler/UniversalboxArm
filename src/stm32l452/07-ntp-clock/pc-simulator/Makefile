@@ -58,6 +58,7 @@ $(BOXLIB)/lcd.c \
 $(BOXLIB)/coproc.c \
 $(BOXLIB)/mcu.c \
 $(BOXLIB)/esp.c \
+$(BOXLIB)/clock.c \
 $(HALLIB)/simulated.c \
 $(FATFS)/ff.c \
 $(FATFS)/ffunicode.c \
@@ -70,6 +71,7 @@ $(ALGORITHM)/json.c \
 $(ALGORITHM)/filesystem.c \
 $(ALGORITHM)/imageDrawer.c \
 $(ALGORITHM)/imageDrawerLowres.c \
+$(ALGORITHM)/dateTime.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 $(SIMCOMMON)/simhelper.c \

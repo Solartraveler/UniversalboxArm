@@ -5,6 +5,9 @@
 //Enable for %u support
 #define FEMTO_SUPPORT_DECIMAL
 
+//Enable for %i support
+#define FEMTO_SUPPORT_DECIMAL_NEGATIVE
+
 //Enable for %c
 #define FEMTO_SUPPORT_C
 

@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Ntp-clock
 #Version of this application, to be used in the metadata
-VERSION  = 0.1.1
+VERSION  = 0.2.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -25,7 +25,7 @@ LICENSE  = GPL-3.0-or-later
 #The MCU, this binary is compiled for, to be used in the metadata
 CHIP     = stm32l452
 #Watchdog in [ms]. 0 disables, maximum is 65535
-WATCHDOG = 60000
+WATCHDOG = 0
 
 #If the name is not readme.md, --transform needs to be used to adjust the name
 TARREADME = readme.md
@@ -54,7 +54,7 @@ STARTADDR=`grep "_Code_Start.=" $(LDSCRIPTRAM) | cut -d " " -f3 | sed 's/[;\r]//
 # debug build?
 DEBUG = 1
 # optimization
-OPT = -O3
+OPT = -Os
 
 
 #######################################
@@ -109,6 +109,7 @@ $(BOXLIB)/lcd.c \
 $(BOXLIB)/coproc.c \
 $(BOXLIB)/mcu.c \
 $(BOXLIB)/esp.c \
+$(BOXLIB)/clock.c \
 $(DISPLAYLIB1)/st7735.c \
 $(DISPLAYLIB2)/ili9341.c \
 $(FATFS)/ff.c \
@@ -123,6 +124,7 @@ $(ALGORITHM)/json.c \
 $(ALGORITHM)/filesystem.c \
 $(ALGORITHM)/imageDrawer.c \
 $(ALGORITHM)/imageDrawerLowres.c \
+$(ALGORITHM)/dateTime.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 ntp-clock.c \
