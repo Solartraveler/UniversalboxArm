@@ -23,6 +23,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "boxlib/peripheral.h"
 #include "boxlib/coproc.h"
 #include "boxlib/mcu.h"
+#include "boxlib/readLine.h"
 
 #include "main.h"
 
@@ -207,23 +208,6 @@ void ExecPrintStats(void) {
 	printf("Printing took: %ums\r\n", (unsigned int)(tStop - tStart));
 }
 
-void ReadSerialLine(char * input, size_t len) {
-	memset(input, 0, len);
-	size_t i = 0;
-	while (i < (len - 1)) {
-		char c = Rs232GetChar();
-		if (c != 0) {
-			input[i] = c;
-			i++;
-			printf("%c", c);
-		}
-		if ((c == '\r') || (c == '\n'))
-		{
-			break;
-		}
-	}
-}
-
 void ExecNewBattery(void) {
 	printf("Enter y to confirm\r\n");
 	char buffer[8];
@@ -235,7 +219,6 @@ void ExecNewBattery(void) {
 		printf("Aborted\r\n");
 	}
 }
-
 
 void ExecResetStats(void) {
 	printf("Enter y to confirm\r\n");

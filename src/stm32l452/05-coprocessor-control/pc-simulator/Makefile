@@ -57,6 +57,7 @@ $(BOXLIB)/flash.c \
 $(BOXLIB)/lcd.c \
 $(BOXLIB)/coproc.c \
 $(BOXLIB)/mcu.c \
+$(BOXLIB)/readLine.c \
 $(HALLIB)/simulated.c \
 $(FATFS)/ff.c \
 $(FATFS)/ffunicode.c \

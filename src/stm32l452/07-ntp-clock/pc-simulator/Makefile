@@ -59,6 +59,7 @@ $(BOXLIB)/coproc.c \
 $(BOXLIB)/mcu.c \
 $(BOXLIB)/esp.c \
 $(BOXLIB)/clock.c \
+$(BOXLIB)/readLine.c \
 $(HALLIB)/simulated.c \
 $(FATFS)/ff.c \
 $(FATFS)/ffunicode.c \

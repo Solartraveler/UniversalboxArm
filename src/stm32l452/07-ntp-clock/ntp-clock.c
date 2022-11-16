@@ -31,6 +31,7 @@ Then shows a clock on the display
 #include "boxlib/mcu.h"
 #include "boxlib/esp.h"
 #include "boxlib/clock.h"
+#include "boxlib/readLine.h"
 
 #include "main.h"
 
@@ -120,27 +121,6 @@ void ExecReset(void) {
 	printf("Reset selected\r\n");
 	Rs232Flush();
 	NVIC_SystemReset();
-}
-
-void ReadSerialLine(char * input, size_t len) {
-	memset(input, 0, len);
-	size_t i = 0;
-	while (i < (len - 1)) {
-		char c = Rs232GetChar();
-		if (c != 0) {
-			printf("%c", c);
-			if ((c == '\r') || (c == '\n')) {
-				break;
-			}
-			if ((c == '\b') && (i)) {
-				i--;
-				input[i] = 0;
-			} else {
-				input[i] = c;
-				i++;
-			}
-		}
-	}
 }
 
 void EnterParams(void) {
