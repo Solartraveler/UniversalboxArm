@@ -28,6 +28,7 @@ License: BSD-3-Clause
 #include "boxlib/simpleadc.h"
 #include "boxlib/boxusb.h"
 #include "boxlib/mcu.h"
+#include "boxlib/readLine.h"
 
 #include "main.h"
 
@@ -36,7 +37,7 @@ License: BSD-3-Clause
 
 #include "utility.h"
 
-void mainMenu(void) {
+void MainMenu(void) {
 	printf("\r\nSelect operation:\r\n");
 	printf("0: Read all inputs\r\n");
 	printf("1: Set LEDs\r\n");
@@ -69,7 +70,7 @@ void mainMenu(void) {
 	printf("z: Reboot to DFU mode (needs coprocessor)\r\n");
 }
 
-void testInit(void) {
+void AppInit(void) {
 	LedsInit();
 	Led1Red();
 	HAL_Delay(100);
@@ -77,7 +78,7 @@ void testInit(void) {
 	printf("Test everything %s\r\n", APPVERSION);
 	CoprocInit();
 	PeripheralInit();
-	mainMenu();
+	MainMenu();
 }
 
 #define CHANNELS 19
@@ -104,7 +105,7 @@ const char * g_adcNames[CHANNELS] = {
 	"Bat"
 };
 
-void readSensors() {
+void ReadSensors() {
 	KeysInit();
 	bool right = KeyRightPressed();
 	bool left = KeyLeftPressed();
@@ -145,7 +146,7 @@ void readSensors() {
 	}
 }
 
-void setLeds() {
+void SetLeds() {
 	printf("\r\nToggle LEDs by entering 1...4. All other keys return\r\n");
 	char c;
 	bool valid;
@@ -181,7 +182,7 @@ void setLeds() {
 	} while((c == 0) || (valid));
 }
 
-void setRelays() {
+void SetRelays() {
 	RelaysInit();
 	printf("\r\nToggle relays by entering 1...4. All other keys return\r\n");
 	char c;
@@ -204,7 +205,7 @@ void setRelays() {
 	} while((c == 0) || (valid));
 }
 
-void check32kCrystal(void) {
+void Check32kCrystal(void) {
 	printf("\r\nStarting external low speed crystal\r\n");
 	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE;
@@ -299,7 +300,7 @@ void ClockToHse(void) {
 	printf("MSI and HSI turned off\r\n");
 }
 
-void checkHseCrystal(void) {
+void CheckHseCrystal(void) {
 	if (g_usingHsi == false) {
 		printf("\r\nAlready running on external crystal. Switching back.\r\n");
 		ClockToHsi();
@@ -309,7 +310,7 @@ void checkHseCrystal(void) {
 	ClockToHse();
 }
 
-void clockWithPll(uint32_t frequency, uint32_t apbDivider) {
+void ClockWithPll(uint32_t frequency, uint32_t apbDivider) {
 	ClockToHsi();
 	Rs232Flush();
 	uint8_t result = McuClockToHsiPll(frequency, apbDivider);
@@ -328,7 +329,7 @@ void clockWithPll(uint32_t frequency, uint32_t apbDivider) {
 }
 
 //debug prints may not work after changing. As the prescalers are not recalculated
-bool clockToMsi(uint32_t frequency) {
+bool ClockToMsi(uint32_t frequency) {
 	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 	Rs232Flush();
 	if (McuClockToMsi(frequency, RCC_HCLK_DIV1) == false) {
@@ -345,10 +346,10 @@ bool clockToMsi(uint32_t frequency) {
 
 bool g_highSpeed;
 
-void speed32M(void) {
+void Speed32M(void) {
 	if (!g_highSpeed) {
 		printf("\r\nSwitching to 32MHz...\r\n");
-		clockWithPll(32000000, RCC_HCLK_DIV4);
+		ClockWithPll(32000000, RCC_HCLK_DIV4);
 		printf("Now running with 32MHz\r\n");
 		g_highSpeed = true;
 	} else {
@@ -361,10 +362,10 @@ void speed32M(void) {
 	}
 }
 
-void speed64M(void) {
+void Speed64M(void) {
 	if (!g_highSpeed) {
 		printf("\r\nSwitching to 64MHz...\r\n");
-		clockWithPll(64000000, RCC_HCLK_DIV8);
+		ClockWithPll(64000000, RCC_HCLK_DIV8);
 		printf("Now running with 64MHz\r\n");
 		g_highSpeed = true;
 	} else {
@@ -377,7 +378,7 @@ void speed64M(void) {
 	}
 }
 
-void toggleFlashPrefetch(void) {
+void ToggleFlashPrefetch(void) {
 	static bool enabled = false;
 	if (!enabled) {
 		__HAL_FLASH_PREFETCH_BUFFER_ENABLE();
@@ -389,7 +390,7 @@ void toggleFlashPrefetch(void) {
 	enabled = !enabled;
 }
 
-void toggleFlashCache(void) {
+void ToggleFlashCache(void) {
 	static bool enabled = false;
 	if (!enabled) {
 		__HAL_FLASH_INSTRUCTION_CACHE_ENABLE();
@@ -405,7 +406,7 @@ void toggleFlashCache(void) {
 
 #define BLOCKSIZE_MAX 512
 
-void checkFlash(void) {
+void CheckFlash(void) {
 	FlashEnable(128);
 	uint16_t status = FlashGetStatus();
 	uint16_t density = (status >> 10) & 0xF;
@@ -479,7 +480,7 @@ void checkFlash(void) {
 	}
 }
 
-void setFlashPagesize(void) {
+void SetFlashPagesize(void) {
 	printf("\r\nEnter p to set the page size to 512byte\r\n");
 	char input = 0;
 	do {
@@ -492,7 +493,7 @@ void setFlashPagesize(void) {
 	} while (input == 0);
 }
 
-void checkEspPrint(const char * buffer) {
+void CheckEspPrint(const char * buffer) {
 	const uint32_t maxCharsLine = 80;
 	uint32_t forceNewline = maxCharsLine;
 	while (*buffer) {
@@ -511,40 +512,40 @@ void checkEspPrint(const char * buffer) {
 	}
 }
 
-void checkEsp(void) {
+void CheckEsp(void) {
 	EspInit();
 	char inBuffer[1024] = {0};
 	size_t maxBuffer = sizeof(inBuffer);
 	printf("\r\n==Enabling Esp==\r\n");
 	EspEnable();
 	EspCommand("", inBuffer, maxBuffer, 1000);
-	checkEspPrint(inBuffer);
+	CheckEspPrint(inBuffer);
 	if ((strstr(inBuffer, "ready")) || (strstr(inBuffer, "Ai-Thinker"))) {
 
 		EspCommand("AT+GMR\r\n", inBuffer, maxBuffer, 250); //request version
 		printf("\r\n==Version==\r\n");
-		checkEspPrint(inBuffer);
+		CheckEspPrint(inBuffer);
 
 		EspCommand("AT+CWMODE=?\r\n", inBuffer, maxBuffer, 250); //possible modes?
 		printf("\r\n==Supported modes==\r\n");
-		checkEspPrint(inBuffer);
+		CheckEspPrint(inBuffer);
 
 		EspCommand("AT+CWJAP?\r\n", inBuffer, maxBuffer, 250); //current mode?
 		printf("\r\n==Current mode==\r\n");
-		checkEspPrint(inBuffer);
+		CheckEspPrint(inBuffer);
 
 		EspCommand("AT+CWMODE_CUR=1\r\n", inBuffer, maxBuffer, 250); //lets become a client
 		printf("\r\n==Now a client==\r\n");
-		checkEspPrint(inBuffer);
+		CheckEspPrint(inBuffer);
 
 		//list available AP, dont know the right timeout. 1000 is too less
 		EspCommand("AT+CWLAP\r\n", inBuffer, maxBuffer, 7000);
 		printf("\r\n==Available APs==\r\n");
-		checkEspPrint(inBuffer);
+		CheckEspPrint(inBuffer);
 
 		EspCommand("AT+CIPSTART=?\r\n", inBuffer, maxBuffer, 1000);
 		printf("\r\n==Supported connections==\r\n");
-		checkEspPrint(inBuffer);
+		CheckEspPrint(inBuffer);
 
 	} else {
 		printf("Error, no valid answer from ESP detected\r\n");
@@ -553,7 +554,7 @@ void checkEsp(void) {
 	printf("\r\n==Esp disabled==\r\n");
 }
 
-void checkIr(void) {
+void CheckIr(void) {
 	IrInit();
 	IrOn();
 	printf("\r\nIR enabled, signal low will be printed every second until a key is pressed\r\n");
@@ -581,7 +582,7 @@ void checkIr(void) {
 	printf("Ir disabled\r\n");
 }
 
-void setLcdBacklight(void) {
+void SetLcdBacklight(void) {
 	static bool state = false;
 	state = !state;
 	if (state) {
@@ -593,39 +594,22 @@ void setLcdBacklight(void) {
 	}
 }
 
-void writeLcd(void) {
+void WriteLcd(void) {
 	LcdEnable(4);
 	LcdInit(ST7735_128);
 	LcdTestpattern();
 }
 
-void writeLcdBig(void) {
+void WriteLcdBig(void) {
 	LcdEnable(4);
 	LcdInit(ILI9341);
 	LcdTestpattern();
 }
 
-void readSerialLine(char * input, size_t len) {
-	memset(input, 0, len);
-	size_t i = 0;
-	while (i < (len - 1)) {
-		char c = Rs232GetChar();
-		if (c != 0) {
-			input[i] = c;
-			i++;
-			printf("%c", c);
-		}
-		if ((c == '\r') || (c == '\n'))
-		{
-			break;
-		}
-	}
-}
-
-void writePixelLcd(void) {
+void WritePixelLcd(void) {
 	printf("\r\nEnter 2x3 decimal digits for x+y, then 6 hexadecimal digits for color, separated with a space\r\n");
 	char buffer[16] = {0};
-	readSerialLine(buffer, sizeof(buffer));
+	ReadSerialLine(buffer, sizeof(buffer));
 	unsigned int x, y, color;
 	sscanf(buffer, "%u %u %x", &x, &y, &color);
 	PeripheralPrescaler(2);
@@ -633,10 +617,10 @@ void writePixelLcd(void) {
 	printf("Written(%u,%u) = 0x%x\r\n", x, y, color);
 }
 
-void manualLcdCmd(void) {
+void ManualLcdCmd(void) {
 	printf("\r\nFormat (hex): Parameters command data1, data2, data3, data4, data5, data6, data7, data8\r\n");
 	char buffer[128];
-	readSerialLine(buffer, sizeof(buffer));
+	ReadSerialLine(buffer, sizeof(buffer));
 	printf("\r\n");
 	unsigned int vars[10] = {0};
 	sscanf(buffer, "%x %x %x %x %x %x %x %x %x %x",
@@ -666,7 +650,7 @@ void PeripheralPowercycle(void) {
 	printf("Power back on. There should be no message printed between this and the power off message\r\n");
 }
 
-void checkCoprocComm(void) {
+void CheckCoprocComm(void) {
 	printf("\r\nCheck coprocessor communication\r\n");
 	uint16_t pattern = CoprocReadTestpattern();
 	uint16_t version = CoprocReadVersion();
@@ -680,10 +664,10 @@ void checkCoprocComm(void) {
 	}
 }
 
-void manualSpiCoprocLevel(void) {
+void ManualSpiCoprocLevel(void) {
 	printf("Enter number 0...3. Low bit will be the clock, high bit will be the data level\r\n");
 	char buffer[128];
-	readSerialLine(buffer, sizeof(buffer));
+	ReadSerialLine(buffer, sizeof(buffer));
 	printf("\r\n");
 	unsigned int val = 0;
 	sscanf(buffer, "%x", &val);
@@ -703,24 +687,24 @@ void manualSpiCoprocLevel(void) {
 	}
 }
 
-void rebootToDfu(void) {
+void RebootToDfu(void) {
 	CoprocWriteReboot(2); //2 for dfu bootloader
 }
 
-void rebootToNormal(void) {
+void RebootToNormal(void) {
 	CoprocWriteReboot(1); //1 for normal boot
 }
 
 typedef void (ptrFunction_t)(void);
 
 //See https://stm32f4-discovery.net/2017/04/tutorial-jump-system-memory-software-stm32/
-void jumpDfu(void) {
+void JumpDfu(void) {
 	uint32_t dfuStart = 0x1FFF0000;
 	Led1Green();
 	printf("\r\nDirectly jump to the DFU bootloader\r\n");
 	volatile uint32_t * pStackTop = (uint32_t *)dfuStart;
 	volatile uint32_t * pProgramStart = (uint32_t *)(dfuStart + 4);
-	printf("This function is at 0x%x. New stack will be at 0x%x\r\n", (unsigned int)&jumpDfu, (unsigned int)(*pStackTop));
+	printf("This function is at 0x%x. New stack will be at 0x%x\r\n", (unsigned int)&JumpDfu, (unsigned int)(*pStackTop));
 	printf("Program start will be at 0x%x\r\n", (unsigned int)(*pProgramStart));
 	/*The bootloader seems not to reset the GPIO ports, so we can lock the pin for
 	  SPI2 MISO and prevent it becoming a high level output
@@ -740,7 +724,7 @@ void jumpDfu(void) {
 	McuStartOtherProgram((void *)dfuStart, true); //usually does not return
 }
 
-void bogomips(void) {
+void Bogomips(void) {
 	uint32_t timeout = HAL_GetTick() + 1000;
 	uint32_t ips = 0;
 	while (timeout > HAL_GetTick()) {
@@ -875,7 +859,7 @@ static usbd_respond usbControl(usbd_device *dev, usbd_ctlreq *req, usbd_rqc_call
 
 bool g_usbEnabled;
 
-void testUsb(void) {
+void TestUsb(void) {
 	if (g_usbEnabled == true) {
 		printf("\r\nStopping USB\r\n");
 		UsbStop();
@@ -935,7 +919,7 @@ void testUsb(void) {
 	printf("A second call disconnects again\r\n");
 }
 
-void minPower(void) {
+void MinPower(void) {
 	printf("\r\nMinimize power for 4 seconds\r\n");
 	UsbStop();
 	g_usbEnabled = false;
@@ -943,7 +927,7 @@ void minPower(void) {
 	PeripheralPowerOff();
 	AdcStop();
 	EspStop();
-	if (!clockToMsi(1000000)) { //1MHz
+	if (!ClockToMsi(1000000)) { //1MHz
 		return;
 	}
 	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE2);
@@ -961,7 +945,7 @@ void minPower(void) {
 	printf("Power back on\r\n");
 }
 
-void testCycle(void) {
+void AppCycle(void) {
 	Led2Green();
 	HAL_Delay(250);
 	Led2Off();
@@ -971,35 +955,35 @@ void testCycle(void) {
 		printf("%c", input);
 	}
 	switch (input) {
-		case '0': readSensors(); break;
-		case '1': setLeds(); break;
-		case '2': setRelays(); break;
-		case '3': check32kCrystal(); break;
-		case '4': checkHseCrystal(); break;
-		case '5': speed32M(); break;
-		case '6': speed64M(); break;
-		case '7': toggleFlashPrefetch(); break;
-		case '8': toggleFlashCache(); break;
-		case '9': bogomips(); break;
-		case 'a': checkFlash(); break;
-		case 'b': setFlashPagesize(); break;
-		case 'c': checkEsp(); break;
-		case 'd': setLcdBacklight(); break;
-		case 'e': writeLcd(); break;
-		case 'f': writeLcdBig(); break;
-		case 'g': writePixelLcd(); break;
-		case 'h': mainMenu(); break;
-		case 'i': checkIr(); break;
+		case '0': ReadSensors(); break;
+		case '1': SetLeds(); break;
+		case '2': SetRelays(); break;
+		case '3': Check32kCrystal(); break;
+		case '4': CheckHseCrystal(); break;
+		case '5': Speed32M(); break;
+		case '6': Speed64M(); break;
+		case '7': ToggleFlashPrefetch(); break;
+		case '8': ToggleFlashCache(); break;
+		case '9': Bogomips(); break;
+		case 'a': CheckFlash(); break;
+		case 'b': SetFlashPagesize(); break;
+		case 'c': CheckEsp(); break;
+		case 'd': SetLcdBacklight(); break;
+		case 'e': WriteLcd(); break;
+		case 'f': WriteLcdBig(); break;
+		case 'g': WritePixelLcd(); break;
+		case 'h': MainMenu(); break;
+		case 'i': CheckIr(); break;
 		case 'j': PeripheralPowercycle(); break;
-		case 'k': checkCoprocComm(); break;
-		case 'l': minPower(); break;
-		case 'm': manualLcdCmd(); break;
-		case 'n': manualSpiCoprocLevel(); break;
+		case 'k': CheckCoprocComm(); break;
+		case 'l': MinPower(); break;
+		case 'm': ManualLcdCmd(); break;
+		case 'n': ManualSpiCoprocLevel(); break;
 		case 'r': NVIC_SystemReset(); break;
-		case 's': jumpDfu(); break;
-		case 't': rebootToNormal(); break;
-		case 'u': testUsb(); break;
-		case 'z': rebootToDfu(); break;
+		case 's': JumpDfu(); break;
+		case 't': RebootToNormal(); break;
+		case 'u': TestUsb(); break;
+		case 'z': RebootToDfu(); break;
 		default: break;
 	}
 }

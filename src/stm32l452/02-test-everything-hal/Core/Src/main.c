@@ -89,7 +89,7 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
-  testInit();
+  AppInit();
 
   /* USER CODE END 2 */
 
@@ -100,7 +100,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    testCycle();
+    AppCycle();
   }
   /* USER CODE END 3 */
 }

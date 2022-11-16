@@ -1,6 +1,6 @@
 #pragma once
 
-void testInit(void);
+void AppInit(void);
 
-void testCycle(void);
+void AppCycle(void);
 
