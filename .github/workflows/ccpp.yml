@@ -20,7 +20,7 @@ jobs:
     - name: make STM32L452
       run: make -C src/stm32l452
     - name: make Tests
-      run: make -C src/common/algorithm/unittests
+      run: make -C src/common/algorithm/unittests test
     - name: Artifacts upload
       uses: actions/upload-artifact@v2
       with:

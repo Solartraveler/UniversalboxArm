@@ -1,3 +1,9 @@
+/* Date time convesion
+(c) 2022 by Malte Marwedel
+
+SPDX-License-Identifier: BSD-3-Clause
+*/
+
 #include <stdint.h>
 #include <stdbool.h>
 

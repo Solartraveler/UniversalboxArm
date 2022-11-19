@@ -194,8 +194,9 @@ int TestDerivation5(void) {
 	const uint32_t newTimeMs = 0;
 	int32_t derivation = 0;
 	bool success = DerivationPPB(oldTime, oldTimeMs, currTime, currTimeMs, newTime, newTimeMs, &derivation);
-	CHECK(success, true);
-	CHECK(derivation, 2030368);
+	CHECK(success, false);
+	//This would be the result, but the time delta is not large enough
+	//CHECK(derivation, 2030368);
 	return result;
 }
 
