@@ -115,3 +115,7 @@ bool FlashReady(void) {
 	}
 	return false;
 }
+
+bool FlashTest(void) {
+	return FlashReady();
+}

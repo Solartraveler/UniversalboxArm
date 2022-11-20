@@ -29,4 +29,8 @@ uint32_t FlashSizeGet(void);
 
 uint32_t FlashBlocksizeGet(void);
 
+//Returns true if allocating memory for simulation by FlashEnable was a success.
 bool FlashReady(void);
+
+//always returns the same as FlashReady
+bool FlashTest(void);

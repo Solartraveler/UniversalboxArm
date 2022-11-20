@@ -6,6 +6,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "flash.h"
 
@@ -128,6 +129,20 @@ bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
 	return false;
 }
 
+bool FlashWriteBuffer1(const uint8_t * buffer) {
+	uint8_t out[4];
+	FlashWaitNonBusy();
+	out[0] = 0x84; //write to sram buffer 1
+	out[1] = 0x0;
+	out[2] = 0x0;
+	out[3] = 0x0;
+	FlashCsOn();
+	PeripheralTransfer(out, NULL, sizeof(out));
+	PeripheralTransfer(buffer, NULL, FLASHPAGESIZE);
+	FlashCsOff();
+	return true;
+}
+
 static bool FlashWritePage(uint32_t address, const uint8_t * buffer) {
 	//1. delete page
 	FlashWaitNonBusy();
@@ -138,15 +153,7 @@ static bool FlashWritePage(uint32_t address, const uint8_t * buffer) {
 	out[3] = address & 0xFF;
 	FlashTransfer(out, NULL, sizeof(out));
 	//2. send data to 1. buffer
-	FlashWaitNonBusy();
-	out[0] = 0x84; //write to sram buffer 1
-	out[1] = 0x0;
-	out[2] = 0x0;
-	out[3] = 0x0;
-	FlashCsOn();
-	PeripheralTransfer(out, NULL, sizeof(out));
-	PeripheralTransfer(buffer, NULL, FLASHPAGESIZE);
-	FlashCsOff();
+	bool success = FlashWriteBuffer1(buffer);
 	//3. write data to flash
 	FlashWaitNonBusy();
 	out[0] = 0x88; //sram 1 to flash without erase
@@ -155,7 +162,7 @@ static bool FlashWritePage(uint32_t address, const uint8_t * buffer) {
 	out[3] = address & 0xFF;
 	FlashTransfer(out, NULL, sizeof(out));
 	FlashWaitNonBusy();
-	return true;
+	return success;
 }
 
 bool FlashWrite(uint32_t address, const uint8_t * buffer, size_t len) {
@@ -221,4 +228,37 @@ bool FlashReady(void) {
 		return true;
 	}
 	return false;
+}
+
+bool FlashTest(void) {
+	if (FlashReady() == false) {
+		return false;
+	}
+	uint8_t dataOut[FLASHPAGESIZE];
+	uint8_t dataIn[FLASHPAGESIZE] = {0};
+	//1. write round
+	for (size_t i = 0; i < FLASHPAGESIZE; i++) {
+		dataOut[i] = i;
+	}
+	if (FlashWriteBuffer1(dataOut) == false) {
+		return false;
+	}
+	if (FlashReadBuffer1(dataIn, 0, FLASHPAGESIZE) == false) {
+		return false;
+	}
+	if (memcmp(dataOut, dataIn, FLASHPAGESIZE)) {
+		return false;
+	}
+	//2. write round with different pattern
+	memset(dataOut, 0x23, FLASHPAGESIZE);
+	if (FlashWriteBuffer1(dataOut) == false) {
+		return false;
+	}
+	if (FlashReadBuffer1(dataIn, 0, FLASHPAGESIZE) == false) {
+		return false;
+	}
+	if (memcmp(dataOut, dataIn, FLASHPAGESIZE)) {
+		return false;
+	}
+	return true;
 }

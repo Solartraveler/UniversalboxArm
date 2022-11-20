@@ -31,9 +31,15 @@ bool FlashPagesizePowertwoGet(void);
 
 bool FlashRead(uint32_t address, uint8_t * buffer, size_t len);
 
+//Internally used by FlashWritePage, otherwise use for debug only.
+//Writes to the SRAM1 buffer, so no flash is actually written.
+//buffer must have FLASHPAGESIZE number of bytes.
+bool FlashWriteBuffer1(const uint8_t * buffer);
+
 bool FlashWrite(uint32_t address, const uint8_t * buffer, size_t len);
 
 //This should return the last FLASHPAGESIZE byte written by FlashWrite
+//or FlashWriteBuffer1 data
 //Intended for debug purpose
 bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len);
 
@@ -42,3 +48,8 @@ uint32_t FlashSizeGet(void);
 uint32_t FlashBlocksizeGet(void);
 
 bool FlashReady(void);
+
+/*Writes some data to the internal SRAM, then read them back and compares
+  for validity. Returns true if content fits. No data is written to the flash.
+*/
+bool FlashTest(void);
