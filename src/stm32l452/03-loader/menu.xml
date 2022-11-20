@@ -138,18 +138,20 @@
     <shortcut number="6" shortcutkey="103" action="" screen="subwindow 7"/>
   </window>
   <window number="17" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="filesystem 128x128">
-    <label number="1" Xpos="1" Ypos="16" font="4" storagemethod="0" text="Size:" multilang="0" transparency="0"/>
-    <label number="2" Xpos="1" Ypos="32" font="4" storagemethod="0" text="Free: " multilang="0" transparency="0"/>
-    <label number="3" Xpos="48" Ypos="16" font="4" storagemethod="1" text="DISKSIZE" multilang="0" transparency="0"/>
-    <label number="4" Xpos="48" Ypos="32" font="4" storagemethod="1" text="DISKFREE" multilang="0" transparency="0"/>
-    <label number="9" Xpos="1" Ypos="48" font="4" storagemethod="0" text="Sectors:" multilang="0" transparency="0"/>
-    <label number="10" Xpos="48" Ypos="48" font="4" storagemethod="1" text="DISKSECTORS" multilang="0" transparency="0"/>
-    <label number="11" Xpos="1" Ypos="64" font="4" storagemethod="0" text="Cluster:" multilang="0" transparency="0"/>
-    <label number="12" Xpos="48" Ypos="64" font="4" storagemethod="1" text="DISKCLUSTER" multilang="0" transparency="0"/>
+    <label number="18" Xpos="0" Ypos="16" font="4" storagemethod="0" text="Version:" multilang="0" transparency="0"/>
+    <label number="19" Xpos="48" Ypos="16" font="4" storagemethod="1" text="LOADERVERSION" multilang="0" transparency="0"/>
+    <label number="1" Xpos="1" Ypos="32" font="4" storagemethod="0" text="Size:" multilang="0" transparency="0"/>
+    <label number="2" Xpos="1" Ypos="48" font="4" storagemethod="0" text="Free: " multilang="0" transparency="0"/>
+    <label number="3" Xpos="48" Ypos="32" font="4" storagemethod="1" text="DISKSIZE" multilang="0" transparency="0"/>
+    <label number="4" Xpos="48" Ypos="48" font="4" storagemethod="1" text="DISKFREE" multilang="0" transparency="0"/>
+    <label number="9" Xpos="1" Ypos="64" font="4" storagemethod="0" text="Sectors:" multilang="0" transparency="0"/>
+    <label number="10" Xpos="48" Ypos="64" font="4" storagemethod="1" text="DISKSECTORS" multilang="0" transparency="0"/>
+    <label number="11" Xpos="1" Ypos="80" font="4" storagemethod="0" text="Cluster:" multilang="0" transparency="0"/>
+    <label number="12" Xpos="48" Ypos="80" font="4" storagemethod="1" text="DISKCLUSTER" multilang="0" transparency="0"/>
     <shortcut number="5" shortcutkey="103" action="" screen="subwindow 5"/>
     <shortcut number="6" shortcutkey="2" action="" screen="window 2"/>
-    <button number="7" Xpos="8" Ypos="95" focusable="-1" rectangle="-1" Xsize="44" Ysize="18" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="window 2" multilang="0" transparency="0"/>
-    <button number="8" Xpos="64" Ypos="95" focusable="1" rectangle="1" Xsize="44" Ysize="18" font="4" fontfocus="6" text="Format" storagemethod="0" action="" screen="subwindow 20" multilang="0" transparency="0"/>
+    <button number="7" Xpos="8" Ypos="100" focusable="-1" rectangle="-1" Xsize="44" Ysize="18" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="window 2" multilang="0" transparency="0"/>
+    <button number="8" Xpos="64" Ypos="100" focusable="-1" rectangle="-1" Xsize="44" Ysize="18" font="4" fontfocus="6" text="Format" storagemethod="0" action="" screen="subwindow 20" multilang="0" transparency="0"/>
     <box number="13" Xpos="0" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="255" action="" screen=""/>
     <box number="14" Xpos="16" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="65280" action="" screen=""/>
     <box number="15" Xpos="32" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="16711680" action="" screen=""/>
@@ -157,18 +159,20 @@
     <shortcut number="17" shortcutkey="104" action="" screen="window 8"/>
   </window>
   <window number="18" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="filesystem 160x128">
-    <label number="1" Xpos="1" Ypos="16" font="4" storagemethod="0" text="Size:" multilang="0" transparency="0"/>
-    <label number="2" Xpos="1" Ypos="32" font="4" storagemethod="0" text="Free: " multilang="0" transparency="0"/>
-    <label number="3" Xpos="48" Ypos="16" font="4" storagemethod="1" text="DISKSIZE" multilang="0" transparency="0"/>
-    <label number="4" Xpos="48" Ypos="32" font="4" storagemethod="1" text="DISKFREE" multilang="0" transparency="0"/>
-    <label number="9" Xpos="1" Ypos="48" font="4" storagemethod="0" text="Sectors:" multilang="0" transparency="0"/>
-    <label number="10" Xpos="48" Ypos="48" font="4" storagemethod="1" text="DISKSECTORS" multilang="0" transparency="0"/>
-    <label number="11" Xpos="1" Ypos="64" font="4" storagemethod="0" text="Cluster:" multilang="0" transparency="0"/>
-    <label number="12" Xpos="48" Ypos="64" font="4" storagemethod="1" text="DISKCLUSTER" multilang="0" transparency="0"/>
+    <label number="19" Xpos="0" Ypos="16" font="4" storagemethod="0" text="Version:" multilang="0" transparency="0"/>
+    <label number="20" Xpos="48" Ypos="16" font="4" storagemethod="1" text="LOADERVERSION" multilang="0" transparency="0"/>
+    <label number="1" Xpos="1" Ypos="32" font="4" storagemethod="0" text="Size:" multilang="0" transparency="0"/>
+    <label number="2" Xpos="1" Ypos="48" font="4" storagemethod="0" text="Free: " multilang="0" transparency="0"/>
+    <label number="3" Xpos="48" Ypos="32" font="4" storagemethod="1" text="DISKSIZE" multilang="0" transparency="0"/>
+    <label number="4" Xpos="48" Ypos="48" font="4" storagemethod="1" text="DISKFREE" multilang="0" transparency="0"/>
+    <label number="9" Xpos="1" Ypos="64" font="4" storagemethod="0" text="Sectors:" multilang="0" transparency="0"/>
+    <label number="10" Xpos="48" Ypos="64" font="4" storagemethod="1" text="DISKSECTORS" multilang="0" transparency="0"/>
+    <label number="11" Xpos="1" Ypos="80" font="4" storagemethod="0" text="Cluster:" multilang="0" transparency="0"/>
+    <label number="12" Xpos="48" Ypos="80" font="4" storagemethod="1" text="DISKCLUSTER" multilang="0" transparency="0"/>
     <shortcut number="5" shortcutkey="103" action="" screen="subwindow 6"/>
     <shortcut number="6" shortcutkey="2" action="" screen="window 3"/>
-    <button number="7" Xpos="8" Ypos="95" focusable="-1" rectangle="-1" Xsize="44" Ysize="18" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="window 3" multilang="0" transparency="0"/>
-    <button number="8" Xpos="64" Ypos="95" focusable="1" rectangle="1" Xsize="44" Ysize="18" font="4" fontfocus="6" text="Format" storagemethod="0" action="" screen="subwindow 21" multilang="0" transparency="0"/>
+    <button number="7" Xpos="8" Ypos="100" focusable="-1" rectangle="-1" Xsize="44" Ysize="18" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="window 3" multilang="0" transparency="0"/>
+    <button number="8" Xpos="64" Ypos="100" focusable="-1" rectangle="1" Xsize="44" Ysize="18" font="4" fontfocus="6" text="Format" storagemethod="0" action="" screen="subwindow 21" multilang="0" transparency="0"/>
     <label number="13" Xpos="0" Ypos="0" font="4" storagemethod="0" text=" Loader" multilang="0" transparency="0"/>
     <box number="14" Xpos="0" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="255" action="" screen=""/>
     <box number="15" Xpos="16" Ypos="0" focusable="0" Xsize="16" Ysize="16" color="65280" action="" screen=""/>
@@ -177,6 +181,7 @@
     <shortcut number="18" shortcutkey="104" action="" screen="window 9"/>
   </window>
   <window number="19" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="filesystem 320x240">
+    <label number="20" Xpos="270" Ypos="0" font="4" storagemethod="1" text="LOADERVERSION" multilang="0" transparency="0"/>
     <label number="1" Xpos="80" Ypos="48" font="4" storagemethod="0" text="Size:" multilang="0" transparency="0"/>
     <label number="2" Xpos="80" Ypos="64" font="4" storagemethod="0" text="Free: " multilang="0" transparency="0"/>
     <label number="3" Xpos="136" Ypos="48" font="4" storagemethod="1" text="DISKSIZE" multilang="0" transparency="0"/>

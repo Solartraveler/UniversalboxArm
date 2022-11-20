@@ -128,6 +128,7 @@ void GuiInit(void) {
 	menu_strings[MENU_TEXT_DISKFREE] = g_gui.fsFree;
 	menu_strings[MENU_TEXT_DISKSECTORS] = g_gui.fsSectors;
 	menu_strings[MENU_TEXT_DISKCLUSTER] = g_gui.fsClustersize;
+	menu_strings[MENU_TEXT_LOADERVERSION] = APPVERSION; //preprocessor macro
 	menu_gfxdata[MENU_GFX_BINDRAWING] = g_gui.drawing;
 	//we must provide data which prevent a buffer overflow
 	memset(g_gui.drawing, 0xFF, DRAWINGSIZE);
@@ -200,8 +201,9 @@ void GuiLoadBinary(void) {
 	}
 	char filename[FILENAMEMAX] = "/bin/";
 	size_t l = strlen(filename);
-	if ((len + l) < FILENAMEMAX) {
+	if (((len + l) < FILENAMEMAX) && (len > 0)) {
 		strncpy(filename + l, textStart, len);
+		filename[l + len] = '\0';
 		printf("Selected name: %s\r\n", filename);
 		LoaderTarLoad(filename);
 	}

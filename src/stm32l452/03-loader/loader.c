@@ -475,33 +475,45 @@ void LoaderUpdateFsGui(void) {
 
 //this call assumes an unmounted filesystem
 bool LoaderMountFormat(bool formatForce) {
-	uint8_t manufacturer;
-	uint16_t device;
-	FlashGetId(&manufacturer, &device);
-	if (manufacturer != 0x1F) {
-		printf("Error, no valid answer from flash\r\n");
-		return false;
-	}
-	FRESULT fres;
+	bool mounted = false;
+
 	if (formatForce == false) {
-		fres = f_mount(&g_fatfs, "0", 1);
-		if (fres == FR_NO_FILESYSTEM) {
-			printf("No filesystem, formatting...\r\n");
-			formatForce = true;
+		for (uint8_t retry = 0; retry < 3; retry++) {
+			if (FlashTest()) {
+				if (FilesystemMount() == true) {
+					mounted = true;
+					break;
+				} else if (retry == 2) {
+					printf("No filesystem, formatting...\r\n");
+					formatForce = true;
+				}
+			} else {
+				printf("Warning, flash not answering properly\r\n");
+				HAL_Delay(250); //maybe voltage needs to stabilize
+			}
 		}
 	}
 	if (formatForce) {
+		if (FlashTest() == false) {
+			printf("Error, can not format with unstable flash communication\r\n");
+			return false;
+		}
 		uint32_t buffer[512];
-		fres = f_mkfs ("0", NULL, &buffer, sizeof(buffer));
+		FRESULT fres = f_mkfs ("0", NULL, &buffer, sizeof(buffer));
 		if (fres == FR_OK) {
 			printf("Formatting done\r\n");
 			fres = f_mount(&g_fatfs, "0", 1); //now mount
+			if (fres == FR_OK) {
+				mounted = true;
+				f_setlabel("UniBoxARM"); //up to 11 characters
+			} else {
+				printf("Error, mount returned %u\r\n", (unsigned int)fres);
+			}
 		} else {
 			printf("Error, formatting returned %u\r\n", (unsigned int)fres);
 		}
 	}
-	if (fres == FR_OK) {
-		f_setlabel("UniBoxARM"); //up to 11 characters
+	if (mounted) {
 		DWORD freeclusters;
 		FATFS * pff = NULL;
 		if (f_getfree("0", &freeclusters, &pff) == FR_OK) {
@@ -521,11 +533,8 @@ bool LoaderMountFormat(bool formatForce) {
 		if (f_stat("/etc", &fi) == FR_NO_FILE) {
 			f_mkdir("/etc");
 		}
-		return true;
-	} else {
-		printf("Error, mounting returned %u\r\n", (unsigned int)fres);
-		return false;
 	}
+	return mounted;
 }
 
 bool LoaderFormat(void) {
