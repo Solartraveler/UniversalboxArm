@@ -29,11 +29,11 @@ bool FilesystemMount(void) {
 	}
 	FRESULT fres;
 	fres = f_mount(&g_fatfs, "0", 1);
-	if (fres == FR_NO_FILESYSTEM) {
-		printf("No filesystem -> no LCD...\r\n");
-	}
 	if (fres == FR_OK) {
 		return true;
+	} else if (fres == FR_NO_FILESYSTEM) {
+		printf("Warning, no filesystem\r\n");
+		return false;
 	} else {
 		printf("Error, mounting returned %u\r\n", (unsigned int)fres);
 		return false;
