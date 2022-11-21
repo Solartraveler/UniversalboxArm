@@ -15,7 +15,7 @@
 #include "utility.h"
 #include "filesystem.h"
 #include "boxlib/coproc.h"
-#include "boxlib/keys.h"
+#include "boxlib/keysIsr.h"
 #include "imageDrawerLowres.h"
 
 #include "femtoVsnprintf.h"
@@ -89,7 +89,7 @@ void GuiInit(void) {
 }
 
 void GuiCycle(char key) {
-	bool state = KeyLeftPressed();
+	bool state = KeyLeftReleased();
 	if (((g_gui.leftPressed == false) && (state)) || (key == 'a')) {
 		if (g_gui.type != NONE) {
 			menu_keypress(2);
@@ -97,7 +97,7 @@ void GuiCycle(char key) {
 	}
 	g_gui.leftPressed = state;
 
-	state = KeyRightPressed();
+	state = KeyRightReleased();
 	if (((g_gui.rightPressed == false) && (state)) || (key == 'd')) {
 		if (g_gui.type != NONE) {
 			menu_keypress(1);
@@ -105,7 +105,7 @@ void GuiCycle(char key) {
 	}
 	g_gui.rightPressed = state;
 
-	state = KeyUpPressed();
+	state = KeyUpReleased();
 	if (((g_gui.upPressed == false) && (state)) || (key == 'w')) {
 		if (g_gui.type != NONE) {
 			menu_keypress(3);
@@ -113,7 +113,7 @@ void GuiCycle(char key) {
 	}
 	g_gui.upPressed = state;
 
-	state = KeyDownPressed();
+	state = KeyDownReleased();
 	if (((g_gui.downPressed == false) && (state)) || (key == 's')) {
 		if (g_gui.type != NONE) {
 			menu_keypress(4);

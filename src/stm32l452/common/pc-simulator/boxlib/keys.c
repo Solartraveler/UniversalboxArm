@@ -31,3 +31,19 @@ __attribute__((weak)) bool KeyUpPressed(void) {
 __attribute__((weak)) bool KeyDownPressed(void) {
 	return false;
 }
+
+__attribute__((weak)) bool KeyRightReleased(void) {
+	return false;
+}
+
+__attribute__((weak)) bool KeyLeftReleased(void) {
+	return false;
+}
+
+__attribute__((weak)) bool KeyUpReleased(void) {
+	return false;
+}
+
+__attribute__((weak)) bool KeyDownReleased(void) {
+	return false;
+}

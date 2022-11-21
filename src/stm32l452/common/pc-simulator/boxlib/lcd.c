@@ -92,10 +92,19 @@ bool g_keyRight;
 bool g_keyUp;
 bool g_keyDown;
 
+bool g_keyLeftReleased;
+bool g_keyRightReleased;
+bool g_keyUpReleased;
+bool g_keyDownReleased;
+
+
 //0 = off, 1 = red, 2 = green, 3 = yellow
 //LED 0 is always off, because its from the coprocessor
 #define LEDS_NUM 3
 uint8_t g_ledState[LEDS_NUM];
+
+
+
 
 bool KeyLeftPressed(void) {
 	bool v;
@@ -133,6 +142,42 @@ bool KeyDownPressed(void) {
 	return v;
 }
 
+
+bool KeyLeftReleased(void) {
+	bool v;
+	pthread_mutex_lock(&g_guiMutex);
+	v = g_keyLeftReleased;
+	g_keyLeftReleased = false;
+	pthread_mutex_unlock(&g_guiMutex);
+	return v;
+}
+
+bool KeyRightReleased(void) {
+	bool v;
+	pthread_mutex_lock(&g_guiMutex);
+	v = g_keyRightReleased;
+	g_keyRightReleased = false;
+	pthread_mutex_unlock(&g_guiMutex);
+	return v;
+}
+
+bool KeyUpReleased(void) {
+	bool v;
+	pthread_mutex_lock(&g_guiMutex);
+	v = g_keyUpReleased;
+	g_keyUpReleased = false;
+	pthread_mutex_unlock(&g_guiMutex);
+	return v;
+}
+
+bool KeyDownReleased(void) {
+	bool v;
+	pthread_mutex_lock(&g_guiMutex);
+	v = g_keyDownReleased;
+	g_keyDownReleased = false;
+	pthread_mutex_unlock(&g_guiMutex);
+	return v;
+}
 
 void LcdEnable(uint32_t clockPrescaler) {
 	(void)clockPrescaler;
@@ -258,29 +303,52 @@ static void redraw(int param) {
 	}
 }
 
-void input_key_special(int key, int x, int y) {
+void InputKeySpecial(int key, int x, int y) {
 	UNREFERENCED_PARAMETER(x);
 	UNREFERENCED_PARAMETER(y);
 	pthread_mutex_lock(&g_guiMutex);
 	if (key == GLUT_KEY_LEFT) {
 		g_keyLeft = true;
-		//printf("left key pressed\n");
 	}
 	if (key == GLUT_KEY_RIGHT) {
 		g_keyRight = true;
-		//printf("right key pressed\n");
-
 	}
 	if (key == GLUT_KEY_UP) {
 		g_keyUp = true;
-		//printf("up key pressed\n");
 	}
 	if (key == GLUT_KEY_DOWN) {
 		g_keyDown = true;
-		//printf("down key pressed\n");
 	}
 	pthread_mutex_unlock(&g_guiMutex);
 }
+
+void InputKeySpecialRelased(int key, int x, int y) {
+	UNREFERENCED_PARAMETER(x);
+	UNREFERENCED_PARAMETER(y);
+	pthread_mutex_lock(&g_guiMutex);
+	if (key == GLUT_KEY_LEFT) {
+		g_keyLeft = false;
+		g_keyLeftReleased = true;
+		//printf("left key released\n");
+	}
+	if (key == GLUT_KEY_RIGHT) {
+		g_keyRight = false;
+		g_keyRightReleased = true;
+		//printf("right key released\n");
+	}
+	if (key == GLUT_KEY_UP) {
+		g_keyUp = false;
+		g_keyUpReleased = true;
+		//printf("up key released\n");
+	}
+	if (key == GLUT_KEY_DOWN) {
+		g_keyDown = false;
+		g_keyDownReleased = true;
+		//printf("down key released\n");
+	}
+	pthread_mutex_unlock(&g_guiMutex);
+}
+
 
 void GlutWindowClosed(void) {
 	printf("Window closed, terminating application\n");
@@ -306,7 +374,8 @@ void * GlutGui(void * parameter) {
 	snprintf(title, sizeof(title), "LCD simulation %ux%u", (unsigned int)g_lcdWidth, (unsigned int)g_lcdHeight);
 	glutCreateWindow(title);
 	glutReshapeFunc(update_window_size);
-	glutSpecialFunc(input_key_special);
+	glutSpecialFunc(InputKeySpecial);
+	glutSpecialUpFunc(InputKeySpecialRelased);
 	glutCloseFunc(&GlutWindowClosed);
 	glutTimerFunc(g_loopMs, redraw, 0);
 	glClearColor(0.0,0.0,0.0,0.0);
