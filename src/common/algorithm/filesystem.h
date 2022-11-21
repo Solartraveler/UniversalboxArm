@@ -25,3 +25,23 @@ void FilesystemWriteLcd(const char * lcdType);
 
 //acceptes strings "128x128", "160x128" and "320x240", all else will set "no display"
 void FilesystemLcdSet(const char * type);
+
+/*Three functions to write buffered data to the file
+1x call FilesystemBufferwriterStart
+0x..Nx call FilesystemBufferwriterAppend
+Finally call FilesystemBufferwriterClose
+All return true in the case of a success
+*/
+
+#define FILEBUFFER_SIZE 512
+
+typedef struct {
+	FIL f;
+	uint8_t buffer[FILEBUFFER_SIZE];
+	size_t index;
+} fileBuffer_t;
+
+bool FilesystemBufferwriterStart(fileBuffer_t * pFileBuffer, const char * filename);
+//pFB must be of type fileBuffer_t, but using void * allows easier use in interfaces
+bool FilesystemBufferwriterAppend(const void * data, size_t len, void * pFileBuffer);
+bool FilesystemBufferwriterClose(fileBuffer_t * pFileBuffer);

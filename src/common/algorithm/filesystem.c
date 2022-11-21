@@ -13,6 +13,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include "ff.h"
 #include "json.h"
+#include "utility.h"
 
 #include "boxlib/lcd.h"
 #include "boxlib/flash.h"
@@ -117,3 +118,61 @@ void FilesystemLcdSet(const char * type) {
 		FilesystemWriteLcd("NONE");
 	}
 }
+
+bool FilesystemBufferwriterStart(fileBuffer_t * pFileBuffer, const char * filename) {
+	if ((pFileBuffer) && (filename)) {
+		if (FR_OK == f_open(&(pFileBuffer->f), filename, FA_WRITE | FA_CREATE_ALWAYS)) {
+			pFileBuffer->index = 0;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool FilesystemBufferwriterWb(fileBuffer_t * pFileBuffer) {
+	UINT written = 0;
+	FRESULT res = f_write(&(pFileBuffer->f), pFileBuffer->buffer, pFileBuffer->index, &written);
+	if ((res == FR_OK) && (written == pFileBuffer->index)) {
+		pFileBuffer->index = 0;
+		return true;
+	}
+	return false;
+}
+
+bool FilesystemBufferwriterAppend(const void * data, size_t len, void * pFileBuffer) {
+	size_t i = 0;
+	if ((!pFileBuffer) || (!data)) {
+		return false;
+	}
+	fileBuffer_t * pFB = (fileBuffer_t *)pFileBuffer;
+	while (i < len) {
+		if (pFB->index == FILEBUFFER_SIZE) {
+			if (FilesystemBufferwriterWb(pFB) != true) {
+				return false;
+			}
+		}
+		size_t todo = len - i;
+		size_t left = FILEBUFFER_SIZE - pFB->index;
+		size_t add = MIN(todo, left);
+		memcpy(pFB->buffer + pFB->index, data + i, add);
+		i += add;
+		pFB->index += add;
+	}
+	return true;
+}
+
+bool FilesystemBufferwriterClose(fileBuffer_t * pFileBuffer) {
+	bool success = false;
+	if (pFileBuffer) {
+		success = true;
+		if (pFileBuffer->index) {
+			success &= FilesystemBufferwriterWb(pFileBuffer);
+		}
+		if (f_close(&(pFileBuffer->f)) != FR_OK) {
+			success = false;
+		}
+	}
+	return success;
+}
+
+
