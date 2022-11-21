@@ -127,6 +127,15 @@ void menu_screen_set(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y, FB_COLOR_IN_TYPE 
 	}
 }
 
+FB_COLOR_IN_TYPE menu_screen_get(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y) {
+	if ((x < g_fbUseX) && (y < g_fbUseY)) {
+		uint32_t index = x / FB_PIXELS_IN_DATATYPE + y * FB_ELEMENTS_X;
+		FB_BITMAP_TYPE shift = (x % FB_PIXELS_IN_DATATYPE) * FB_COLOR_IN_BITS_USED;
+		return (g_fbPixel[index] >> shift) & (FB_BITMAP_TYPE)FB_MASK_IN_DATATYPE;
+	}
+	return 0;
+}
+
 //block must have FB_OUTPUTBLOCK_X * FB_OUTPUTBLOCK_Y elements
 static void FbBlockFlush(const uint16_t startX, const uint16_t startY, FB_COLOR_OUT_TYPE * block) {
 	uint32_t wptr = 0;

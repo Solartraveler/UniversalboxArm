@@ -5,6 +5,9 @@
 //Callback used by menuInterpreter
 void menu_screen_set(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y, FB_COLOR_IN_TYPE color);
 
+//Optional readback function, interesting to take a screenshot or similar things
+FB_COLOR_IN_TYPE menu_screen_get(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y);
+
 //Callback used by menuInterpreter
 void menu_screen_flush(void);
 
