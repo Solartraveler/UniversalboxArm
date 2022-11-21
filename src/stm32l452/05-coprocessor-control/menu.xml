@@ -75,6 +75,7 @@
     <radiobutton number="6" Xpos="15" Ypos="75" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="1hour" storagemethod="0" checkname="WAKEUP" selectnum="4" action="WAKEUP" screen="" multilang="0" transparency="0"/>
     <radiobutton number="8" Xpos="60" Ypos="75" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="12hours" storagemethod="0" checkname="WAKEUP" selectnum="5" action="WAKEUP" screen="" multilang="0" transparency="0"/>
     <button number="9" Xpos="40" Ypos="95" focusable="1" rectangle="-1" Xsize="50" Ysize="17" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
+    <shortcut number="10" shortcutkey="2" action="" screen="RET"/>
   </subwindow>
   <subwindow number="5" Xpos="10" Ypos="10" Xsize="108" Ysize="108" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Mode">
     <label number="2" Xpos="23" Ypos="11" font="4" storagemethod="0" text="Mode on USB->" multilang="0" transparency="0"/>
@@ -82,6 +83,7 @@
     <radiobutton number="1" Xpos="15" Ypos="45" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Power off" storagemethod="0" checkname="MODE" selectnum="0" action="MODE" screen="" multilang="0" transparency="0"/>
     <radiobutton number="5" Xpos="15" Ypos="60" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Stay on" storagemethod="0" checkname="MODE" selectnum="1" action="MODE" screen="" multilang="0" transparency="0"/>
     <button number="9" Xpos="40" Ypos="95" focusable="1" rectangle="-1" Xsize="50" Ysize="17" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
+    <shortcut number="10" shortcutkey="2" action="" screen="RET"/>
   </subwindow>
   <window number="7" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="320x240 - Main&#xA;">
     <label number="2" Xpos="80" Ypos="1" font="4" storagemethod="0" text="Firmware: " multilang="0" transparency="0"/>
@@ -145,12 +147,14 @@
     <label number="3" Xpos="23" Ypos="35" font="4" storagemethod="0" text="battery error?" multilang="0" transparency="0"/>
     <button number="9" Xpos="20" Ypos="85" focusable="1" rectangle="-1" Xsize="30" Ysize="18" font="4" fontfocus="6" text="No" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
     <button number="10" Xpos="75" Ypos="85" focusable="1" rectangle="1" Xsize="30" Ysize="18" font="4" fontfocus="6" text="Yes" storagemethod="0" action="BATNEW" screen="RET" multilang="0" transparency="0"/>
+    <shortcut number="11" shortcutkey="2" action="" screen="RET"/>
   </subwindow>
   <subwindow number="10" Xpos="10" Ypos="10" Xsize="108" Ysize="108" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Reset statistics">
     <label number="2" Xpos="14" Ypos="15" font="4" storagemethod="0" text="Really reset" multilang="0" transparency="0"/>
     <label number="3" Xpos="14" Ypos="35" font="4" storagemethod="0" text="battery statistics?" multilang="0" transparency="0"/>
     <button number="9" Xpos="20" Ypos="85" focusable="1" rectangle="-1" Xsize="30" Ysize="18" font="4" fontfocus="6" text="No" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
     <button number="10" Xpos="75" Ypos="85" focusable="1" rectangle="1" Xsize="30" Ysize="18" font="4" fontfocus="6" text="Yes" storagemethod="0" action="BATRESETSTAT" screen="RET" multilang="0" transparency="0"/>
+    <shortcut number="11" shortcutkey="2" action="" screen="RET"/>
   </subwindow>
   <subwindow number="11" Xpos="10" Ypos="10" Xsize="108" Ysize="108" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Current">
     <label number="2" Xpos="23" Ypos="11" font="4" storagemethod="0" text="Maximum" multilang="0" transparency="0"/>
@@ -160,7 +164,8 @@
     <radiobutton number="5" Xpos="15" Ypos="60" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="70mA" storagemethod="0" checkname="BATMAX" selectnum="2" action="BATMAX" screen="" multilang="0" transparency="0"/>
     <radiobutton number="7" Xpos="60" Ypos="60" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="100mA" storagemethod="0" checkname="BATMAX" selectnum="3" action="BATMAX" screen="" multilang="0" transparency="0"/>
     <radiobutton number="6" Xpos="15" Ypos="75" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="150mA" storagemethod="0" checkname="BATMAX" selectnum="4" action="BATMAX" screen="" multilang="0" transparency="0"/>
-    <button number="9" Xpos="40" Ypos="95" focusable="1" rectangle="-1" Xsize="50" Ysize="17" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
+    <button number="9" Xpos="40" Ypos="95" focusable="-1" rectangle="-1" Xsize="50" Ysize="17" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
+    <shortcut number="10" shortcutkey="2" action="" screen="RET"/>
   </subwindow>
   <subwindow number="12" Xpos="10" Ypos="10" Xsize="108" Ysize="108" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Confirm LED">
     <label number="2" Xpos="23" Ypos="11" font="4" storagemethod="0" text="LED confirms" multilang="0" transparency="0"/>
@@ -169,5 +174,13 @@
     <radiobutton number="1" Xpos="40" Ypos="60" focusable="-1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Off" storagemethod="0" checkname="CONFIRMSPI" selectnum="0" action="CONFIRMSPI" screen="" multilang="0" transparency="0"/>
     <radiobutton number="5" Xpos="40" Ypos="80" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="On" storagemethod="0" checkname="CONFIRMSPI" selectnum="1" action="CONFIRMSPI" screen="" multilang="0" transparency="0"/>
     <button number="9" Xpos="40" Ypos="95" focusable="1" rectangle="-1" Xsize="50" Ysize="17" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
+    <shortcut number="11" shortcutkey="2" action="" screen="RET"/>
   </subwindow>
+  <subwindow number="14" Xpos="10" Ypos="10" Xsize="108" Ysize="108" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Screenshot">
+    <label number="2" Xpos="14" Ypos="20" font="4" storagemethod="0" text="Screenshot saved" multilang="0" transparency="0"/>
+    <label number="3" Xpos="14" Ypos="36" font="4" storagemethod="1" text="SCREENSHOTRESULT" multilang="0" transparency="0"/>
+    <button number="9" Xpos="43" Ypos="85" focusable="-1" rectangle="-1" Xsize="30" Ysize="18" font="4" fontfocus="6" text="Ok" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
+    <shortcut number="10" shortcutkey="2" action="" screen="RET"/>
+  </subwindow>
+  <shortcut number="15" shortcutkey="120" action="" screen="subwindow 14"/>
 </MenuConfig>

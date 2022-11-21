@@ -47,6 +47,7 @@ void ControlHelp(void) {
 	printf("t: Set alarm\r\n");
 	printf("m: Set mode on disconnect\r\n");
 	printf("g: Freeze / unfreeze GUI\r\n");
+	printf("e: Screenshot\r\n");
 	printf("w-a-s-d: Send key code to GUI\r\n");
 }
 
@@ -327,6 +328,9 @@ void ControlCycle(void) {
 		if (input == 'g') {
 			guiUpdate = 1 - guiUpdate;
 			printf("Gui update: %s\r\n", guiUpdate ? "On" : "Off");
+		}
+		if (input == 'e') {
+			Screenshot();
 		}
 	}
 	if (guiUpdate) {

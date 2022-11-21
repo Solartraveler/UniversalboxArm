@@ -70,6 +70,7 @@ $(ALGORITHM)/json.c \
 $(ALGORITHM)/filesystem.c \
 $(ALGORITHM)/imageDrawer.c \
 $(ALGORITHM)/imageDrawerLowres.c \
+$(ALGORITHM)/imageTgaWrite.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 $(SIMCOMMON)/simhelper.c \

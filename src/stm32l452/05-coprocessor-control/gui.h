@@ -16,3 +16,5 @@ void GuiUpdateAlarmTime(uint16_t newTime);
 //call periodically to react to key presses
 //key can be from the serial input. 0 for doing nothing.
 void GuiCycle(char key);
+
+bool Screenshot(void);

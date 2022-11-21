@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Coprocessor-control
 #Version of this application, to be used in the metadata
-VERSION  = 0.11.0
+VERSION  = 0.12.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -100,6 +100,7 @@ $(STM_HAL)/Src/stm32l4xx_hal_tim.c \
 $(STM_HAL)/Src/stm32l4xx_hal_tim_ex.c \
 $(STM_HAL)/Src/stm32l4xx_hal_dma.c \
 $(BOXLIB)/leds.c \
+$(BOXLIB)/keys.c \
 $(BOXLIB)/keysIsr.c \
 $(BOXLIB)/rs232debug.c \
 $(BOXLIB)/peripheral.c \
@@ -123,6 +124,7 @@ $(ALGORITHM)/json.c \
 $(ALGORITHM)/filesystem.c \
 $(ALGORITHM)/imageDrawer.c \
 $(ALGORITHM)/imageDrawerLowres.c \
+$(ALGORITHM)/imageTgaWrite.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 control.c \
@@ -203,7 +205,7 @@ C_INCLUDES =  \
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
-CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -Wextra -fdata-sections -ffunction-sections -Wdouble-promotion -Wshadow
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
