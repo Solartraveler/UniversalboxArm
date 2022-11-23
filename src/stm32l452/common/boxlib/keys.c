@@ -10,8 +10,8 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include "main.h"
 
-
-void KeysInit(void) {
+//If keysIsr.c is used, the init code is taken from there
+__attribute__((weak)) void KeysInit(void) {
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_GPIOC_CLK_ENABLE();

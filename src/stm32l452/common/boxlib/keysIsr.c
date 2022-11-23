@@ -132,20 +132,3 @@ bool KeyDownReleased(void) {
 	return false;
 }
 
-
-bool KeyRightPressed(void) {
-	return g_keysPressed[KEY_RIGHT];
-}
-
-bool KeyLeftPressed(void) {
-	return g_keysPressed[KEY_LEFT];
-}
-
-bool KeyUpPressed(void) {
-	return g_keysPressed[KEY_UP];
-}
-
-bool KeyDownPressed(void) {
-	return g_keysPressed[KEY_DOWN];
-}
-
