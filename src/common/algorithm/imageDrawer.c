@@ -61,10 +61,10 @@ void ImgInterpolateSingleLine(uint16_t start, uint16_t end, uint16_t * out, uint
 	if (dataPointsOut >= 2) {
 		float scaler = delta / (dataPointsOut - 1);
 		for (uint16_t i = 0; i < dataPointsOut; i++) {
-			out[i] = (float)start + scaler * (float)i + 0.5;
+			out[i] = (float)start + scaler * (float)i + 0.5f;
 		}
 	} else if (dataPointsOut == 1) {
-		out[0] = start + delta * 0.5 + 0.5; //use the average of the two dots
+		out[0] = start + delta * 0.5f + 0.5f; //use the average of the two dots
 	}
 }
 
