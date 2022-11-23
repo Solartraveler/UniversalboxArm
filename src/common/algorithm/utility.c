@@ -82,6 +82,18 @@ bool EndsWith(const char * string, const char * ending) {
 	return false;
 }
 
+bool BeginsWith(const char * string, const char * starting) {
+	size_t lenStr = strlen(string);
+	size_t lenStarting = strlen(starting);
+	if (lenStr >= lenStarting) {
+		if (memcmp(string, starting, lenStarting) == 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
 uint32_t BytesFlip(uint32_t in) {
 	uint32_t out = in >> 24;
 	out |= (in & 0xFF0000) >> 8;

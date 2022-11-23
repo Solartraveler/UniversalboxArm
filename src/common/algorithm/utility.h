@@ -23,4 +23,6 @@ void PrintHex(const uint8_t * data, size_t len);
 
 bool EndsWith(const char * string, const char * ending);
 
+bool BeginsWith(const char * string, const char * starting);
+
 uint32_t BytesFlip(uint32_t in);
