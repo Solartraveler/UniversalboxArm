@@ -8,6 +8,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "filesystem.h"
 
@@ -175,4 +176,26 @@ bool FilesystemBufferwriterClose(fileBuffer_t * pFileBuffer) {
 	return success;
 }
 
+uint32_t FilesystemGetUnusedFilename(const char * directory, const char * prefix) {
+	DIR d;
+	FILINFO fi;
+	uint32_t goodId = 0;
+	size_t prefixLen = strlen(prefix);
+	if (f_opendir(&d, directory) == FR_OK) {
+		while (f_readdir(&d, &fi) == FR_OK) {
+			if (!fi.fname[0]) {
+				break;
+			}
+			if (BeginsWith(fi.fname, prefix)) {
+				uint32_t num = AsciiScanDec(fi.fname + prefixLen);
+				if (num > goodId) {
+					goodId = num;
+				}
+			}
+		}
+		f_closedir(&d);
+		goodId++;
+	}
+	return goodId;
+}
 
