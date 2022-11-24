@@ -383,7 +383,8 @@ void GuiCycle(char key) {
 	if ((KeyDownPressed()) && (KeyUpPressed()) && (g_gui.downUpPressed == false)) {
 		g_gui.downUpPressed = true;
 		GuiScreenshot();
-	} else {
+	}
+	if ((KeyDownPressed() == false) && (KeyUpPressed() == false)) {
 		g_gui.downUpPressed = false;
 	}
 
