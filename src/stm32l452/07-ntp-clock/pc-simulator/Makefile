@@ -181,6 +181,8 @@ test3: $(BUILD_DIR)/$(TARGET)
 	rm -f emulatedFlash.bin
 	./$(BUILD_DIR)/$(TARGET) 320x240
 
+test4: $(BUILD_DIR)/$(TARGET)
+	./$(BUILD_DIR)/$(TARGET)
 
 #######################################
 # clean up

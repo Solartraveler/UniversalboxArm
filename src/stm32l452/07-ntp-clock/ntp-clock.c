@@ -45,13 +45,43 @@ Then shows a clock on the display
 
 #define WIFI_FILENAME "/etc/wifi.json"
 
+#define TIME_FILENAME "/etc/time.json"
+
+#define DEFAULT_TIMESERVER "pool.ntp.org"
+
 #define TEXT_MAX 64
 
 typedef struct {
 	bool clockEnabled;
 	char ap[TEXT_MAX];
 	char password[TEXT_MAX];
+	char timeserver[TEXT_MAX];
+	int16_t timeOffset; //unit is [min]
+	bool summerTime; //EU calculation only
+	uint16_t refreshInterval; //unit is [h]
 } state_t;
+
+typedef struct {
+	/* bits 0..2: mode, bits 3..5: version number, bits 6..7: special like 59s min or 61s min, or out of sync */
+	uint8_t metadata;
+	uint8_t stratum;
+	uint8_t poll;
+	uint8_t precision;
+	//NOTE: All bytes need to be flipped in order to be little endian. Use BytesFlip() from utility.h
+	uint32_t rootDelay;
+	uint32_t rootDispersion;
+	uint32_t referenceIdentifier;
+	uint32_t referenceTimestampS;
+	uint32_t referenceTimestampFrac;
+	uint32_t originalTimestampS;
+	uint32_t originalTimestampFrac;
+	uint32_t receiveTimestampS;
+	uint32_t receiveTimestampFrac;
+	uint32_t transmitTimestampS; //[s] since 1.1.1900
+	uint32_t transmitTimestampFrac; //[1s/(2^32)]
+} ntpData_t;
+
+_Static_assert(sizeof(ntpData_t) == 48, "Please fix alignment!");
 
 
 state_t g_state;
@@ -62,8 +92,8 @@ void ControlHelp(void) {
 	printf("h: Print help\r\n");
 	printf("r: Reset\r\n");
 	printf("c: Configure network parameters\r\n");
-	printf("p: Save network params to flash\r\n");
-	printf("z: Configure and save timezone\r\n");
+	printf("p: Save network params to file\r\n");
+	printf("z: Configure and save time\r\n");
 	printf("t: Print time of RTC\r\n");
 	printf("n: Call ntp update\r\n");
 	printf("m: Set clock manually\r\n");
@@ -72,27 +102,55 @@ void ControlHelp(void) {
 	printf("w-a-s-d: Send key code to GUI\r\n");
 }
 
+void PrintTimeParams(void) {
+	printf("Ntp server %s, refresh every %uh, offset to UTC %imin, summertime adjust %s\r\n",
+	       g_state.timeserver, g_state.refreshInterval, g_state.timeOffset, g_state.summerTime ? "true" : "false");
+}
+
 void LoadParams(void) {
-	uint8_t wificonf[TEXT_MAX * 3] = {0};
-	FIL f;
-	UINT r = 0;
-	if (FR_OK == f_open(&f, WIFI_FILENAME, FA_READ)) {
-		FRESULT res = f_read(&f, wificonf, sizeof(wificonf) - 1, &r);
-		if (res != FR_OK) {
-			printf("Warning, could not read wifi file\r\n");
+	uint8_t jsonfile[TEXT_MAX * 3] = {0};
+	size_t r = 0;
+	if (FilesystemReadFile(WIFI_FILENAME, jsonfile, sizeof(jsonfile) - 1, &r)) {
+		bool success = JsonValueGet(jsonfile, r, "ap1", g_state.ap, TEXT_MAX);
+		success &= JsonValueGet(jsonfile, r, "password1", g_state.password, TEXT_MAX);
+		if (success) {
+			printf("Wifi config loaded\r\n");
+		} else {
+			printf("Wifi config file incomplete\r\n");
 		}
-		f_close(&f);
 	} else {
 		printf("No wifi configured\r\n");
-		return;
 	}
-	bool success = JsonValueGet(wificonf, r, "ap1", g_state.ap, TEXT_MAX);
-	success &= JsonValueGet(wificonf, r, "password1", g_state.password, TEXT_MAX);
-	if (success) {
-		printf("Wifi config loaded\r\n");
+	bool hasServer = false;
+	bool hasInterval = false;
+	if (FilesystemReadFile(TIME_FILENAME, jsonfile, sizeof(jsonfile) - 1, &r)) {
+		hasServer = JsonValueGet(jsonfile, r, "ntpserver", g_state.timeserver, TEXT_MAX);
+		char value[TEXT_MAX];
+		hasInterval = JsonValueGet(jsonfile, r, "ntprefresh", value, TEXT_MAX);
+		if (hasInterval) {
+			g_state.refreshInterval = atoi(value);
+			if (g_state.refreshInterval == 0) {
+				hasInterval = false;
+			}
+		}
+		if (JsonValueGet(jsonfile, r, "timeoffset", value, TEXT_MAX)) {
+			g_state.timeOffset = atoi(value);
+		}
+		if (JsonValueGet(jsonfile, r, "summertime", value, TEXT_MAX)) {
+			if (strcmp(value, "true") == 0) {
+				g_state.summerTime = true;
+			}
+		}
 	} else {
-		printf("Wifi config file incomplete\r\n");
+		printf("No time configured\r\n");
 	}
+	if (!hasServer) {
+		strncpy(g_state.timeserver, DEFAULT_TIMESERVER, TEXT_MAX - 1);
+	}
+	if (!hasInterval) {
+		g_state.refreshInterval = 48;
+	}
+	PrintTimeParams();
 }
 
 void AppInit(void) {
@@ -123,7 +181,7 @@ void ExecReset(void) {
 	NVIC_SystemReset();
 }
 
-void EnterParams(void) {
+void EnterWifiParams(void) {
 	printf("Enter access point name\r\n");
 	ReadSerialLine(g_state.ap, TEXT_MAX);
 	printf("\r\nEnter password\r\n");
@@ -131,7 +189,7 @@ void EnterParams(void) {
 	printf("\r\nOk\r\n");
 }
 
-void SaveParams(void) {
+void SaveWifiParams(void) {
 	char buffer[TEXT_MAX * 3];
 	snprintf(buffer, sizeof(buffer), "{\n  \"ap1\": \"%s\",\n  \"password1\": \"%s\"\n}\n", g_state.ap, g_state.password);
 	if (FilesystemWriteEtcFile(WIFI_FILENAME, buffer, strlen(buffer))) {
@@ -141,6 +199,7 @@ void SaveParams(void) {
 	}
 }
 
+#if 0
 void CheckEspPrint(const char * buffer) {
 	const uint32_t maxCharsLine = 80;
 	uint32_t forceNewline = maxCharsLine;
@@ -159,28 +218,7 @@ void CheckEspPrint(const char * buffer) {
 		}
 	}
 }
-
-typedef struct {
-	/* bits 0..2: mode, bits 3..5: version number, bits 6..7: special like 59s min or 61s min, or out of sync */
-	uint8_t metadata;
-	uint8_t stratum;
-	uint8_t poll;
-	uint8_t precision;
-	//NOTE: All bytes need to be flipped in order to be little endian. Use BytesFlip() from utility.h
-	uint32_t rootDelay;
-	uint32_t rootDispersion;
-	uint32_t referenceIdentifier;
-	uint32_t referenceTimestampS;
-	uint32_t referenceTimestampFrac;
-	uint32_t originalTimestampS;
-	uint32_t originalTimestampFrac;
-	uint32_t receiveTimestampS;
-	uint32_t receiveTimestampFrac;
-	uint32_t transmitTimestampS; //[s] since 1.1.1900
-	uint32_t transmitTimestampFrac; //[1s/(2^32)]
-} ntpData_t;
-
-_Static_assert(sizeof(ntpData_t) == 48, "Please fix alignment!");
+#endif
 
 bool UdpGetNtp(const char * domain, uint32_t * pTimestamp, uint16_t * pTimestampMs, uint32_t * pTimeRequestStart) {
 	//most simple request, according to https://stackoverflow.com/questions/14171366/ntp-request-packet
@@ -243,7 +281,6 @@ bool UdpGetNtp(const char * domain, uint32_t * pTimestamp, uint16_t * pTimestamp
 can be properly handled.
 */
 uint32_t NtpTimestampGet(uint16_t * pTimestampMs, uint32_t * pTimeRequestStart) {
-	const char * server = "pool.ntp.org";
 	uint32_t timestamp = SECONDS_1900_2000;
 	EspInit();
 	printf("Enabling ESP\r\n");
@@ -255,9 +292,9 @@ uint32_t NtpTimestampGet(uint16_t * pTimestampMs, uint32_t * pTimeRequestStart) 
 			bool success = EspConnect(g_state.ap, g_state.password);
 			if (success) {
 				printf("Connected to access point\r\n");
-				if (UdpGetNtp(server, &timestamp, pTimestampMs, pTimeRequestStart)) {
+				if (UdpGetNtp(g_state.timeserver, &timestamp, pTimestampMs, pTimeRequestStart)) {
 				} else {
-					printf("Error, could not get timestamp\r\n");
+					printf("Error, could not get timestamp from >%s<\r\n", g_state.timeserver);
 				}
 			} else {
 				printf("Error, could not connect\r\n");
@@ -311,11 +348,20 @@ void NtpUpdate(void) {
 	}
 }
 
-void RtcTime(void) {
+void PrintTime(void) {
 	uint16_t timestampMs;
 	uint32_t unixTimestamp = ClockUtcGet(&timestampMs);
-	printf("UTC from local clock ");
+	printf("\r\nUTC from RTC clock        ");
 	TimestampPrint(unixTimestamp, timestampMs);
+	printf("\r\n");
+	uint32_t localTimestamp = unixTimestamp + (int32_t)g_state.timeOffset * 60;
+	if (g_state.summerTime) {
+		if (IsSummertimeInEurope(unixTimestamp)) {
+			localTimestamp += 60UL * 60UL; //+1h
+		}
+	}
+	printf("Local time from RTC clock ");
+	TimestampPrint(localTimestamp, timestampMs);
 	printf("\r\n");
 }
 
@@ -346,7 +392,7 @@ void ClockToggle(void) {
 	g_state.clockEnabled = !g_state.clockEnabled;
 }
 
-void ManualInput(void) {
+void EnterClockState(void) {
 	char buffer[8];
 	printf("Enter Year\r\n");
 	ReadSerialLine(buffer, sizeof(buffer));
@@ -373,7 +419,45 @@ void ManualInput(void) {
 	} else {
 		printf("\r\nClock set failed\r\n");
 	}
-	RtcTime();
+	PrintTime();
+}
+
+void SaveTimeParams(void) {
+	char buffer[TEXT_MAX * 3];
+	snprintf(buffer, sizeof(buffer), "{\n  \"ntpserver\": \"%s\",\n  \"ntprefresh\": \"%u\",\n  \"timeoffset\": \"%i\",\n  \"summertime\": \"%s\"\n}\n",
+	          g_state.timeserver, g_state.refreshInterval, g_state.timeOffset, g_state.summerTime ? "true" : "false");
+	if (FilesystemWriteEtcFile(TIME_FILENAME, buffer, strlen(buffer))) {
+		printf("Saved to %s\r\n", TIME_FILENAME);
+	} else {
+		printf("Error, could not create file %s\r\n", TIME_FILENAME);
+	}
+}
+
+void EnterTimeParams(void) {
+	char value[TEXT_MAX];
+	printf("Enter NTP server, empty for default\r\n");
+	ReadSerialLine(value, sizeof(value));
+	if (strlen(value) > 0) {
+		strncpy(g_state.timeserver, value, TEXT_MAX);
+	} else {
+		strncpy(g_state.timeserver, DEFAULT_TIMESERVER, TEXT_MAX);
+	}
+	printf("\r\nEnter NTP refresh interval in hours\r\n");
+	ReadSerialLine(value, sizeof(value));
+	g_state.refreshInterval = atoi(value);
+	printf("\r\nEnter UTC to local (winter) time offset in minutes. (60 for Berlin)\r\n");
+	ReadSerialLine(value, sizeof(value));
+	g_state.timeOffset = atoi(value);
+	printf("\r\nAdjust for EU summer time? y/n\r\n");
+	ReadSerialLine(value, sizeof(value));
+	printf("\r\n");
+	if (value[0] == 'y') {
+		g_state.summerTime = true;
+	} else {
+		g_state.summerTime = false;
+	}
+	SaveTimeParams();
+	PrintTimeParams();
 }
 
 void AppCycle(void) {
@@ -399,19 +483,22 @@ void AppCycle(void) {
 			ExecReset();
 		}
 		if (input == 'c') {
-			EnterParams();
+			EnterWifiParams();
 		}
 		if (input == 'p') {
-			SaveParams();
+			SaveWifiParams();
+		}
+		if (input == 'z') {
+			EnterTimeParams();
 		}
 		if (input == 'n') {
 			NtpUpdate();
 		}
 		if (input == 'm') {
-			ManualInput();
+			EnterClockState();
 		}
 		if (input == 't') {
-			RtcTime();
+			PrintTime();
 		}
 		if (input == 'e') {
 			ClockToggle();
