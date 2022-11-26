@@ -16,6 +16,8 @@ bool FilesystemMount(void);
 //Requires a mounted filesystem
 eDisplay_t FilesystemReadLcd(void);
 
+bool FilesystemReadFile(const char * filename, void * data, size_t bufferLen, size_t * pReadLen);
+
 bool FilesystemWriteFile(const char * filename, const void * data, size_t dataLen);
 
 //Like FilesystemWriteFile, but creates the folder /etc before

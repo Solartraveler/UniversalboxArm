@@ -42,18 +42,30 @@ bool FilesystemMount(void) {
 	}
 }
 
+bool FilesystemReadFile(const char * filename, void * data, size_t bufferLen, size_t * pReadLen) {
+	bool success = false;
+	FIL f;
+	if (FR_OK == f_open(&f, filename, FA_READ)) {
+		UINT r = 0;
+		FRESULT res = f_read(&f, data, bufferLen, &r);
+		if (res == FR_OK) {
+			success = true;
+		} else {
+			printf("Warning, could not read >%s<\r\n", filename);
+		}
+		f_close(&f);
+		if (pReadLen) {
+			*pReadLen = r;
+		}
+	}
+	return success;
+}
+
 eDisplay_t FilesystemReadLcd(void) {
 	uint8_t displayconf[64] = {0};
 	char lcdtype[32];
-	FIL f;
-	UINT r = 0;
-	if (FR_OK == f_open(&f, DISPLAYFILENAME, FA_READ)) {
-		FRESULT res = f_read(&f, displayconf, sizeof(displayconf) - 1, &r);
-		if (res != FR_OK) {
-			printf("Warning, could not read display config file\r\n");
-		}
-		f_close(&f);
-	} else {
+	size_t r = 0;
+	if (!FilesystemReadFile(DISPLAYFILENAME, displayconf, sizeof(displayconf) - 1, &r)) {
 		printf("Warning, no display configured\r\n");
 		return NONE;
 	}
