@@ -6,6 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "dateTime.h"
 
@@ -121,3 +122,39 @@ bool DerivationPPB(uint32_t oldTimestamp, uint16_t oldTimestampMs,
 	*pDerivation = delta;
 	return true;
 }
+
+bool IsSummertimeInEurope(uint32_t utcTime) {
+	/*The rule for europe:
+	  a) Last sunday of march, it should be summer time after 1:00 -> jump from 1h -> 2h
+	  b) Last sunday of october, it should be winter time after 1:00 -> jump back from 2h -> 1h
+	*/
+	uint16_t year;
+	//decode to year
+	TimestampDecode(utcTime, &year, NULL, NULL, NULL, NULL, NULL, NULL);
+	//2. get day in week of last days in months
+	uint16_t doyLastDayMarch = g_daysInMonthsBefore[3] - 1;
+	uint16_t doyLastDayOctober = g_daysInMonthsBefore[10] - 1;
+	if ((year % 4) == 0) { //append day in leapyears
+		doyLastDayMarch++;
+		doyLastDayOctober++;
+	}
+	uint8_t dayinweekLastDayMarch = WeekdayFromDoy(doyLastDayMarch, year);
+	uint8_t dayinweekLastDayOctober = WeekdayFromDoy(doyLastDayOctober, year);
+	//3. get last sunday in month
+	uint8_t lastSundayMarch = 30; //proper if last day of month = sunday
+	if (dayinweekLastDayMarch < 6) { //if not a sunday
+		lastSundayMarch -= dayinweekLastDayMarch + 1; //monday = 0 -> substract one -> get sunday, tuesday = 1 -> substract two -> get sunday
+	}
+	uint8_t lastSundayOctober = 30; //proper if last day of month = sunday
+	if (dayinweekLastDayOctober < 6) { //if not a sunday
+		lastSundayOctober -= dayinweekLastDayOctober + 1;
+	}
+	//4. get new timestamp of last sundays
+	uint32_t timestampSummertimeStart = TimestampCreate(year, 2, lastSundayMarch, 1, 0, 0);
+	uint32_t timestampSummertimeEnd = TimestampCreate(year, 9, lastSundayOctober, 1, 0, 0);
+	if ((timestampSummertimeStart <= utcTime) && (timestampSummertimeEnd > utcTime)) {
+		return true;
+	}
+	return false;
+}
+

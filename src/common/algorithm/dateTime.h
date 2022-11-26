@@ -24,7 +24,6 @@ returns: 0 = monday, 6 = sunday
 */
 uint8_t WeekdayFromDoy(uint16_t dayofyear, uint16_t year);
 
-
 /* PPB - calculated delta in parts per billion [1000ppm].
    A negative returned value means, the clock should have run faster.
    A positive returned value menas, the clock should have run slower.
@@ -36,3 +35,10 @@ bool DerivationPPB(uint32_t oldTimestamp, uint16_t oldTimestampMs,
                    uint32_t currentTimestamp, uint16_t currentTimestampMs,
                    uint32_t newTimestamp, uint16_t newTimestampMs,
                    int32_t * pDerivation);
+
+/* Returns true if the timestamp is summer time.
+	The rule:
+	  a) Last sunday of march, it should be summer time after 1:00 UTC
+	  b) Last sunday of october, it should be winter time after 1:00 UTC
+*/
+bool IsSummertimeInEurope(uint32_t utcTime);

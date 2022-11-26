@@ -200,7 +200,43 @@ int TestDerivation5(void) {
 	return result;
 }
 
+//2020 - leapyear
+int TestSummertime1(void) {
+	int result = 0;
+	bool isSummertime;
+	const uint32_t wintertime1 = TimestampCreate(2020, 2, 28, 0, 59, 59);
+	const uint32_t summertime1 = TimestampCreate(2020, 2, 28, 1, 0, 0);
+	const uint32_t summertime2 = TimestampCreate(2020, 9, 24, 0, 59, 59);
+	const uint32_t wintertime2 = TimestampCreate(2020, 9, 24, 1, 0, 0);
+	isSummertime = IsSummertimeInEurope(wintertime1);
+	CHECK(isSummertime, false);
+	isSummertime = IsSummertimeInEurope(summertime1);
+	CHECK(isSummertime, true);
+	isSummertime = IsSummertimeInEurope(summertime2);
+	CHECK(isSummertime, true);
+	isSummertime = IsSummertimeInEurope(wintertime2);
+	CHECK(isSummertime, false);
+	return result;
+}
 
+//2021 - non leapyear
+int TestSummertime2(void) {
+	int result = 0;
+	bool isSummertime;
+	const uint32_t wintertime1 = TimestampCreate(2021, 2, 27, 0, 59, 59);
+	const uint32_t summertime1 = TimestampCreate(2021, 2, 27, 1, 0, 0);
+	const uint32_t summertime2 = TimestampCreate(2021, 9, 30, 0, 59, 59);
+	const uint32_t wintertime2 = TimestampCreate(2021, 9, 30, 1, 0, 0);
+	isSummertime = IsSummertimeInEurope(wintertime1);
+	CHECK(isSummertime, false);
+	isSummertime = IsSummertimeInEurope(summertime1);
+	CHECK(isSummertime, true);
+	isSummertime = IsSummertimeInEurope(summertime2);
+	CHECK(isSummertime, true);
+	isSummertime = IsSummertimeInEurope(wintertime2);
+	CHECK(isSummertime, false);
+	return result;
+}
 
 int main(void) {
 	int result = 0;
@@ -217,5 +253,7 @@ int main(void) {
 	result |= TestDerivation3();
 	result |= TestDerivation4();
 	result |= TestDerivation5();
+	result |= TestSummertime1();
+	result |= TestSummertime2();
 	return result;
 }
