@@ -181,6 +181,25 @@ int printfNowait(const char * format, ...) {
 	return params;
 }
 
+int printfDirect(const char * format, ...) {
+	va_list args;
+	va_start(args, format);
+	char buffer[256];
+	int params = vsnprintf(buffer, sizeof(buffer), format, args);
+	va_end(args);
+	USART1->TDR = '\0'; //dummy transfer
+	for (size_t i = 0; i < sizeof(buffer); i++) {
+		while (((USART1->ISR) & USART_ISR_TXE) == 0);
+		char c = buffer[i];
+		if (c) {
+			USART1->TDR = c;
+		} else {
+			break;
+		}
+	}
+	return params;
+}
+
 char Rs232GetChar(void) {
 	char val = 0;
 	if ((USART1->ISR) & USART_ISR_RXNE) {

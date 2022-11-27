@@ -21,8 +21,18 @@ int puts(const char * string);
 
 //normal print. Don't use from within interrupts
 int printf(const char * format, ...);
-//throws away data if the FIFO is full. Can be used within interrupt routines
+/*Throws away data if the FIFO is full. Can be used within interrupt routines,
+  Interrupts need to be enabled later, otherwise the message will not be printed
+*/
 int printfNowait(const char * format, ...);
+
+/*Busy waits for the serial port to become free, then writes the data.
+  The fifo is ignored.
+  Use when interrupts are disabled, and writing to the fifo is unsuitable.
+  Intended usage: Exception handlers, where a system reset or endless loop follows.
+*/
+int printfDirect(const char * format, ...);
+
 
 /*Returns as soon as the FIFO is empty. Call before disabling the uart or
   changing its clock source / baud rate
