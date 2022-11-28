@@ -10,6 +10,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include <string.h>
 #include <math.h>
 #include <pthread.h>
+#include <unistd.h>
 
 #ifdef COMPILE_WINDOWS
 #include <windef.h>
@@ -103,15 +104,18 @@ bool g_keyDownReleased;
 #define LEDS_NUM 3
 uint8_t g_ledState[LEDS_NUM];
 
-
+//When holding down a key, a PC, tends to send repeaded toggles.
+#define DELAY_ON_RESSED 100000
 
 
 bool KeyLeftPressed(void) {
 	bool v;
 	pthread_mutex_lock(&g_guiMutex);
 	v = g_keyLeft;
-	g_keyLeft = false;
 	pthread_mutex_unlock(&g_guiMutex);
+	if (v) {
+		usleep(DELAY_ON_RESSED);
+	}
 	return v;
 }
 
@@ -119,8 +123,10 @@ bool KeyRightPressed(void) {
 	bool v;
 	pthread_mutex_lock(&g_guiMutex);
 	v = g_keyRight;
-	g_keyRight = false;
 	pthread_mutex_unlock(&g_guiMutex);
+	if (v) {
+		usleep(DELAY_ON_RESSED);
+	}
 	return v;
 }
 
@@ -128,8 +134,10 @@ bool KeyUpPressed(void) {
 	bool v;
 	pthread_mutex_lock(&g_guiMutex);
 	v = g_keyUp;
-	g_keyUp = false;
 	pthread_mutex_unlock(&g_guiMutex);
+	if (v) {
+		usleep(DELAY_ON_RESSED);
+	}
 	return v;
 }
 
@@ -137,8 +145,10 @@ bool KeyDownPressed(void) {
 	bool v;
 	pthread_mutex_lock(&g_guiMutex);
 	v = g_keyDown;
-	g_keyDown = false;
 	pthread_mutex_unlock(&g_guiMutex);
+	if (v) {
+		usleep(DELAY_ON_RESSED);
+	}
 	return v;
 }
 
