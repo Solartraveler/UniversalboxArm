@@ -10,6 +10,9 @@ all:
 	$(MAKE) -j -C 06-usb-mass-storage
 	$(MAKE) -j -C 07-ntp-clock
 	$(MAKE) -j -C 07-ntp-clock/pc-simulator
+	$(MAKE) -j -C 08-freertos-helloworld
+	$(MAKE) -j -C 08-freertos-helloworld/pc-simulator
+
 
 clean:
 	$(MAKE) clean -C 01-blinky-hal
@@ -23,4 +26,6 @@ clean:
 	$(MAKE) clean -C 06-usb-mass-storage
 	$(MAKE) clean -C 07-ntp-clock
 	$(MAKE) clean -C 07-ntp-clock/pc-simulator
+	$(MAKE) clean -C 08-freertos-helloworld
+	$(MAKE) clean -C 08-freertos-helloworld/pc-simulator
 
