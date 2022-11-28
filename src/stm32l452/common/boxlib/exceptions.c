@@ -1,3 +1,10 @@
+/* Boxlib
+(c) 2022 by Malte Marwedel
+
+SPDX-License-Identifier:  BSD-3-Clause
+*/
+
+
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdlib.h>
