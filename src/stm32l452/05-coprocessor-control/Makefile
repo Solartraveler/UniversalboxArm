@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Coprocessor-control
 #Version of this application, to be used in the metadata
-VERSION  = 0.13.0
+VERSION  = 0.13.1
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -84,7 +84,6 @@ MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
 # C sources
 C_SOURCES =  \
 Core/Src/main.c \
-Core/Src/stm32l4xx_it.c \
 Core/Src/stm32l4xx_hal_msp.c \
 Core/Src/system_stm32l4xx.c \
 $(STM_HAL)/Src/stm32l4xx_hal.c \
@@ -110,6 +109,8 @@ $(BOXLIB)/lcd.c \
 $(BOXLIB)/coproc.c \
 $(BOXLIB)/mcu.c \
 $(BOXLIB)/readLine.c \
+$(BOXLIB)/exceptions.c \
+$(BOXLIB)/systickWithFreertos.c \
 $(DISPLAYLIB1)/st7735.c \
 $(DISPLAYLIB2)/ili9341.c \
 $(FATFS)/ff.c \

@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = USB-Mass-storage
 #Version of this application, to be used in the metadata
-VERSION  = 0.12.0
+VERSION  = 0.12.1
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -85,7 +85,6 @@ MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
 # C sources
 C_SOURCES =  \
 Core/Src/main.c \
-Core/Src/stm32l4xx_it.c \
 Core/Src/stm32l4xx_hal_msp.c \
 $(STM_HAL)/Src/stm32l4xx_hal.c \
 $(STM_HAL)/Src/stm32l4xx_hal_rcc.c \
@@ -110,6 +109,8 @@ $(BOXLIB)/coproc.c \
 $(BOXLIB)/boxusb.c \
 $(BOXLIB)/mcu.c \
 $(BOXLIB)/lcd.c \
+$(BOXLIB)/exceptions.c \
+$(BOXLIB)/systickWithFreertos.c \
 $(USBLIB)/usbd_core.c \
 $(USBLIB)/usbd_stm32l433_devfs.c \
 $(ALGORITHM)/utility.c \
