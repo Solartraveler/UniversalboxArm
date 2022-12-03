@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Ntp-clock
 #Version of this application, to be used in the metadata
-VERSION  = 0.4.0
+VERSION  = 0.5.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -77,6 +77,8 @@ FATFS=$(COMMON)/fatfs
 ALGORITHM=$(VERYCOMMON)/algorithm
 JSMN=$(VERYCOMMON)/jsmn
 MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
+FREERTOS=$(VERYCOMMON)/FreeRTOS
+FREERTOSPORT=$(FREERTOS)/portable/GCC/ARM_CM4F
 
 ######################################
 # source
@@ -129,6 +131,10 @@ $(ALGORITHM)/imageDrawerLowres.c \
 $(ALGORITHM)/dateTime.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
+$(FREERTOS)/tasks.c \
+$(FREERTOS)/list.c \
+$(FREERTOS)/queue.c \
+$(FREERTOSPORT)/port.c \
 ntp-clock.c \
 gui.c
 
@@ -200,6 +206,8 @@ C_INCLUDES =  \
 -I$(ALGORITHM) \
 -I$(JSMN)\
 -I$(MENUINTERPRETER)\
+-I$(FREERTOS)/include\
+-I$(FREERTOSPORT)\
 -I.\
 -I./arm
 

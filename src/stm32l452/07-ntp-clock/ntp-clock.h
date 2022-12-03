@@ -5,5 +5,3 @@
 
 void AppInit(void);
 
-void AppCycle(void);
-

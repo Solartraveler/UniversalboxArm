@@ -32,6 +32,7 @@ Then shows a clock on the display
 #include "boxlib/esp.h"
 #include "boxlib/clock.h"
 #include "boxlib/readLine.h"
+#include "boxlib/systickWithFreertos.h"
 
 #include "main.h"
 
@@ -42,6 +43,11 @@ Then shows a clock on the display
 #include "gui.h"
 #include "filesystem.h"
 #include "json.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+
 
 #define WIFI_FILENAME "/etc/wifi.json"
 
@@ -87,6 +93,27 @@ _Static_assert(sizeof(ntpData_t) == 48, "Please fix alignment!");
 state_t g_state;
 
 uint32_t g_cycleTick;
+
+StaticTask_t g_IdleTcb;
+StackType_t g_IdleStack[configMINIMAL_STACK_SIZE];
+
+//512 is not enough for the GUI
+#define TASK_STACK_ELEMENTS 1024
+
+//for redrawing the display and key presses
+StaticTask_t g_guiTask;
+StackType_t g_guiStack[TASK_STACK_ELEMENTS];
+
+//for serial in and output and WIFI control
+StaticTask_t g_mainTask;
+StackType_t g_mainStack[TASK_STACK_ELEMENTS];
+
+
+//Queue to control the GUI from the RS232 port
+#define KEY_QUEUE_NUM 8
+QueueHandle_t g_keyQueue;
+StaticQueue_t g_keyQueueState;
+uint8_t g_keyQueueData[KEY_QUEUE_NUM];
 
 void ControlHelp(void) {
 	printf("h: Print help\r\n");
@@ -153,27 +180,13 @@ void LoadParams(void) {
 	PrintTimeParams();
 }
 
-void AppInit(void) {
-	LedsInit();
-	Led1Green();
-	PeripheralPowerOff();
-	HAL_Delay(100);
-	PeripheralPowerOn();
-	Rs232Init();
-	printf("\r\nNTP clock %s\r\n", APPVERSION);
-	printf("h: Print help\r\n");
-	Rs232Flush();
-	KeysInit();
-	CoprocInit();
-	PeripheralInit();
-	FlashEnable(4); //4MHz
-	FilesystemMount();
-	GuiInit();
-	LoadParams();
-	g_state.clockEnabled = ClockInit();
-	Led1Off();
-	g_cycleTick = HAL_GetTick();
+void vApplicationGetIdleTaskMemory(StaticTask_t ** ppxIdleTaskTCBBuffer, StackType_t ** ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize) {
+	*ppxIdleTaskTCBBuffer = &g_IdleTcb;
+	*ppxIdleTaskStackBuffer = g_IdleStack;
+	*pulIdleTaskStackSize = sizeof(g_IdleStack) / sizeof(StackType_t);
 }
+
+
 
 void ExecReset(void) {
 	printf("Reset selected\r\n");
@@ -460,68 +473,97 @@ void EnterTimeParams(void) {
 	PrintTimeParams();
 }
 
-void AppCycle(void) {
-	static uint32_t ledCycle = 0;
-	static uint8_t guiUpdate = 1;
-	//led flash
-	if (ledCycle < 500) {
-		Led2Green();
-	} else {
-		Led2Off();
+void MainTask(void * param) {
+	(void)param;
+	uint32_t ledCycle = 0;
+	while(1) {
+		//led flash
+		if (ledCycle < 50) {
+			Led2Green();
+		} else {
+			Led2Off();
+		}
+		if (ledCycle >= 100) {
+			ledCycle = 0;
+		}
+		ledCycle++;
+
+		char input = Rs232GetChar();
+		if (input) {
+			printf("%c", input);
+			if (input == 'h') {
+				ControlHelp();
+			}
+			if (input == 'r') {
+				ExecReset();
+			}
+			if (input == 'c') {
+				EnterWifiParams();
+			}
+			if (input == 'p') {
+				SaveWifiParams();
+			}
+			if (input == 'z') {
+				EnterTimeParams();
+			}
+			if (input == 'n') {
+				NtpUpdate();
+			}
+			if (input == 'm') {
+				EnterClockState();
+			}
+			if (input == 't') {
+				PrintTime();
+			}
+			if (input == 'e') {
+				ClockToggle();
+			}
+			if (input == 'b') {
+				PrintExtraClockData();
+			}
+			if ((input == 'w') || (input == 'a') || (input == 's') || (input == 'd')) {
+			 xQueueSendToBack(g_keyQueue, &input, 0);
+			}
+		}
+		vTaskDelay(10);
 	}
-	if (ledCycle >= 1000) {
-		ledCycle = 0;
-	}
-	ledCycle++;
-	char input = Rs232GetChar();
-	if (input) {
-		printf("%c", input);
-		if (input == 'h') {
-			ControlHelp();
-		}
-		if (input == 'r') {
-			ExecReset();
-		}
-		if (input == 'c') {
-			EnterWifiParams();
-		}
-		if (input == 'p') {
-			SaveWifiParams();
-		}
-		if (input == 'z') {
-			EnterTimeParams();
-		}
-		if (input == 'n') {
-			NtpUpdate();
-		}
-		if (input == 'm') {
-			EnterClockState();
-		}
-		if (input == 't') {
-			PrintTime();
-		}
-		if (input == 'e') {
-			ClockToggle();
-		}
-		if (input == 'b') {
-			PrintExtraClockData();
-		}
-	}
-	if (guiUpdate) {
+}
+
+void GuiTask(void * param) {
+	(void)param;
+	while (1) {
+		//call GuiCycle as soon as queue has an element, otherwise every 10ms
+		char input = 0;
+		xQueueReceive(g_keyQueue, &input, 10);
 		GuiCycle(input);
 	}
-	/* Call this function 1000x per second, if one cycle took more than 1ms,
-	   we skip the wait to catch up with calling.
-	   cycleTick last is needed to prevent endless wait in the case of a 32bit
-	   overflow.
-	*/
-	uint32_t cycleTickLast = g_cycleTick;
-	g_cycleTick++; //next call expected tick value
-	uint32_t tick;
-	do {
-		tick = HAL_GetTick();
-		if (tick < g_cycleTick) {
-			HAL_Delay(1);
-		}
-	} while ((tick < g_cycleTick) && (tick >= cycleTickLast));
+}
+
+void AppInit(void) {
+	LedsInit();
+	Led1Green();
+	PeripheralPowerOff();
+	HAL_Delay(100);
+	PeripheralPowerOn();
+	Rs232Init();
+	printf("\r\nNTP clock %s\r\n", APPVERSION);
+	printf("h: Print help\r\n");
+	Rs232Flush();
+	KeysInit();
+	CoprocInit();
+	PeripheralInit();
+	FlashEnable(4); //4MHz
+	FilesystemMount();
+	GuiInit();
+	LoadParams();
+	g_state.clockEnabled = ClockInit();
+	g_cycleTick = HAL_GetTick();
+	xTaskCreateStatic(&GuiTask, "gui", TASK_STACK_ELEMENTS, NULL, 1, g_guiStack, &g_guiTask);
+	xTaskCreateStatic(&MainTask, "main", TASK_STACK_ELEMENTS, NULL, 1, g_mainStack, &g_mainTask);
+	g_keyQueue = xQueueCreateStatic(KEY_QUEUE_NUM, sizeof(uint8_t), g_keyQueueData, &g_keyQueueState);
+	Rs232Flush();
+	SystickDisable();
+	SystickForFreertosEnable();
+	Led1Off();
+	vTaskStartScheduler();
 }

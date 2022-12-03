@@ -42,6 +42,7 @@ FATFS=$(COMMON)/fatfs
 ALGORITHM=$(VERYCOMMON)/algorithm
 JSMN=$(VERYCOMMON)/jsmn
 MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
+FREERTOS=$(SIMCOMMON)/FreeRTOS
 
 ######################################
 # source
@@ -60,6 +61,7 @@ $(BOXLIB)/mcu.c \
 $(BOXLIB)/esp.c \
 $(BOXLIB)/clock.c \
 $(BOXLIB)/readLine.c \
+$(BOXLIB)/systickWithFreertos.c \
 $(HALLIB)/simulated.c \
 $(FATFS)/ff.c \
 $(FATFS)/ffunicode.c \
@@ -76,6 +78,7 @@ $(ALGORITHM)/dateTime.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 $(SIMCOMMON)/simhelper.c \
+$(FREERTOS)/simulateFreertos.c \
 ../ntp-clock.c \
 ../gui.c \
 
@@ -130,6 +133,7 @@ C_INCLUDES =  \
 -I$(ALGORITHM) \
 -I$(JSMN)\
 -I$(MENUINTERPRETER)\
+-I$(FREERTOS) \
 -I.. \
 -I.
 
