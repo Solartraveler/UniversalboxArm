@@ -9,6 +9,8 @@ Some very basic FreeRTOS simulation with posix threads.
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <stdbool.h>
 #include <pthread.h>
 #include <string.h>
 
@@ -17,8 +19,9 @@ Some very basic FreeRTOS simulation with posix threads.
 #include "simulated.h"
 
 #include "task.h"
+#include "queue.h"
 
-
+bool g_schedulerStarted;
 
 void vTaskDelay(uint32_t ticks) {
 	HAL_Delay(ticks);
@@ -30,6 +33,14 @@ void taskYIELD(void) {
 
 void * ThreadStarter(void * param) {
 	StaticTask_t * pData = (StaticTask_t *)param;
+	/*The waiting here allows setting up the tasks before start task is called.
+	  This is important if the thread is accessing a variable which is set up
+	  between the task setup and the scheduler start
+	*/
+	while(g_schedulerStarted == false) {
+		usleep(1000);
+		__sync_synchronize();
+	}
 	pData->pStart(pData->pParam); //usually does not return
 	return NULL;
 }
@@ -53,5 +64,65 @@ TaskHandle_t xTaskCreateStatic(TaskFunction_t pTask, const char * name, size_t s
 
 uint32_t vTaskStartScheduler(void) {
 	__enable_irq();
+	g_schedulerStarted = true;
 	pthread_exit(NULL);
+}
+
+QueueHandle_t xQueueCreateStatic(size_t queueElements, size_t itemSize, uint8_t * buffer, StaticQueue_t *pQueueState) {
+	pQueueState->rptr = 0;
+	pQueueState->wptr = 0;
+	pQueueState->dataArray = buffer;
+	pQueueState->elements = queueElements;
+	pQueueState->elementSize = itemSize;
+	if (pthread_mutex_init(&(pQueueState->mutex), NULL)) {
+		return NULL; //error
+	}
+	return pQueueState;
+}
+
+bool xQueueSendToBack(QueueHandle_t queue, const void * dataIn, uint32_t waitTicks) {
+	StaticQueue_t *pQueueState = (StaticQueue_t *)queue;
+	do {
+		bool found = false;
+		if (pthread_mutex_lock(&(pQueueState->mutex))) {
+			return false; //some error
+		}
+		size_t writeNext = (pQueueState->wptr + 1) % pQueueState->elements;
+		if (writeNext != pQueueState->rptr) {
+			memcpy(pQueueState->dataArray + pQueueState->wptr * pQueueState->elementSize, dataIn, pQueueState->elementSize);
+			found = true;
+			pQueueState->wptr = (pQueueState->wptr + 1) % pQueueState->elements;
+		}
+		pthread_mutex_unlock(&(pQueueState->mutex));
+		if (found) {
+			return true;
+		}
+		if (waitTicks) {
+			usleep(1000);
+		}
+	} while(waitTicks--);
+	return false;
+}
+
+bool xQueueReceive(QueueHandle_t queue, void * dataOut,  uint32_t waitTicks) {
+	StaticQueue_t *pQueueState = (StaticQueue_t *)queue;
+	do {
+		bool found = false;
+		if (pthread_mutex_lock(&(pQueueState->mutex))) {
+			return false; //some error
+		}
+		if (pQueueState->rptr != pQueueState->wptr) {
+			memcpy(dataOut, pQueueState->dataArray + pQueueState->rptr * pQueueState->elementSize, pQueueState->elementSize);
+			found = true;
+			pQueueState->rptr = (pQueueState->rptr + 1) % pQueueState->elements;
+		}
+		pthread_mutex_unlock(&(pQueueState->mutex));
+		if (found) {
+			return true;
+		}
+		if (waitTicks) {
+			usleep(1000);
+		}
+	} while(waitTicks--);
+	return false;
 }
