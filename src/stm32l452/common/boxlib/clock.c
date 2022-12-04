@@ -74,7 +74,7 @@ bool ClockReady(void) {
 }
 
 
-uint32_t ClockUtcGet(uint16_t * pMiliseconds) {
+uint32_t ClockUtcGet(uint16_t * pMilliseconds) {
 	uint32_t fraction, time, date;
 
 	if (ClockReady() == false) {
@@ -90,11 +90,11 @@ uint32_t ClockUtcGet(uint16_t * pMiliseconds) {
 	uint32_t day = ((date & RTC_DR_DU) >> RTC_DR_DU_Pos) + 10 * ((date & RTC_DR_DT) >> RTC_DR_DT_Pos) - 1;
 	uint32_t month = ((date & RTC_DR_MU) >> RTC_DR_MU_Pos) + 10 * ((date & RTC_DR_MT) >> RTC_DR_MT_Pos) - 1;
 	uint32_t year = ((date & RTC_DR_YU) >> RTC_DR_YU_Pos) + 10 * ((date & RTC_DR_YT) >> RTC_DR_YT_Pos) + 2000;
-	if (pMiliseconds) {
+	if (pMilliseconds) {
 		uint32_t subsMax = ((RTC->PRER & RTC_PRER_PREDIV_S) >> RTC_PRER_PREDIV_S_Pos) + 1;
 		if (subsMax) {
-			uint32_t milis = fraction * 1000 / subsMax;
-			* pMiliseconds = milis;
+			uint32_t millis = fraction * 1000 / subsMax;
+			* pMilliseconds = millis;
 		}
 	}
 	return TimestampCreate(year, month, day, hour, minute, second);
@@ -147,10 +147,14 @@ bool ClockEnterInitMode(void) {
 	return true;
 }
 
-uint8_t ClockSetTimestampGet(uint32_t * pUtc, uint16_t * pMiliseconds) {
-	*pUtc = RTC->BKP0R;
+uint8_t ClockSetTimestampGet(uint32_t * pUtc, uint16_t * pMilliseconds) {
+	if (pUtc) {
+		*pUtc = RTC->BKP0R;
+	}
 	uint32_t oldData = RTC->BKP1R;
-	*pMiliseconds = oldData & 0xFFFF;
+	if (pMilliseconds) {
+		*pMilliseconds = oldData & 0xFFFF;
+	}
 	oldData &= 0xFFFF0000;
 	if (oldData == RTC_PRECISE_STAMP) {
 		return 2;
@@ -161,7 +165,7 @@ uint8_t ClockSetTimestampGet(uint32_t * pUtc, uint16_t * pMiliseconds) {
 	return 0;
 }
 
-bool ClockUtcSet(uint32_t timestamp, uint16_t miliseconds, bool precise, int64_t * pDelta) {
+bool ClockUtcSet(uint32_t timestamp, uint16_t milliseconds, bool precise, int64_t * pDelta) {
 	uint32_t calibrationValue;
 	bool calibrationWrite = false;
 
@@ -176,12 +180,12 @@ bool ClockUtcSet(uint32_t timestamp, uint16_t miliseconds, bool precise, int64_t
 			if (pDelta) { //might be useful for debug
 				uint64_t delta = (uint64_t)currentTimestamp - (uint64_t)timestamp;
 				delta *= 1000;
-				delta += (uint64_t)currentTimestampMs - (uint64_t)miliseconds;
+				delta += (uint64_t)currentTimestampMs - (uint64_t)milliseconds;
 				*pDelta = (int64_t)delta;
 			}
 			bool calcOk = DerivationPPB(oldTimestamp, oldTimestampMs,
 			                      currentTimestamp, currentTimestampMs,
-			                      timestamp, miliseconds, &derivation);
+			                      timestamp, milliseconds, &derivation);
 			if (calcOk) {
 				int32_t ppb = ClockRegToPPB(RTC->CALR);
 				ppb -= derivation;
@@ -221,9 +225,9 @@ bool ClockUtcSet(uint32_t timestamp, uint16_t miliseconds, bool precise, int64_t
 	}
 	RTC->BKP0R = timestamp;
 	if (precise) {
-		RTC->BKP1R = miliseconds | RTC_PRECISE_STAMP;
+		RTC->BKP1R = milliseconds | RTC_PRECISE_STAMP;
 	} else {
-		RTC->BKP1R = miliseconds | RTC_NONPRECISE_STAMP;
+		RTC->BKP1R = milliseconds | RTC_NONPRECISE_STAMP;
 	}
 	while ((RTC->ISR & RTC_ISR_INITF) == 0);
 	RTC->ISR &= ~RTC_ISR_INIT; //stop init mode

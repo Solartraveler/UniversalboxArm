@@ -11,6 +11,9 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include "clock.h"
 
+uint8_t g_lastSetType;
+uint32_t g_lastSetTime;
+uint32_t g_lastSetMilliseconds;
 
 bool ClockInit(void) {
 	return true;
@@ -19,28 +22,38 @@ bool ClockInit(void) {
 void ClockDeinit(void) {
 }
 
-uint32_t ClockUtcGet(uint16_t * pMiliseconds) {
+uint32_t ClockUtcGet(uint16_t * pMilliseconds) {
 	struct timespec t = {0};
 	clock_gettime(CLOCK_REALTIME, &t);
-	if (pMiliseconds) {
-		*pMiliseconds = t.tv_nsec / 1000000;
+	if (pMilliseconds) {
+		*pMilliseconds = t.tv_nsec / 1000000;
 	}
 	return t.tv_sec;
 }
 
-uint8_t ClockSetTimestampGet(uint32_t * pUtc, uint16_t * pMiliseconds) {
-	*pUtc = 0;
-	*pMiliseconds =  0;
-	return 0;
+uint8_t ClockSetTimestampGet(uint32_t * pUtc, uint16_t * pMilliseconds) {
+	if (pUtc) {
+		*pUtc = g_lastSetTime;
+	}
+	if (pMilliseconds) {
+		*pMilliseconds = g_lastSetMilliseconds;
+	}
+	return g_lastSetType;
 }
 
-bool ClockUtcSet(uint32_t timestamp, uint16_t miliseconds, bool precise, int64_t * pDelta) {
-	(void)precise;
+bool ClockUtcSet(uint32_t timestamp, uint16_t milliseconds, bool precise, int64_t * pDelta) {
+	g_lastSetTime = timestamp;
+	g_lastSetMilliseconds = milliseconds;
+	if (precise) {
+		g_lastSetType = 2;
+	} else {
+		g_lastSetType = 1;
+	}
 	struct timespec t = {0};
 	clock_gettime(CLOCK_REALTIME, &t);
 	int64_t delta = (int64_t)timestamp - (int64_t)t.tv_sec;
 	delta *= 1000;
-	delta += (int64_t)miliseconds - ((int64_t)t.tv_nsec / 1000000);
+	delta += (int64_t)milliseconds - ((int64_t)t.tv_nsec / 1000000);
 	if (delta > 0) {
 		printf("Set time would be %ums in the future, compared to the system time\n", (unsigned int)delta);
 	} else if (delta < 0) {
