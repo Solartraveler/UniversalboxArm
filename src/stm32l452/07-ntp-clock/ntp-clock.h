@@ -5,3 +5,4 @@
 
 void AppInit(void);
 
+uint32_t UtcToLocalTime(uint32_t utcTime);

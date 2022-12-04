@@ -17,6 +17,8 @@
 #include "boxlib/coproc.h"
 #include "boxlib/keysIsr.h"
 #include "imageDrawerLowres.h"
+#include "clockMt.h"
+#include "dateTime.h"
 
 #include "femtoVsnprintf.h"
 
@@ -35,10 +37,12 @@ typedef struct {
 	bool rightPressed;
 	bool upPressed;
 	bool downPressed;
-	uint32_t cycle;
+	uint32_t timestampUtc;
 } guiState_t;
 
 guiState_t g_gui;
+
+const char * g_days[7] = {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"};
 
 uint8_t menu_byte_get(MENUADDR addr) {
 	if (addr < MENU_DATASIZE) {
@@ -88,6 +92,39 @@ void GuiInit(void) {
 	}
 }
 
+void GuiUpdateClock(void) {
+	uint32_t timestampUtc = ClockUtcGetMt(NULL);
+	if (g_gui.timestampUtc == timestampUtc) {
+		return;
+	}
+	g_gui.timestampUtc = timestampUtc;
+	//time
+	uint32_t timestampLocal = UtcToLocalTime(timestampUtc);
+	uint16_t year, doy;
+	uint8_t month, day, hour, minute, second;
+	TimestampDecode(timestampLocal, &year, &month, &day, &doy, &hour, &minute, &second);
+	uint8_t weekday = WeekdayFromDoy(doy, year);
+	femtoSnprintf(menu_strings[MENU_TEXT_TIME], TEXT_LEN_MAX, "%2u:%02u:%02u", hour, minute, second);
+	const char * weekdayStr = g_days[weekday];
+	femtoSnprintf(menu_strings[MENU_TEXT_DATE], TEXT_LEN_MAX, "%s %2u.%02u.%u", weekdayStr, day + 1, month + 1, year);
+	//last sync
+	uint32_t lastSync;
+	uint8_t mode = ClockSetTimestampGetMt(&lastSync, NULL);
+	if (mode == 0) {
+		femtoSnprintf(menu_strings[MENU_TEXT_SYNC], TEXT_LEN_MAX, "never set");
+	} else {
+		uint32_t lastSyncLocal = UtcToLocalTime(lastSync);
+		const char * source = "man";
+		if (mode == 2) {
+			source = "NTP";
+		}
+		TimestampDecode(lastSyncLocal, &year, &month, &day, NULL, &hour, &minute, &second);
+		femtoSnprintf(menu_strings[MENU_TEXT_SYNC], TEXT_LEN_MAX, "%s, %2u.%02u, %2u:%02u:%u", source, day + 1, month + 1, hour, minute, second);
+	}
+	menu_redraw();
+}
+
+
 void GuiCycle(char key) {
 	bool state = KeyLeftReleased();
 	if (((g_gui.leftPressed == false) && (state)) || (key == 'a')) {
@@ -121,10 +158,6 @@ void GuiCycle(char key) {
 	}
 	g_gui.downPressed = state;
 
-	g_gui.cycle++;
-	uint32_t subcycle = g_gui.cycle / 100;
-	if (g_gui.cycle % 100 == 0) { //run every 100ms
-		g_gui.cycle = 0;
-	}
+	GuiUpdateClock();
 }
 

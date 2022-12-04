@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Ntp-clock
 #Version of this application, to be used in the metadata
-VERSION  = 0.5.0
+VERSION  = 0.6.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -129,6 +129,7 @@ $(ALGORITHM)/filesystem.c \
 $(ALGORITHM)/imageDrawer.c \
 $(ALGORITHM)/imageDrawerLowres.c \
 $(ALGORITHM)/dateTime.c \
+$(ALGORITHM)/clockMt.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 $(FREERTOS)/tasks.c \

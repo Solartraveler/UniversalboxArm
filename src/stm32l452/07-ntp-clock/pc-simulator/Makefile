@@ -75,6 +75,7 @@ $(ALGORITHM)/filesystem.c \
 $(ALGORITHM)/imageDrawer.c \
 $(ALGORITHM)/imageDrawerLowres.c \
 $(ALGORITHM)/dateTime.c \
+$(ALGORITHM)/clockMt.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 $(SIMCOMMON)/simhelper.c \
@@ -145,9 +146,7 @@ CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -Wextra -fdata-sections -ff
 CFLAGS += -fsanitize=address
 LDFLAGS += -fsanitize=address
 
-ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
-endif
 
 
 # Generate dependency information

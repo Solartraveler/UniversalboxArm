@@ -30,9 +30,10 @@ Then shows a clock on the display
 #include "boxlib/coproc.h"
 #include "boxlib/mcu.h"
 #include "boxlib/esp.h"
-#include "boxlib/clock.h"
 #include "boxlib/readLine.h"
 #include "boxlib/systickWithFreertos.h"
+
+#include "clockMt.h"
 
 #include "main.h"
 
@@ -348,7 +349,7 @@ void NtpUpdate(void) {
 		unixStamp += timestampMs / 1000;
 		timestampMs %= 1000;
 		int64_t deltaMs = 0;
-		ClockUtcSet(unixStamp, timestampMs, true, &deltaMs);
+		ClockUtcSetMt(unixStamp, timestampMs, true, &deltaMs);
 		uint16_t year, doy;
 		uint8_t month, day, hour, minute, second;
 		TimestampDecode(unixStamp, &year, &month, &day, &doy, &hour, &minute, &second);
@@ -363,7 +364,7 @@ void NtpUpdate(void) {
 
 void PrintTime(void) {
 	uint16_t timestampMs;
-	uint32_t unixTimestamp = ClockUtcGet(&timestampMs);
+	uint32_t unixTimestamp = ClockUtcGetMt(&timestampMs);
 	printf("\r\nUTC from RTC clock        ");
 	TimestampPrint(unixTimestamp, timestampMs);
 	printf("\r\n");
@@ -379,11 +380,11 @@ void PrintTime(void) {
 }
 
 void PrintExtraClockData(void) {
-	int32_t cal = ClockCalibrationGet();
+	int32_t cal = ClockCalibrationGetMt();
 	printf("Calibration %i ppb\r\n", (int)cal);
 	uint32_t setTime = 0;
 	uint16_t setTimeMs = 0;
-	uint8_t state = ClockSetTimestampGet(&setTime, &setTimeMs);
+	uint8_t state = ClockSetTimestampGetMt(&setTime, &setTimeMs);
 	if (state) {
 		printf("Last set time (%s) ", state == 2 ? "precise" : "imprecise");
 		TimestampPrint(setTime, setTimeMs);
@@ -391,15 +392,15 @@ void PrintExtraClockData(void) {
 	} else {
 		printf("Time never set\r\n");
 	}
-	ClockPrintRegisters();
+	ClockPrintRegistersMt();
 }
 
 void ClockToggle(void) {
 	if (g_state.clockEnabled) {
-		ClockDeinit();
+		ClockDeinitMt();
 		printf("Clock stopped\r\n");
 	} else {
-		ClockInit();
+		ClockInitMt();
 		printf("Clock enabled\r\n");
 	}
 	g_state.clockEnabled = !g_state.clockEnabled;
@@ -427,7 +428,7 @@ void EnterClockState(void) {
 	uint16_t minute = atol(buffer);
 	minute = MIN(minute, 59);
 	uint32_t timestamp = TimestampCreate(year, month - 1, day - 1, hour, minute, 0);
-	if (ClockUtcSet(timestamp, 0, false, NULL)) {
+	if (ClockUtcSetMt(timestamp, 0, false, NULL)) {
 		printf("\r\nClock set\r\n");
 	} else {
 		printf("\r\nClock set failed\r\n");
@@ -471,6 +472,14 @@ void EnterTimeParams(void) {
 	}
 	SaveTimeParams();
 	PrintTimeParams();
+}
+
+uint32_t UtcToLocalTime(uint32_t utcTime) {
+	uint32_t localTime = utcTime + g_state.timeOffset * 60L;
+	if (IsSummertimeInEurope(utcTime)) {
+		localTime += 60UL * 60UL;
+	}
+	return localTime;
 }
 
 void MainTask(void * param) {
@@ -556,7 +565,7 @@ void AppInit(void) {
 	FilesystemMount();
 	GuiInit();
 	LoadParams();
-	g_state.clockEnabled = ClockInit();
+	g_state.clockEnabled = ClockInitMt();
 	g_cycleTick = HAL_GetTick();
 	xTaskCreateStatic(&GuiTask, "gui", TASK_STACK_ELEMENTS, NULL, 1, g_guiStack, &g_guiTask);
 	xTaskCreateStatic(&MainTask, "main", TASK_STACK_ELEMENTS, NULL, 1, g_mainStack, &g_mainTask);
