@@ -10,7 +10,7 @@ typedef void * QueueHandle_t;
 typedef struct {
 	size_t rptr;
 	size_t wptr;
-	void * dataArray;
+	uint8_t * dataArray;
 	size_t elements;
 	size_t elementSize;
 	pthread_mutex_t mutex;

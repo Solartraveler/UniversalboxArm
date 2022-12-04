@@ -13,6 +13,7 @@ Some very basic FreeRTOS simulation with posix threads.
 #include <stdbool.h>
 #include <pthread.h>
 #include <string.h>
+#include <errno.h>
 
 #include "FreeRTOS.h"
 
@@ -20,6 +21,7 @@ Some very basic FreeRTOS simulation with posix threads.
 
 #include "task.h"
 #include "queue.h"
+#include "semphr.h"
 
 bool g_schedulerStarted;
 
@@ -124,5 +126,43 @@ bool xQueueReceive(QueueHandle_t queue, void * dataOut,  uint32_t waitTicks) {
 			usleep(1000);
 		}
 	} while(waitTicks--);
+	return false;
+}
+
+SemaphoreHandle_t xSemaphoreCreateMutexStatic(StaticSemaphore_t *pState) {
+	if (pthread_mutex_init(&(pState->mutex), NULL)) {
+		return NULL;
+	}
+	pState->type = 1;
+	return pState;
+}
+
+bool xSemaphoreTake(SemaphoreHandle_t semaphore, uint32_t waitTicks) {
+	StaticSemaphore_t * pSemaphoreState = (StaticSemaphore_t *)semaphore;
+	if (pSemaphoreState->type == 1) {
+		int result;
+		do {
+			result = pthread_mutex_trylock(&(pSemaphoreState->mutex));
+			if (result == 0) {
+				return true;
+			}
+			if (result != EBUSY) {
+				return false; //error condition
+			}
+			if (waitTicks) {
+				usleep(1000);
+			}
+		} while(waitTicks--);
+	}
+	return false;
+}
+
+bool xSemaphoreGive(SemaphoreHandle_t semaphore) {
+	StaticSemaphore_t * pSemaphoreState = (StaticSemaphore_t *)semaphore;
+	if (pSemaphoreState->type == 1) {
+		if (pthread_mutex_unlock(&(pSemaphoreState->mutex)) == 0) {
+			return true;
+		}
+	}
 	return false;
 }
