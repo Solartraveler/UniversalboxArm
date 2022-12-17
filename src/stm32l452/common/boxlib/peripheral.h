@@ -36,3 +36,15 @@ void PeripheralPrescaler(uint32_t prescaler);
 
 //for non DMA, this is a dummy function
 void PeripheralTransferWaitDone(void);
+
+/*Weak dummy functions, for real implementation and thread safety,
+peripheralMt.c must be compiled, which provide proper functions.
+Note: The functions above will stay not thread safe, but when the calls in lcd.c
+and flash.c call the lock before every usage, this will be thread safe.
+Adding this into functions like PeripheralTransfer makes little sense, because
+they interact with PeripheralPrescaler and PeripheralTransferWaitDone. So making
+them thread safe alone would not result in the intended behaviour.
+*/
+void PeripheralLockMt(void);
+
+void PeripheralUnlockMt(void);

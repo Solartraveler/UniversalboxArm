@@ -19,7 +19,8 @@
   * Changed to 128x128 pixel 'red jaycar' TFT, mounted with the connector on the
   * left side
   * Fixed st7735_DrawVLine
-  * Allows configuring a pixel offset for the LCD used
+  * Allows configuring a pixel offset for the LCD used, should support 160x128
+  * too. But this is not tested.
   ******************************************************************************
   */
 

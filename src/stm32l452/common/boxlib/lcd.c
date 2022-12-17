@@ -19,6 +19,13 @@ SPDX-License-Identifier: BSD-3-Clause
 
 bool g_lcdEnabled;
 bool g_lcdPrescaler;
+
+/*This variable makes sure multiple threads can share the same SPI, but it
+is not enough to allow multiple threads to use the Lcd* functions.
+*/
+bool g_lcdTransferStarted;
+
+
 eDisplay_t g_lcdType;
 
 //write to chip
@@ -99,6 +106,7 @@ void LcdInit(eDisplay_t lcdType) {
 	if (!g_lcdEnabled) {
 		return;
 	}
+	PeripheralLockMt();
 	g_lcdType = lcdType;
 	PeripheralPrescaler(g_lcdPrescaler);
 	if (g_lcdType == ST7735_128) {
@@ -110,6 +118,7 @@ void LcdInit(eDisplay_t lcdType) {
 	if (g_lcdType == ILI9341) {
 		ili9341_Init();
 	}
+	PeripheralUnlockMt();
 }
 
 void LcdDelay(uint32_t delay) {
@@ -161,9 +170,14 @@ void LcdCommandDataBackground(uint8_t command, const uint8_t * dataOut, uint8_t 
 void LcdWaitBackgroundDone(void) {
 	PeripheralTransferWaitDone();
 	LcdCsOff();
+	if (g_lcdTransferStarted) { //only unlock, if a LCD function was the one who locked
+		PeripheralUnlockMt();
+		g_lcdTransferStarted = false;
+	}
 }
 
 void LcdWritePixel(uint16_t x, uint16_t y, uint16_t color) {
+	PeripheralLockMt();
 	PeripheralPrescaler(g_lcdPrescaler);
 	if ((g_lcdType == ST7735_128) || (g_lcdType == ST7735_160)) {
 		st7735_WritePixel(x, y, color);
@@ -171,6 +185,7 @@ void LcdWritePixel(uint16_t x, uint16_t y, uint16_t color) {
 	if (g_lcdType == ILI9341) {
 		Ili9341WritePixel(x, y, color);
 	}
+	PeripheralUnlockMt();
 }
 
 void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint8_t * data, size_t len) {
@@ -178,6 +193,8 @@ void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const
 		return;
 	}
 	LcdWaitBackgroundDone();
+	PeripheralLockMt();
+	g_lcdTransferStarted = true;
 	PeripheralPrescaler(g_lcdPrescaler);
 	if ((g_lcdType == ST7735_128) || (g_lcdType == ST7735_160)) {
 		uint16_t h = st7735_GetLcdPixelHeight();
@@ -197,6 +214,7 @@ void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const
 }
 
 void LcdDrawHLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {
+	PeripheralLockMt();
 	PeripheralPrescaler(g_lcdPrescaler);
 	if ((g_lcdType == ST7735_128) || (g_lcdType == ST7735_160)) {
 		st7735_DrawHLine(color, x, y, length);
@@ -204,9 +222,11 @@ void LcdDrawHLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {
 	if (g_lcdType == ILI9341) {
 		Ili9341DrawHLine(color, x, y, length);
 	}
+	PeripheralUnlockMt();
 }
 
 void LcdDrawVLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {
+	PeripheralLockMt();
 	PeripheralPrescaler(g_lcdPrescaler);
 	if ((g_lcdType == ST7735_128) || (g_lcdType == ST7735_160)) {
 		st7735_DrawVLine(color, x, y, length);
@@ -214,6 +234,7 @@ void LcdDrawVLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {
 	if (g_lcdType == ILI9341) {
 		Ili9341DrawVLine(color, x, y, length);
 	}
+	PeripheralUnlockMt();
 }
 
 //shows colored lines, a black square in the upper left and a box around it

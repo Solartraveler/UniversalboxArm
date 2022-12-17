@@ -66,14 +66,17 @@ static void FlashTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len)
 uint16_t FlashGetStatus(void) {
 	uint8_t out[3] = {0xD7, 0, 0};
 	uint8_t in[3] = {0};
+	PeripheralLockMt();
 	PeripheralPrescaler(g_flashPrescaler);
 	FlashTransfer(out, in, sizeof(out));
+	PeripheralUnlockMt();
 	return (in[1] << 8) | in[2];
 }
 
 void FlashGetId(uint8_t * manufacturer, uint16_t * device) {
 	uint8_t out[5] = {0x9F, 0, 0};
 	uint8_t in[5] = {0};
+	PeripheralLockMt();
 	PeripheralPrescaler(g_flashPrescaler);
 	FlashTransfer(out, in, sizeof(out));
 	if (manufacturer) {
@@ -82,6 +85,7 @@ void FlashGetId(uint8_t * manufacturer, uint16_t * device) {
 	if (device) {
 		*device = (in[2] << 8) | in[3];
 	}
+	PeripheralUnlockMt();
 }
 
 static void FlashWaitNonBusy(void) {
@@ -94,11 +98,13 @@ static void FlashWaitNonBusy(void) {
 }
 
 void FlashPagesizePowertwoSet(void) {
+	PeripheralLockMt();
 	PeripheralPrescaler(g_flashPrescaler);
 	FlashWaitNonBusy();
 	uint8_t out[4] = {0x3D, 0x2A, 0x80, 0xA6};
 	uint8_t in[4] = {0};
 	FlashTransfer(out, in, sizeof(out));
+	PeripheralUnlockMt();
 }
 
 bool FlashPagesizePowertwoGet(void) {
@@ -117,6 +123,7 @@ bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
 	out[2] = (address >> 8) & 0xFF;
 	out[3] = address & 0xFF;
 	if (g_flashInit) {
+		PeripheralLockMt();
 		PeripheralPrescaler(g_flashPrescaler);
 		FlashWaitNonBusy();
 		FlashCsOn();
@@ -124,12 +131,15 @@ bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
 		PeripheralTransferBackground(NULL, buffer, len);
 		PeripheralTransferWaitDone();
 		FlashCsOff();
+		PeripheralUnlockMt();
 		return true;
 	}
 	return false;
 }
 
-bool FlashWriteBuffer1(const uint8_t * buffer) {
+
+
+static bool FlashWriteBuffer1Int(const uint8_t * buffer) {
 	uint8_t out[4];
 	FlashWaitNonBusy();
 	out[0] = 0x84; //write to sram buffer 1
@@ -143,6 +153,16 @@ bool FlashWriteBuffer1(const uint8_t * buffer) {
 	return true;
 }
 
+
+bool FlashWriteBuffer1(const uint8_t * buffer) {
+	bool result;
+	PeripheralLockMt();
+	PeripheralPrescaler(g_flashPrescaler);
+	result = FlashWriteBuffer1Int(buffer);
+	PeripheralUnlockMt();
+	return result;
+}
+
 static bool FlashWritePage(uint32_t address, const uint8_t * buffer) {
 	//1. delete page
 	FlashWaitNonBusy();
@@ -153,7 +173,7 @@ static bool FlashWritePage(uint32_t address, const uint8_t * buffer) {
 	out[3] = address & 0xFF;
 	FlashTransfer(out, NULL, sizeof(out));
 	//2. send data to 1. buffer
-	bool success = FlashWriteBuffer1(buffer);
+	bool success = FlashWriteBuffer1Int(buffer);
 	//3. write data to flash
 	FlashWaitNonBusy();
 	out[0] = 0x88; //sram 1 to flash without erase
@@ -188,6 +208,7 @@ bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len) {
 	if (!g_flashInit) {
 		return false;
 	}
+	PeripheralLockMt();
 	PeripheralPrescaler(g_flashPrescaler);
 	FlashWaitNonBusy();
 	uint8_t out[4];
@@ -199,6 +220,7 @@ bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len) {
 	PeripheralTransfer(out, NULL, sizeof(out));
 	PeripheralTransfer(NULL, buffer, len);
 	FlashCsOff();
+	PeripheralUnlockMt();
 	return true;
 }
 

@@ -141,6 +141,12 @@ void PeripheralPrescaler(uint32_t prescaler) {
 }
 
 __weak void PeripheralTransferWaitDone(void) {
-
 }
+
+__weak void PeripheralLockMt(void) {
+}
+
+__weak void PeripheralUnlockMt(void) {
+}
+
 
