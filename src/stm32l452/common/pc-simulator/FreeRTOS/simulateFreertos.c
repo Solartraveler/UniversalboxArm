@@ -137,6 +137,12 @@ SemaphoreHandle_t xSemaphoreCreateMutexStatic(StaticSemaphore_t *pState) {
 	return pState;
 }
 
+void vSemaphoreDelete(SemaphoreHandle_t semaphore) {
+	StaticSemaphore_t * pSemaphoreState = (StaticSemaphore_t *)semaphore;
+	pthread_mutex_destroy(&(pSemaphoreState->mutex));
+	memset(pSemaphoreState, 0, sizeof(StaticSemaphore_t));
+}
+
 bool xSemaphoreTake(SemaphoreHandle_t semaphore, uint32_t waitTicks) {
 	StaticSemaphore_t * pSemaphoreState = (StaticSemaphore_t *)semaphore;
 	if (pSemaphoreState->type == 1) {
