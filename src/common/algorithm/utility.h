@@ -26,3 +26,5 @@ bool EndsWith(const char * string, const char * ending);
 bool BeginsWith(const char * string, const char * starting);
 
 uint32_t BytesFlip(uint32_t in);
+
+size_t strlcpy(char * dest, const char * src, size_t maxDest);

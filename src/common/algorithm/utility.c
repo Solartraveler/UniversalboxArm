@@ -102,3 +102,10 @@ uint32_t BytesFlip(uint32_t in) {
 	return out;
 }
 
+size_t strlcpy(char * dest, const char * src, size_t maxDest) {
+	if (maxDest > 0) {
+		strncpy(dest, src, maxDest);
+		dest[maxDest - 1] = '\0';
+	}
+	return strlen(src);
+}
