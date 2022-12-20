@@ -60,9 +60,9 @@ FB_BLUE_OUT_BITS
 #define FB_GREENMASK_IN ((1<< FB_GREEN_IN_BITS) - 1)
 #define FB_BLUEMASK_IN  ((1<< FB_BLUE_IN_BITS) - 1)
 
-#define FB_GETRED_IN(color)    ((color                                         & (FB_REDMASK_IN))   << FB_MISSINGRED_IN)
-#define FB_GETGREEN_IN(color) (((color >> (FB_RED_IN_BITS))                    & (FB_GREENMASK_IN)) << FB_MISSINGGREEN_IN)
-#define FB_GETBLUE_IN(color)  (((color >> (FB_RED_IN_BITS + FB_GREEN_IN_BITS)) & (FB_BLUEMASK_IN))  << FB_MISSINGBLUE_IN)
+#define FB_GETRED_IN(color)    ((color >> (FB_BLUE_IN_BITS + FB_GREEN_IN_BITS) & (FB_REDMASK_IN))   << FB_MISSINGRED_IN)
+#define FB_GETGREEN_IN(color) (((color >> (FB_BLUE_IN_BITS)                  ) & (FB_GREENMASK_IN)) << FB_MISSINGGREEN_IN)
+#define FB_GETBLUE_IN(color)  (((color >> 0                                  ) & (FB_BLUEMASK_IN))  << FB_MISSINGBLUE_IN)
 
 #define FB_COLOR_IN_BITS_USED (FB_RED_IN_BITS + FB_GREEN_IN_BITS + FB_BLUE_IN_BITS)
 
@@ -79,9 +79,9 @@ _Static_assert(FB_BITMAP_BITS == sizeof(FB_BITMAP_TYPE) * 8, "FB_BITMAP_BITS nee
 #define FB_MISSINGGREEN_OUT (8 - FB_GREEN_OUT_BITS)
 #define FB_MISSINGBLUE_OUT  (8 - FB_BLUE_OUT_BITS)
 
-#define FB_SETRED_OUT(color) (color >> FB_MISSINGRED_OUT)
-#define FB_SETGREEN_OUT(color) ((color >> FB_MISSINGGREEN_OUT) << (FB_RED_OUT_BITS))
-#define FB_SETBLUE_OUT(color) ((color >> FB_MISSINGBLUE_OUT) << (FB_GREEN_OUT_BITS + FB_RED_OUT_BITS))
+#define FB_SETRED_OUT(color) ((color >> FB_MISSINGRED_OUT) << (FB_GREEN_OUT_BITS + FB_BLUE_OUT_BITS))
+#define FB_SETGREEN_OUT(color) ((color >> FB_MISSINGGREEN_OUT) << (FB_GREEN_OUT_BITS))
+#define FB_SETBLUE_OUT(color) ((color >> FB_MISSINGBLUE_OUT) << 0)
 
 FB_BITMAP_TYPE g_fbPixel[FB_ELEMENTS_X * FB_SIZE_Y];
 FB_SCREENPOS_TYPE g_fbUseX = FB_SIZE_X;
