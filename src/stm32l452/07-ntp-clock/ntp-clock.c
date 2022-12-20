@@ -3,10 +3,13 @@
 
 SPDX-License-Identifier: GPL-3.0-or-later
 
-Allows configuring WIFI
+Allows configuring WIFI and colors
 
 TODO:
-Then shows a clock on the display
+Show a big clock on the display
+Allow configure timezone, server and refresh interval
+
+
 
 */
 
@@ -34,6 +37,7 @@ Then shows a clock on the display
 #include "boxlib/systickWithFreertos.h"
 
 #include "clockMt.h"
+#include "peripheralMt.h"
 
 #include "main.h"
 
@@ -42,31 +46,16 @@ Then shows a clock on the display
 #include "dateTime.h"
 
 #include "gui.h"
+#include "clockConfig.h"
 #include "filesystem.h"
 #include "json.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
-
-
-#define WIFI_FILENAME "/etc/wifi.json"
-
-#define TIME_FILENAME "/etc/time.json"
-
-#define DEFAULT_TIMESERVER "pool.ntp.org"
+#include "semphr.h"
 
 #define TEXT_MAX 64
-
-typedef struct {
-	bool clockEnabled;
-	char ap[TEXT_MAX];
-	char password[TEXT_MAX];
-	char timeserver[TEXT_MAX];
-	int16_t timeOffset; //unit is [min]
-	bool summerTime; //EU calculation only
-	uint16_t refreshInterval; //unit is [h]
-} state_t;
 
 typedef struct {
 	/* bits 0..2: mode, bits 3..5: version number, bits 6..7: special like 59s min or 61s min, or out of sync */
@@ -91,9 +80,13 @@ typedef struct {
 _Static_assert(sizeof(ntpData_t) == 48, "Please fix alignment!");
 
 
-state_t g_state;
+typedef struct {
+	bool clockEnabled;
+} state_t;
 
 uint32_t g_cycleTick;
+
+state_t g_state;
 
 StaticTask_t g_IdleTcb;
 StackType_t g_IdleStack[configMINIMAL_STACK_SIZE];
@@ -110,7 +103,7 @@ StaticTask_t g_mainTask;
 StackType_t g_mainStack[TASK_STACK_ELEMENTS];
 
 
-//Queue to control the GUI from the RS232 port
+//Queue to control the GUI from the RS232 port and trigger state updates
 #define KEY_QUEUE_NUM 8
 QueueHandle_t g_keyQueue;
 StaticQueue_t g_keyQueueState;
@@ -130,64 +123,21 @@ void ControlHelp(void) {
 	printf("w-a-s-d: Send key code to GUI\r\n");
 }
 
-void PrintTimeParams(void) {
-	printf("Ntp server %s, refresh every %uh, offset to UTC %imin, summertime adjust %s\r\n",
-	       g_state.timeserver, g_state.refreshInterval, g_state.timeOffset, g_state.summerTime ? "true" : "false");
-}
-
-void LoadParams(void) {
-	uint8_t jsonfile[TEXT_MAX * 3] = {0};
-	size_t r = 0;
-	if (FilesystemReadFile(WIFI_FILENAME, jsonfile, sizeof(jsonfile) - 1, &r)) {
-		bool success = JsonValueGet(jsonfile, r, "ap1", g_state.ap, TEXT_MAX);
-		success &= JsonValueGet(jsonfile, r, "password1", g_state.password, TEXT_MAX);
-		if (success) {
-			printf("Wifi config loaded\r\n");
-		} else {
-			printf("Wifi config file incomplete\r\n");
-		}
-	} else {
-		printf("No wifi configured\r\n");
-	}
-	bool hasServer = false;
-	bool hasInterval = false;
-	if (FilesystemReadFile(TIME_FILENAME, jsonfile, sizeof(jsonfile) - 1, &r)) {
-		hasServer = JsonValueGet(jsonfile, r, "ntpserver", g_state.timeserver, TEXT_MAX);
-		char value[TEXT_MAX];
-		hasInterval = JsonValueGet(jsonfile, r, "ntprefresh", value, TEXT_MAX);
-		if (hasInterval) {
-			g_state.refreshInterval = atoi(value);
-			if (g_state.refreshInterval == 0) {
-				hasInterval = false;
-			}
-		}
-		if (JsonValueGet(jsonfile, r, "timeoffset", value, TEXT_MAX)) {
-			g_state.timeOffset = atoi(value);
-		}
-		if (JsonValueGet(jsonfile, r, "summertime", value, TEXT_MAX)) {
-			if (strcmp(value, "true") == 0) {
-				g_state.summerTime = true;
-			}
-		}
-	} else {
-		printf("No time configured\r\n");
-	}
-	if (!hasServer) {
-		strncpy(g_state.timeserver, DEFAULT_TIMESERVER, TEXT_MAX - 1);
-	}
-	if (!hasInterval) {
-		g_state.refreshInterval = 48;
-	}
-	PrintTimeParams();
-}
-
 void vApplicationGetIdleTaskMemory(StaticTask_t ** ppxIdleTaskTCBBuffer, StackType_t ** ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize) {
 	*ppxIdleTaskTCBBuffer = &g_IdleTcb;
 	*ppxIdleTaskStackBuffer = g_IdleStack;
 	*pulIdleTaskStackSize = sizeof(g_IdleStack) / sizeof(StackType_t);
 }
 
-
+void PrintTimeParams(void) {
+	char timeserver[TEXT_MAX];
+	TimeserverGet(timeserver, sizeof(timeserver));
+	uint16_t refreshInterval = TimeserverRefreshGet();
+	uint16_t timeOffset = UtcOffsetGet();
+	bool summerTime = SummertimeGet();
+	printf("Ntp server %s, refresh every %uh, offset to UTC %imin, summertime adjust %s\r\n",
+	       timeserver, refreshInterval, timeOffset, summerTime ? "true" : "false");
+}
 
 void ExecReset(void) {
 	printf("Reset selected\r\n");
@@ -196,21 +146,16 @@ void ExecReset(void) {
 }
 
 void EnterWifiParams(void) {
+	char buffer[TEXT_MAX];
 	printf("Enter access point name\r\n");
-	ReadSerialLine(g_state.ap, TEXT_MAX);
+	ReadSerialLine(buffer, TEXT_MAX);
+	ApSet(buffer);
 	printf("\r\nEnter password\r\n");
-	ReadSerialLine(g_state.password, TEXT_MAX);
+	ReadSerialLine(buffer, TEXT_MAX);
+	PasswordSet(buffer);
+	char command = 'u';
+	xQueueSendToBack(g_keyQueue, &command, 0); //notify GUI of changed values
 	printf("\r\nOk\r\n");
-}
-
-void SaveWifiParams(void) {
-	char buffer[TEXT_MAX * 3];
-	snprintf(buffer, sizeof(buffer), "{\n  \"ap1\": \"%s\",\n  \"password1\": \"%s\"\n}\n", g_state.ap, g_state.password);
-	if (FilesystemWriteEtcFile(WIFI_FILENAME, buffer, strlen(buffer))) {
-		printf("Saved to %s\r\n", WIFI_FILENAME);
-	} else {
-		printf("Error, could not create file %s\r\n", WIFI_FILENAME);
-	}
 }
 
 #if 0
@@ -295,6 +240,8 @@ bool UdpGetNtp(const char * domain, uint32_t * pTimestamp, uint16_t * pTimestamp
 can be properly handled.
 */
 uint32_t NtpTimestampGet(uint16_t * pTimestampMs, uint32_t * pTimeRequestStart) {
+	char buffer1[TEXT_MAX];
+	char buffer2[TEXT_MAX];
 	uint32_t timestamp = SECONDS_1900_2000;
 	EspInit();
 	printf("Enabling ESP\r\n");
@@ -303,12 +250,15 @@ uint32_t NtpTimestampGet(uint16_t * pTimestampMs, uint32_t * pTimeRequestStart) 
 		printf("Module ready\r\n");
 		if (EspSetClient()) {
 			printf("Module is a client\r\n");
-			bool success = EspConnect(g_state.ap, g_state.password);
+			ApGet(buffer1, sizeof(buffer1));
+			PasswordGet(buffer2, sizeof(buffer2));
+			bool success = EspConnect(buffer1, buffer2);
 			if (success) {
 				printf("Connected to access point\r\n");
-				if (UdpGetNtp(g_state.timeserver, &timestamp, pTimestampMs, pTimeRequestStart)) {
+				TimeserverGet(buffer1, sizeof(buffer1));
+				if (UdpGetNtp(buffer1, &timestamp, pTimestampMs, pTimeRequestStart)) {
 				} else {
-					printf("Error, could not get timestamp from >%s<\r\n", g_state.timeserver);
+					printf("Error, could not get timestamp from >%s<\r\n", buffer1);
 				}
 			} else {
 				printf("Error, could not connect\r\n");
@@ -368,8 +318,8 @@ void PrintTime(void) {
 	printf("\r\nUTC from RTC clock        ");
 	TimestampPrint(unixTimestamp, timestampMs);
 	printf("\r\n");
-	uint32_t localTimestamp = unixTimestamp + (int32_t)g_state.timeOffset * 60;
-	if (g_state.summerTime) {
+	uint32_t localTimestamp = unixTimestamp + (int32_t)UtcOffsetGet() * 60;
+	if (SummertimeGet()) {
 		if (IsSummertimeInEurope(unixTimestamp)) {
 			localTimestamp += 60UL * 60UL; //+1h
 		}
@@ -436,54 +386,68 @@ void EnterClockState(void) {
 	PrintTime();
 }
 
-void SaveTimeParams(void) {
-	char buffer[TEXT_MAX * 3];
-	snprintf(buffer, sizeof(buffer), "{\n  \"ntpserver\": \"%s\",\n  \"ntprefresh\": \"%u\",\n  \"timeoffset\": \"%i\",\n  \"summertime\": \"%s\"\n}\n",
-	          g_state.timeserver, g_state.refreshInterval, g_state.timeOffset, g_state.summerTime ? "true" : "false");
-	if (FilesystemWriteEtcFile(TIME_FILENAME, buffer, strlen(buffer))) {
-		printf("Saved to %s\r\n", TIME_FILENAME);
-	} else {
-		printf("Error, could not create file %s\r\n", TIME_FILENAME);
-	}
-}
-
 void EnterTimeParams(void) {
 	char value[TEXT_MAX];
 	printf("Enter NTP server, empty for default\r\n");
 	ReadSerialLine(value, sizeof(value));
 	if (strlen(value) > 0) {
-		strncpy(g_state.timeserver, value, TEXT_MAX);
+		TimeserverSet(value);
 	} else {
-		strncpy(g_state.timeserver, DEFAULT_TIMESERVER, TEXT_MAX);
+		TimeserverSet(DEFAULT_TIMESERVER);
 	}
 	printf("\r\nEnter NTP refresh interval in hours\r\n");
 	ReadSerialLine(value, sizeof(value));
-	g_state.refreshInterval = atoi(value);
+	TimeserverRefreshSet(atoi(value));
 	printf("\r\nEnter UTC to local (winter) time offset in minutes. (60 for Berlin)\r\n");
 	ReadSerialLine(value, sizeof(value));
-	g_state.timeOffset = atoi(value);
+	UtcOffsetSet(atoi(value));
 	printf("\r\nAdjust for EU summer time? y/n\r\n");
 	ReadSerialLine(value, sizeof(value));
 	printf("\r\n");
 	if (value[0] == 'y') {
-		g_state.summerTime = true;
+		SummertimeSet(true);
 	} else {
-		g_state.summerTime = false;
+		SummertimeSet(false);
 	}
-	SaveTimeParams();
+	ConfigSaveClock();
 	PrintTimeParams();
 }
 
 uint32_t UtcToLocalTime(uint32_t utcTime) {
-	uint32_t localTime = utcTime + g_state.timeOffset * 60L;
+	uint32_t localTime = utcTime + UtcOffsetGet() * 60L;
 	if (IsSummertimeInEurope(utcTime)) {
 		localTime += 60UL * 60UL;
 	}
 	return localTime;
 }
 
+void GuiTask(void * param) {
+	(void)param;
+	GuiInit();
+	while (1) {
+		//call GuiCycle as soon as queue has an element, otherwise every 10ms
+		char input = 0;
+		xQueueReceive(g_keyQueue, &input, 10);
+		GuiCycle(input);
+	}
+}
+
+//continue AppInit but now from within a FreeRTOS thread
+void AppInit2(void) {
+	g_state.clockEnabled = ClockInitMt();
+	KeysInit();
+	CoprocInit();
+	PeripheralInitMt();
+	FlashEnable(4); //4MHz
+	FilesystemMount();
+	ConfigInit();
+	PrintTimeParams();
+	xTaskCreateStatic(&GuiTask, "gui", TASK_STACK_ELEMENTS, NULL, 1, g_guiStack, &g_guiTask);
+}
+
 void MainTask(void * param) {
 	(void)param;
+	AppInit2();
 	uint32_t ledCycle = 0;
 	while(1) {
 		//led flash
@@ -510,7 +474,7 @@ void MainTask(void * param) {
 				EnterWifiParams();
 			}
 			if (input == 'p') {
-				SaveWifiParams();
+				ConfigSaveWifi();
 			}
 			if (input == 'z') {
 				EnterTimeParams();
@@ -538,16 +502,6 @@ void MainTask(void * param) {
 	}
 }
 
-void GuiTask(void * param) {
-	(void)param;
-	while (1) {
-		//call GuiCycle as soon as queue has an element, otherwise every 10ms
-		char input = 0;
-		xQueueReceive(g_keyQueue, &input, 10);
-		GuiCycle(input);
-	}
-}
-
 void AppInit(void) {
 	LedsInit();
 	Led1Green();
@@ -558,16 +512,6 @@ void AppInit(void) {
 	printf("\r\nNTP clock %s\r\n", APPVERSION);
 	printf("h: Print help\r\n");
 	Rs232Flush();
-	KeysInit();
-	CoprocInit();
-	PeripheralInit();
-	FlashEnable(4); //4MHz
-	FilesystemMount();
-	GuiInit();
-	LoadParams();
-	g_state.clockEnabled = ClockInitMt();
-	g_cycleTick = HAL_GetTick();
-	xTaskCreateStatic(&GuiTask, "gui", TASK_STACK_ELEMENTS, NULL, 1, g_guiStack, &g_guiTask);
 	xTaskCreateStatic(&MainTask, "main", TASK_STACK_ELEMENTS, NULL, 1, g_mainStack, &g_mainTask);
 	g_keyQueue = xQueueCreateStatic(KEY_QUEUE_NUM, sizeof(uint8_t), g_keyQueueData, &g_keyQueueState);
 	Rs232Flush();
@@ -576,3 +520,6 @@ void AppInit(void) {
 	Led1Off();
 	vTaskStartScheduler();
 }
+
+
+

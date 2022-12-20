@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Ntp-clock
 #Version of this application, to be used in the metadata
-VERSION  = 0.6.0
+VERSION  = 0.7.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -126,10 +126,12 @@ $(ALGORITHM)/libcMinsize.c \
 $(ALGORITHM)/femtoVsnprintf.c \
 $(ALGORITHM)/json.c \
 $(ALGORITHM)/filesystem.c \
+$(ALGORITHM)/filesystemMt.c \
 $(ALGORITHM)/imageDrawer.c \
 $(ALGORITHM)/imageDrawerLowres.c \
 $(ALGORITHM)/dateTime.c \
 $(ALGORITHM)/clockMt.c \
+$(ALGORITHM)/peripheralMt.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 $(FREERTOS)/tasks.c \
@@ -137,7 +139,8 @@ $(FREERTOS)/list.c \
 $(FREERTOS)/queue.c \
 $(FREERTOSPORT)/port.c \
 ntp-clock.c \
-gui.c
+gui.c \
+clockConfig.c
 
 # ASM sources
 ASM_SOURCES =  \

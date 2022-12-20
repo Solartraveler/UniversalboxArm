@@ -72,16 +72,19 @@ $(ALGORITHM)/libcMinsize.c \
 $(ALGORITHM)/femtoVsnprintf.c \
 $(ALGORITHM)/json.c \
 $(ALGORITHM)/filesystem.c \
+$(ALGORITHM)/filesystemMt.c \
 $(ALGORITHM)/imageDrawer.c \
 $(ALGORITHM)/imageDrawerLowres.c \
 $(ALGORITHM)/dateTime.c \
 $(ALGORITHM)/clockMt.c \
+$(ALGORITHM)/peripheralMt.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 $(SIMCOMMON)/simhelper.c \
 $(FREERTOS)/simulateFreertos.c \
 ../ntp-clock.c \
 ../gui.c \
+../clockConfig.c \
 
 # ASM sources
 ASM_SOURCES =
