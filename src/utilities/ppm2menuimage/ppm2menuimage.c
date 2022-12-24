@@ -22,6 +22,9 @@ typedef struct {
 	const char * outputFilename;
 	bool compress;
 	bool help;
+	uint8_t redBits;
+	uint8_t greenBits;
+	uint8_t blueBits;
 } settings_t;
 
 size_t getLine(FILE * f, char * out, size_t outMax) {
@@ -66,22 +69,51 @@ void ParamParse(int argc, char ** argv, settings_t * pS) {
 		if (strcmp(argv[i], "--help") == 0) {
 			pS->help = true;
 		}
+		if ((strcmp(argv[i], "--red") == 0) && ((i + 1) < argc)) {
+			pS->redBits = atoi(argv[i + 1]);
+			i++;
+		}
+		if ((strcmp(argv[i], "--green") == 0) && ((i + 1) < argc)) {
+			pS->greenBits = atoi(argv[i + 1]);
+			i++;
+		}
+		if ((strcmp(argv[i], "--blue") == 0) && ((i + 1) < argc)) {
+			pS->blueBits = atoi(argv[i + 1]);
+			i++;
+		}
+
+
 	}
 }
 
 int main(int argc, char ** argv) {
 	settings_t s = {0};
+	s.redBits = 1;
+	s.greenBits = 1;
+	s.blueBits = 1;
 	ParamParse(argc, argv, &s);
 	if (s.help) {
-		printf("ppm2menuimage 3bit RGB converter\n");
-		printf("(c) 2022 by Malte Marwedel, Version 1.0\n");
+		printf("ppm2menuimage RGB converter\n");
+		printf("(c) 2022 by Malte Marwedel, Version 1.1\n");
 		printf("Give:\n  --input <ppmFilename>\n");
 		printf("  --output <menuimageFilename>\n");
 		printf("  --compress for compressed output\n");
+		printf("  --red <bits> number of red output bits, default 1\n");
+		printf("  --green <bits> number of green output bits, default 1\n");
+		printf("  --blue <bits> number of blue output bits, default 1\n");
+		printf("  The sum of red green and blue bits may not be larger than 8\n");
 		return 0;
 	}
 	if ((!s.inputFilename) || (!s.outputFilename)) {
 		printf("Error: Invalid parameters.\n");
+		return 1;
+	}
+	uint8_t redBits = s.redBits;
+	uint8_t greenBits = s.greenBits;
+	uint8_t blueBits = s.blueBits;
+	uint8_t colorBits = redBits + greenBits + blueBits;
+	if (colorBits > 8) {
+		printf("Error, this converter does not support more than 8 color bits\n");
 		return 1;
 	}
 	unsigned int sx, sy, maxCol;
@@ -149,16 +181,32 @@ int main(int argc, char ** argv) {
 	}
 	//convert
 	uint8_t colorLast = 0;
-	uint8_t lastRepeats = 0;
+	uint16_t lastRepeats = 0;
+	uint8_t redBitsMissing = 8 - redBits;
+	uint8_t greenBitsMissing = 8 - greenBits;
+	uint8_t blueBitsMissing = 8 - blueBits;
+	uint8_t compressionBits = 8 - colorBits;
+	if (compressionBits == 0) {
+		compressionBits = 8; //extra byte added
+	}
+	uint16_t supportedRepeats = 1 << compressionBits;
+
 	for (inDataI = 0; inDataI < inDataMax; inDataI += 3) {
-		uint8_t r = inData[inDataI] & 0x80;
-		uint8_t g = ((inData[inDataI + 1] >> 1) & 0x40);
-		uint8_t b = ((inData[inDataI + 2] >> 1) & 0x20);
-		uint8_t color = r | g | b;
-		if ((color != colorLast) || (lastRepeats == 0x20) || (s.compress == false)) {
-			if (lastRepeats != 0) {
-				outData[outDataI] = (colorLast >> 5) | ((lastRepeats - 1)<<3);
-				outDataI++;
+		uint8_t r = inData[inDataI] >> redBitsMissing;
+		uint8_t g = inData[inDataI + 1] >> greenBitsMissing;
+		uint8_t b = inData[inDataI + 2] >> blueBitsMissing;
+		uint8_t color = (r << (blueBits + greenBits)) | (g << blueBits) | b;
+		if ((color != colorLast) || (lastRepeats == supportedRepeats) || (s.compress == false)) {
+			if (lastRepeats) {
+				if (compressionBits != 8) {
+					outData[outDataI] = colorLast | ((lastRepeats - 1) << colorBits);
+					outDataI++;
+				} else {
+					outData[outDataI] = colorLast;
+					outDataI++;
+					outData[outDataI] = lastRepeats - 1;
+					outDataI++;
+				}
 			}
 			colorLast = color;
 			lastRepeats = 1;
@@ -167,8 +215,15 @@ int main(int argc, char ** argv) {
 		}
 	}
 	if (lastRepeats) {
-		outData[outDataI] = (colorLast >> 5) | ((lastRepeats - 1)<<3);
-		outDataI++;
+		if (compressionBits != 8) {
+			outData[outDataI] = colorLast | ((lastRepeats - 1) << colorBits);
+			outDataI++;
+		} else {
+			outData[outDataI] = colorLast;
+			outDataI++;
+			outData[outDataI] = lastRepeats - 1;
+			outDataI++;
+		}
 	}
 	free(inData);
 	//write output
