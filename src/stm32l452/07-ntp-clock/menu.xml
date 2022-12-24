@@ -1,11 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <MenuConfig Xsize="320" Ysize="240" compact="-1" multilang="0" languages="1" utf8="1" mousesupport="0" fileformat="2" colorFormatRed1="3" colorFormatRed2="1" colorFormatRed3="8" colorFormatGreen1="3" colorFormatGreen2="0" colorFormatGreen3="8" colorFormatBlue1="2" colorFormatBlue2="0" colorFormatBlue3="8" backgroundcolor="16777215" bordercolor="0" textcolor="0" subwindowBordercolor="32768" subwindowBackgroundcolor="16777215" displaytype="4" projectinfo="Coprocessor control for 128x128 and 320x240 LCD">
+  <window number="18" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="Clock 128x128">
+    <gfx number="1" Xpos="0" Ypos="0" focusable="0" rectangle="0" Xsize="160" Ysize="128" text="BACKGROUND1" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
+    <shortcut number="2" shortcutkey="1" action="" screen="window 1"/>
+    <shortcut number="3" shortcutkey="2" action="" screen="window 1"/>
+    <shortcut number="4" shortcutkey="3" action="" screen="window 1"/>
+    <shortcut number="5" shortcutkey="4" action="" screen="window 1"/>
+    <gfx number="6" Xpos="6" Ypos="32" focusable="0" rectangle="0" Xsize="24" Ysize="43" text="DIGITHOURH" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
+    <gfx number="7" Xpos="33" Ypos="32" focusable="0" rectangle="0" Xsize="24" Ysize="43" text="DIGITHOURL" storagemethod="1" action="" screen="" compressed="1" multiimage="0" exportformat="2"/>
+    <gfx number="8" Xpos="60" Ypos="32" focusable="0" rectangle="0" Xsize="8" Ysize="43" text="DIGITDOT" storagemethod="1" action="" screen="" compressed="1" multiimage="0" exportformat="2"/>
+    <gfx number="9" Xpos="71" Ypos="32" focusable="0" rectangle="0" Xsize="24" Ysize="43" text="DIGITMINUTEH" storagemethod="1" action="" screen="" compressed="1" multiimage="0" exportformat="2"/>
+    <gfx number="10" Xpos="98" Ypos="32" focusable="0" rectangle="0" Xsize="24" Ysize="43" text="DIGITMINUTEL" storagemethod="1" action="" screen="" compressed="1" multiimage="0" exportformat="2"/>
+    <shortcut number="11" shortcutkey="102" action="" screen="window 19"/>
+  </window>
+  <window number="19" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="Clock 320x240">
+    <gfx number="1" Xpos="0" Ypos="0" focusable="0" rectangle="0" Xsize="320" Ysize="240" text="BACKGROUND2" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
+    <shortcut number="2" shortcutkey="1" action="" screen="window 7"/>
+    <shortcut number="3" shortcutkey="2" action="" screen="window 7"/>
+    <shortcut number="4" shortcutkey="3" action="" screen="window 7"/>
+    <shortcut number="5" shortcutkey="4" action="" screen="window 7"/>
+    <gfx number="6" Xpos="5" Ypos="50" focusable="0" rectangle="0" Xsize="58" Ysize="105" text="DIGITHOURH2" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
+    <gfx number="7" Xpos="70" Ypos="50" focusable="0" rectangle="0" Xsize="58" Ysize="105" text="DIGITHOURL2" storagemethod="1" action="" screen="" compressed="1" multiimage="0" exportformat="2"/>
+    <gfx number="8" Xpos="135" Ypos="50" focusable="0" rectangle="0" Xsize="18" Ysize="105" text="DIGITDOT2" storagemethod="1" action="" screen="" compressed="1" multiimage="0" exportformat="2"/>
+    <gfx number="9" Xpos="160" Ypos="50" focusable="0" rectangle="0" Xsize="58" Ysize="105" text="DIGITMINUTEH2" storagemethod="1" action="" screen="" compressed="1" multiimage="0" exportformat="2"/>
+    <gfx number="10" Xpos="225" Ypos="50" focusable="0" rectangle="0" Xsize="58" Ysize="105" text="DIGITMINUTEL2" storagemethod="1" action="" screen="" compressed="1" multiimage="0" exportformat="2"/>
+  </window>
   <window number="1" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="128x128 - Main&#xA;">
     <label number="5" Xpos="28" Ypos="1" font="5" storagemethod="1" text="TIME" multilang="0" transparency="0"/>
     <label number="7" Xpos="2" Ypos="16" font="5" storagemethod="1" text="DATE" multilang="0" transparency="0"/>
     <label number="12" Xpos="2" Ypos="32" font="4" storagemethod="0" text="Last sync: " multilang="0" transparency="0"/>
     <label number="13" Xpos="2" Ypos="48" font="4" storagemethod="1" text="SYNC" multilang="0" transparency="0"/>
-    <shortcut number="4" shortcutkey="102" action="" screen="window 7"/>
     <button number="14" Xpos="2" Ypos="64" focusable="-1" rectangle="-1" Xsize="60" Ysize="17" font="4" fontfocus="6" text="BG Color" storagemethod="0" action="POWERDOWN" screen="subwindow 4" multilang="0" transparency="0"/>
     <button number="18" Xpos="63" Ypos="64" focusable="1" rectangle="1" Xsize="60" Ysize="17" font="4" fontfocus="6" text="Dig Color" storagemethod="0" action="" screen="subwindow 15" multilang="0" transparency="0"/>
     <button number="15" Xpos="2" Ypos="83" focusable="1" rectangle="1" Xsize="39" Ysize="17" font="4" fontfocus="6" text="AP" storagemethod="0" action="" screen="subwindow 11" multilang="0" transparency="0"/>
@@ -102,18 +126,4 @@
   <subwindow number="16" Xpos="39" Ypos="49" Xsize="50" Ysize="30" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="OK">
     <button number="1" Xpos="50" Ypos="56" focusable="1" rectangle="1" Xsize="30" Ysize="17" font="4" fontfocus="6" text="OK" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
   </subwindow>
-  <window number="18" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="Clock 128x128">
-    <gfx number="1" Xpos="0" Ypos="0" focusable="0" rectangle="0" Xsize="160" Ysize="128" text="BACKGROUND1" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
-    <shortcut number="2" shortcutkey="1" action="" screen="window 1"/>
-    <shortcut number="3" shortcutkey="2" action="" screen="window 1"/>
-    <shortcut number="4" shortcutkey="3" action="" screen="window 1"/>
-    <shortcut number="5" shortcutkey="4" action="" screen="window 1"/>
-  </window>
-  <window number="19" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="Clock 320x240">
-    <gfx number="1" Xpos="0" Ypos="0" focusable="0" rectangle="0" Xsize="320" Ysize="240" text="BACKGROUND2" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
-    <shortcut number="2" shortcutkey="1" action="" screen="window 7"/>
-    <shortcut number="3" shortcutkey="2" action="" screen="window 7"/>
-    <shortcut number="4" shortcutkey="3" action="" screen="window 7"/>
-    <shortcut number="5" shortcutkey="4" action="" screen="window 7"/>
-  </window>
 </MenuConfig>

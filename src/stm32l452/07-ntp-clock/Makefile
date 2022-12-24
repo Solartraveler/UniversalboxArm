@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Ntp-clock
 #Version of this application, to be used in the metadata
-VERSION  = 0.7.0
+VERSION  = 0.8.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -79,6 +79,9 @@ JSMN=$(VERYCOMMON)/jsmn
 MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
 FREERTOS=$(VERYCOMMON)/FreeRTOS
 FREERTOSPORT=$(FREERTOS)/portable/GCC/ARM_CM4F
+UTILITIES=../../utilities
+DIGITS=$(UTILITIES)/digits
+
 
 ######################################
 # source
@@ -147,6 +150,31 @@ ASM_SOURCES =  \
 $(SHARED_INIT)/startup_stm32l452xx.s
 
 
+PPM_SOURCES = \
+$(DIGITS)/0.ppm \
+$(DIGITS)/1.ppm \
+$(DIGITS)/2.ppm \
+$(DIGITS)/3.ppm \
+$(DIGITS)/4.ppm \
+$(DIGITS)/5.ppm \
+$(DIGITS)/6.ppm \
+$(DIGITS)/7.ppm \
+$(DIGITS)/8.ppm \
+$(DIGITS)/9.ppm \
+$(DIGITS)/colon.ppm \
+$(DIGITS)/0Xxl.ppm \
+$(DIGITS)/1Xxl.ppm \
+$(DIGITS)/2Xxl.ppm \
+$(DIGITS)/3Xxl.ppm \
+$(DIGITS)/4Xxl.ppm \
+$(DIGITS)/5Xxl.ppm \
+$(DIGITS)/6Xxl.ppm \
+$(DIGITS)/7Xxl.ppm \
+$(DIGITS)/8Xxl.ppm \
+$(DIGITS)/9Xxl.ppm \
+$(DIGITS)/colonXxl.ppm \
+
+
 #######################################
 # binaries
 #######################################
@@ -166,6 +194,8 @@ SZ = $(PREFIX)size
 endif
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
+
+PPM2BIN = $(UTILITIES)/ppm2menuimage/build/ppm2menuimage
 
 #######################################
 # CFLAGS
@@ -213,7 +243,8 @@ C_INCLUDES =  \
 -I$(FREERTOS)/include\
 -I$(FREERTOSPORT)\
 -I.\
--I./arm
+-I./arm\
+-I$(BUILD_DIR)\
 
 
 # compile gcc flags
@@ -261,8 +292,22 @@ vpath %.c $(sort $(dir $(C_SOURCES)))
 # list of ASM program objects
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
+# list of binary program objects
+GENIMAGE = $(addprefix $(BUILD_DIR)/,$(notdir $(PPM_SOURCES:.ppm=.8bit)))
+GENHEADERS = $(addprefix $(BUILD_DIR)/,$(notdir $(PPM_SOURCES:.ppm=.h)))
+vpath %.ppm $(sort $(dir $(PPM_SOURCES)))
 
-$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
+.PRECIOUS: $(GENHEADERS)
+.PRECIOUS: $(GENIMAGE)
+
+
+$(BUILD_DIR)/%.8bit: %.ppm Makefile | $(BUILD_DIR)
+	$(PPM2BIN) --compress --red 3 --green 3 --blue 2 --input $< --output $@
+
+$(BUILD_DIR)/%.h: $(BUILD_DIR)/%.8bit Makefile | $(BUILD_DIR)
+	xxd -i $< | sed 's/unsigned/const unsigned/g' > $@
+
+$(BUILD_DIR)/%.o: %.c Makefile $(GENHEADERS) | $(BUILD_DIR)
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)

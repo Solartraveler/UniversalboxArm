@@ -6,10 +6,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 Allows configuring WIFI and colors
 
 TODO:
-Show a big clock on the display
-Allow configure timezone, server and refresh interval
-
-
+Allow configure timezone, server and refresh interval from the GUI
+Automatically refresh the time from NTP
+Dimming the backlight
 
 */
 
@@ -145,6 +144,11 @@ void ExecReset(void) {
 	NVIC_SystemReset();
 }
 
+static void NotifyGui(void) {
+	char command = 'u'; //code for re-reading all the values from clockConfig
+	xQueueSendToBack(g_keyQueue, &command, 0);
+}
+
 void EnterWifiParams(void) {
 	char buffer[TEXT_MAX];
 	printf("Enter access point name\r\n");
@@ -153,8 +157,7 @@ void EnterWifiParams(void) {
 	printf("\r\nEnter password\r\n");
 	ReadSerialLine(buffer, TEXT_MAX);
 	PasswordSet(buffer);
-	char command = 'u';
-	xQueueSendToBack(g_keyQueue, &command, 0); //notify GUI of changed values
+	NotifyGui();
 	printf("\r\nOk\r\n");
 }
 
@@ -411,6 +414,7 @@ void EnterTimeParams(void) {
 	}
 	ConfigSaveClock();
 	PrintTimeParams();
+	NotifyGui();
 }
 
 uint32_t UtcToLocalTime(uint32_t utcTime) {
