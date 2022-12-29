@@ -80,7 +80,7 @@ _Static_assert(FB_BITMAP_BITS == sizeof(FB_BITMAP_TYPE) * 8, "FB_BITMAP_BITS nee
 #define FB_MISSINGBLUE_OUT  (8 - FB_BLUE_OUT_BITS)
 
 #define FB_SETRED_OUT(color) ((color >> FB_MISSINGRED_OUT) << (FB_GREEN_OUT_BITS + FB_BLUE_OUT_BITS))
-#define FB_SETGREEN_OUT(color) ((color >> FB_MISSINGGREEN_OUT) << (FB_GREEN_OUT_BITS))
+#define FB_SETGREEN_OUT(color) ((color >> FB_MISSINGGREEN_OUT) << (FB_BLUE_OUT_BITS))
 #define FB_SETBLUE_OUT(color) ((color >> FB_MISSINGBLUE_OUT) << 0)
 
 FB_BITMAP_TYPE g_fbPixel[FB_ELEMENTS_X * FB_SIZE_Y];
