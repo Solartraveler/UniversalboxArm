@@ -5,8 +5,8 @@ $Descr A2 23386 16535
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "2022-10-30"
-Rev "0.11"
+Date "2023-04-01"
+Rev "0.12"
 Comp ""
 Comment1 ""
 Comment2 ""
@@ -3505,7 +3505,7 @@ L Device:C C120
 U 1 1 62F436B6
 P 14450 9850
 F 0 "C120" H 14565 9896 50  0000 L CNN
-F 1 "100µF" H 14565 9805 50  0000 L CNN
+F 1 "4.7µF" H 14565 9805 50  0000 L CNN
 F 2 "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder" H 14488 9700 50  0001 C CNN
 F 3 "~" H 14450 9850 50  0001 C CNN
 	1    14450 9850
@@ -3579,8 +3579,6 @@ Wire Wire Line
 	13600 9900 13600 9600
 Connection ~ 13600 9600
 Wire Wire Line
-	13600 9600 13200 9600
-Wire Wire Line
 	13900 9900 14050 9900
 Wire Wire Line
 	14050 9900 14050 10050
@@ -3594,12 +3592,12 @@ EspPowerEnable
 $Comp
 L power:+3.3V #PWR0193
 U 1 1 6366C390
-P 13200 9600
-F 0 "#PWR0193" H 13200 9450 50  0001 C CNN
-F 1 "+3.3V" H 13215 9773 50  0000 C CNN
-F 2 "" H 13200 9600 50  0001 C CNN
-F 3 "" H 13200 9600 50  0001 C CNN
-	1    13200 9600
+P 13000 9600
+F 0 "#PWR0193" H 13000 9450 50  0001 C CNN
+F 1 "+3.3V" H 13015 9773 50  0000 C CNN
+F 2 "" H 13000 9600 50  0001 C CNN
+F 3 "" H 13000 9600 50  0001 C CNN
+	1    13000 9600
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -5063,8 +5061,8 @@ $EndComp
 Connection ~ 8500 1400
 Wire Wire Line
 	8500 1400 9300 1400
-Text Notes 8400 1300 0    50   ~ 0
-Optional
+Text Notes 8350 2200 0    50   ~ 0
+Not
 $Comp
 L power:GND #PWR0108
 U 1 1 61AC92A7
@@ -5553,4 +5551,45 @@ Wire Bus Line
 	9000 9600 3350 9600
 Wire Bus Line
 	3350 9600 3350 12300
+Wire Notes Line rgb(255, 0, 0)
+	8350 1450 8900 1450
+Wire Notes Line rgb(255, 0, 0)
+	8900 1450 8900 2100
+Wire Notes Line rgb(255, 0, 0)
+	8900 2100 8350 2100
+Wire Notes Line rgb(255, 0, 0)
+	8350 2100 8350 1450
+$Comp
+L Device:C #C121
+U 1 1 64400EB2
+P 13200 9850
+F 0 "#C121" H 13315 9896 50  0000 L CNN
+F 1 "100µF" H 13315 9805 50  0000 L CNN
+F 2 "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder" H 13238 9700 50  0001 C CNN
+F 3 "~" H 13200 9850 50  0001 C CNN
+	1    13200 9850
+	1    0    0    -1  
+$EndComp
+Text Notes 14250 10450 0    50   ~ 0
+Change footprint\nfor version 2
+Wire Wire Line
+	13000 9600 13200 9600
+Connection ~ 13200 9600
+Wire Wire Line
+	13200 9600 13600 9600
+$Comp
+L power:GND #PWR?
+U 1 1 6454A531
+P 13200 10050
+F 0 "#PWR?" H 13200 9800 50  0001 C CNN
+F 1 "GND" H 13205 9877 50  0000 C CNN
+F 2 "" H 13200 10050 50  0001 C CNN
+F 3 "" H 13200 10050 50  0001 C CNN
+	1    13200 10050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	13200 9700 13200 9600
+Wire Wire Line
+	13200 10050 13200 10000
 $EndSCHEMATC

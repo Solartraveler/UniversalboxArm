@@ -57,3 +57,8 @@ Bugs in Version 1.0:
    D2  needs to be A14
    A13 needs to be B8
    A14 needs to be D2
+12.== Power surge when starting ESP-01 module ==
+   An additional 100µF cap on VCC is reccommend to avoid a huge power drop when enabling the wifi module.
+   It can be added between TP12 and H2.
+   C120 needs to be reduced to 4.7µF to avoid a power surge to less than 2V,
+   which would result in the LCD to stop displaying an image.
