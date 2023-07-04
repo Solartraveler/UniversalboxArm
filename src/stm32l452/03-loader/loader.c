@@ -573,8 +573,9 @@ void LoaderInit(void) {
 	char autostartName[TARFILENAME_MAX];
 	if (LoaderAutostartGet(autostartName, TARFILENAME_MAX)) {
 		if (strlen(autostartName) > 3) {
+			printf("Autostart for %s. 'w' (RS232) or 'up' key interrupts.\r\n", autostartName);
+			HAL_Delay(250); //otherwise we never got a key over RS232
 			if ((KeyUpPressed() == false) && (Rs232GetChar() != 'w')) {
-				printf("Autostart for %s. 'w' (RS232) or 'up' key interrupts.\r\n", autostartName);
 				if (LoaderTarLoad(autostartName)) {
 					LoaderProgramStart();
 				}
