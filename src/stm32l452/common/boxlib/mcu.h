@@ -67,3 +67,7 @@ void McuLockCriticalPins(void);
 uint64_t McuTimestampUs(void);
 
 void McuDelayUs(uint32_t us);
+
+uint32_t McuApbFrequencyGet(void);
+
+uint32_t McuCpuFrequencyGet(void);

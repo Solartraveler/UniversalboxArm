@@ -14,6 +14,9 @@ License: BSD-3-Clause
 
 typedef void (ptrFunction_t)(void);
 
+uint32_t g_mcuFrequceny = 16000000;
+uint32_t g_mcuApbDivider = 1;
+
 //See https://stm32f4-discovery.net/2017/04/tutorial-jump-system-memory-software-stm32/
 void McuStartOtherProgram(void * startAddress, bool ledSignalling) {
 	volatile uint32_t * pStackTop = (uint32_t *)(startAddress);
@@ -113,6 +116,8 @@ bool McuClockToMsi(uint32_t frequency, uint32_t apbDivider) {
 		return false;
 	}
 	SystemCoreClockUpdate();
+	g_mcuFrequceny = frequency;
+	g_mcuApbDivider = apbDivider;
 	return true;
 }
 
@@ -187,6 +192,8 @@ uint8_t McuClockToHsiPll(uint32_t frequency, uint32_t apbDivider) {
 		return 4;
 	}
 	SystemCoreClockUpdate();
+	g_mcuFrequceny = frequency;
+	g_mcuApbDivider = apbDivider;
 	return 0;
 }
 
@@ -246,4 +253,12 @@ uint64_t McuTimestampUs(void) {
 void McuDelayUs(uint32_t us) {
 	uint64_t tEnd = McuTimestampUs() + us;
 	while (tEnd > McuTimestampUs());
+}
+
+uint32_t McuApbFrequencyGet(void) {
+	return g_mcuFrequceny / g_mcuApbDivider;
+}
+
+uint32_t McuCpuFrequencyGet(void) {
+	return g_mcuFrequceny;
 }
