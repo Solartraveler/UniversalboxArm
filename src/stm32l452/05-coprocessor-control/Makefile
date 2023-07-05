@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Coprocessor-control
 #Version of this application, to be used in the metadata
-VERSION  = 0.13.1
+VERSION  = 0.13.2
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -126,6 +126,7 @@ $(ALGORITHM)/filesystem.c \
 $(ALGORITHM)/imageDrawer.c \
 $(ALGORITHM)/imageDrawerLowres.c \
 $(ALGORITHM)/imageTgaWrite.c \
+$(ALGORITHM)/screenshot.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 control.c \

@@ -32,6 +32,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "gui.h"
 #include "filesystem.h"
+#include "screenshot.h"
 
 uint32_t g_cycleTick;
 

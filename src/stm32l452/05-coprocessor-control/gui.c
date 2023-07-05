@@ -13,7 +13,6 @@
 #include "boxlib/coproc.h"
 #include "boxlib/keys.h"
 #include "boxlib/keysIsr.h"
-#include "imageTgaWrite.h"
 #include "tarextract.h"
 #include "menu-interpreter.h"
 #include "menu-text.h"
@@ -23,6 +22,7 @@
 #include "imageDrawerLowres.h"
 #include "femtoVsnprintf.h"
 #include "control.h"
+#include "screenshot.h"
 
 #define TEXT_LEN_MAX 32
 
@@ -307,39 +307,7 @@ static void GuiUpdateMain(uint32_t subcycle) {
 	}
 }
 
-bool Screenshot(void) {
-	printf("Saving screnshot...\r\n");
-	bool success = true;
-	fileBuffer_t fb;
-	char filename[64];
-	uint16_t pixelX = g_gui.pixelX;
-	uint16_t pixelY = g_gui.pixelY;
-	//allocate output buffer and open file
-	f_mkdir("/screenshots");
-	uint32_t unusedId = FilesystemGetUnusedFilename("/screenshots", "shot");
-	snprintf(filename, sizeof(filename), "/screenshots/shot%04u.tga", (unsigned int)unusedId);
-	if ((unusedId == 0) || (!FilesystemBufferwriterStart(&fb, filename))) {
-		printf("Error, could not write file %s\r\n", filename);
-		return false;
-	}
-	//write header
-	uint32_t colors = 1 << (FB_RED_IN_BITS + FB_GREEN_IN_BITS + FB_BLUE_IN_BITS);
-	success &= ImgTgaStart(g_gui.pixelX, pixelY, colors, 24, true, &FilesystemBufferwriterAppend, &fb);
-	success &= ImgTgaColormap24(FB_RED_IN_BITS, FB_GREEN_IN_BITS, FB_BLUE_IN_BITS, &FilesystemBufferwriterAppend, &fb);
-	//write image data
-	for (uint32_t y = 0; y < pixelY; y++) {
-		uint8_t data[pixelX];
-		for (uint32_t x = 0; x < pixelX; x++) {
-			data[x] = menu_screen_get(x, y);
-		}
-		success &= ImgTgaAppendCompress1Byte(data, pixelX, &FilesystemBufferwriterAppend, &fb);
-		//success &= ImgTgaAppendDirect(data, pixelX, &FilesystemBufferwriterAppend, &fb);
-	}
-	//close file
-	success &= FilesystemBufferwriterClose(&fb);
-	printf("Saved %s with %s\r\n", filename, success ? "success" : "failure");
-	return success;
-}
+
 
 void GuiScreenshot(void) {
 	bool success = Screenshot();

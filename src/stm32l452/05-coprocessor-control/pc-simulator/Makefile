@@ -71,6 +71,7 @@ $(ALGORITHM)/filesystem.c \
 $(ALGORITHM)/imageDrawer.c \
 $(ALGORITHM)/imageDrawerLowres.c \
 $(ALGORITHM)/imageTgaWrite.c \
+$(ALGORITHM)/screenshot.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 $(SIMCOMMON)/simhelper.c \
