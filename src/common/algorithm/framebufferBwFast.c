@@ -153,12 +153,21 @@ void menu_screen_flush(void) {
 	//printf("Redraw took %uticks\r\n", (unsigned int)(timeStop - timeStart));
 }
 
-void menu_screen_size(SCREENPOS x, SCREENPOS y) {
+void menu_screen_size(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y) {
 	if (x <= FB_SIZE_X) {
 		g_fbUseX = x;
 	}
 	if (y <= FB_SIZE_Y) {
 		g_fbUseY = y;
+	}
+}
+
+void menu_screen_size_get(FB_SCREENPOS_TYPE * pX, FB_SCREENPOS_TYPE * pY) {
+	if (pX) {
+		*pX = g_fbUseX;
+	}
+	if (pY) {
+		*pY = g_fbUseY;
 	}
 }
 
