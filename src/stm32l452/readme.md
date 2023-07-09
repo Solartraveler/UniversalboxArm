@@ -39,3 +39,19 @@ Debug prints are available over the RS232 port with 19200baud.
 
 Connect the external SPI flash as USB mass storage device to the PC, allows reading and writing files on the disk.
 As always, Debug prints are available over the RS232 port with 19200baud.
+
+## 07-ntp-clock
+
+<img align="right" src="../../img/screenshot-clock-big.png" alt="Screenshot of the big clock">
+
+<img align="right" src="../../img/screenshot-clock-config.png" alt="Screenshot of the configuration">
+
+Shows a big digital clock on the screen. Foreground and background color can be configured out of 256 colors.
+The clock is synced over WIFI with an NTP server, therefore AP, password and NTP server can be set.
+The backlight level and timezone can be set and the internal clock is calibrated automatically
+when there are two syncs with enough time inbetween.
+If a battery is connected, the clock continues to run while the device is off.
+To allow updateing the GUI while the WIFI is served, FreeRTOS is used.
+All settings are saved to the filesystem.
+Debug prints are available over the RS232 port with 19200baud.
+Also entering the AP and password is much easier over the RS232 port.

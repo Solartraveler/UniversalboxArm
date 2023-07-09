@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Ntp-clock
 #Version of this application, to be used in the metadata
-VERSION  = 0.8.0
+VERSION  = 0.10.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -25,7 +25,7 @@ LICENSE  = GPL-3.0-or-later
 #The MCU, this binary is compiled for, to be used in the metadata
 CHIP     = stm32l452
 #Watchdog in [ms]. 0 disables, maximum is 65535
-WATCHDOG = 0
+WATCHDOG = 20000
 
 #If the name is not readme.md, --transform needs to be used to adjust the name
 TARREADME = readme.md
@@ -110,6 +110,7 @@ $(BOXLIB)/peripheral.c \
 $(BOXLIB)/peripheralDma.c \
 $(BOXLIB)/flash.c \
 $(BOXLIB)/lcd.c \
+$(BOXLIB)/lcdBacklight.c \
 $(BOXLIB)/coproc.c \
 $(BOXLIB)/mcu.c \
 $(BOXLIB)/esp.c \
@@ -135,6 +136,8 @@ $(ALGORITHM)/imageDrawerLowres.c \
 $(ALGORITHM)/dateTime.c \
 $(ALGORITHM)/clockMt.c \
 $(ALGORITHM)/peripheralMt.c \
+$(ALGORITHM)/screenshot.c \
+$(ALGORITHM)/imageTgaWrite.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 $(FREERTOS)/tasks.c \

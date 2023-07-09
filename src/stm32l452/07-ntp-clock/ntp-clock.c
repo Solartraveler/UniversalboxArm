@@ -1,14 +1,7 @@
 /* NTP clock
-(c) 2022 by Malte Marwedel
+(c) 2022 - 2023 by Malte Marwedel
 
 SPDX-License-Identifier: GPL-3.0-or-later
-
-Allows configuring WIFI and colors
-
-TODO:
-Allow configure timezone, server and refresh interval from the GUI
-Automatically refresh the time from NTP
-Dimming the backlight
 
 */
 
@@ -81,6 +74,7 @@ _Static_assert(sizeof(ntpData_t) == 48, "Please fix alignment!");
 
 typedef struct {
 	bool clockEnabled;
+	bool syncNow; //flag, set by the GUI thread, cleared here
 } state_t;
 
 uint32_t g_cycleTick;
@@ -119,6 +113,7 @@ void ControlHelp(void) {
 	printf("m: Set clock manually\r\n");
 	printf("b: Print calibration value and last set time\r\n");
 	printf("e: Disable / enable RTC, (disable looses the time and calibration)\r\n");
+	printf("x: Screenshot\r\n");
 	printf("w-a-s-d: Send key code to GUI\r\n");
 }
 
@@ -239,6 +234,11 @@ bool UdpGetNtp(const char * domain, uint32_t * pTimestamp, uint16_t * pTimestamp
 	return false;
 }
 
+void SyncNow(void)
+{
+	g_state.syncNow = true;
+}
+
 /* If getting failed, it retuns the 1.1.2000, not 0!, so the 0 overflow in 2036
 can be properly handled.
 */
@@ -321,12 +321,7 @@ void PrintTime(void) {
 	printf("\r\nUTC from RTC clock        ");
 	TimestampPrint(unixTimestamp, timestampMs);
 	printf("\r\n");
-	uint32_t localTimestamp = unixTimestamp + (int32_t)UtcOffsetGet() * 60;
-	if (SummertimeGet()) {
-		if (IsSummertimeInEurope(unixTimestamp)) {
-			localTimestamp += 60UL * 60UL; //+1h
-		}
-	}
+	uint32_t localTimestamp = UtcToLocalTime(unixTimestamp);
 	printf("Local time from RTC clock ");
 	TimestampPrint(localTimestamp, timestampMs);
 	printf("\r\n");
@@ -419,7 +414,7 @@ void EnterTimeParams(void) {
 
 uint32_t UtcToLocalTime(uint32_t utcTime) {
 	uint32_t localTime = utcTime + UtcOffsetGet() * 60L;
-	if (IsSummertimeInEurope(utcTime)) {
+	if ((SummertimeGet()) && (IsSummertimeInEurope(utcTime))) {
 		localTime += 60UL * 60UL;
 	}
 	return localTime;
@@ -453,9 +448,11 @@ void MainTask(void * param) {
 	(void)param;
 	AppInit2();
 	uint32_t ledCycle = 0;
+	uint32_t dontTryAgain = 100 * 10; //wait at least 10s until a sync
+	uint32_t watchdogCycle = 0;
 	while(1) {
 		//led flash
-		if (ledCycle < 50) {
+		if ((ledCycle < 50) && (LedFlashGet())) {
 			Led2Green();
 		} else {
 			Led2Off();
@@ -464,6 +461,13 @@ void MainTask(void * param) {
 			ledCycle = 0;
 		}
 		ledCycle++;
+
+		watchdogCycle++;
+		if (watchdogCycle >= 100)
+		{
+			CoprocWatchdogReset();
+			watchdogCycle = 0;
+		}
 
 		char input = Rs232GetChar();
 		if (input) {
@@ -498,9 +502,31 @@ void MainTask(void * param) {
 			if (input == 'b') {
 				PrintExtraClockData();
 			}
-			if ((input == 'w') || (input == 'a') || (input == 's') || (input == 'd')) {
-			 xQueueSendToBack(g_keyQueue, &input, 0);
+			if (input == 'x') {
+				//running the screenshot in the GUI thread, prevents an update of the GUI while collecting display data
+				xQueueSendToBack(g_keyQueue, &input, 0);
 			}
+			if ((input == 'w') || (input == 'a') || (input == 's') || (input == 'd')) {
+				xQueueSendToBack(g_keyQueue, &input, 0);
+			}
+		}
+		//look if we should do start an automatical sync?
+		uint32_t tNow = ClockUtcGetMt(NULL);
+		uint32_t tSynced;
+		uint32_t tSyncMode = ClockSetTimestampGetMt(&tSynced, NULL);
+		if ((tSyncMode == 0) || (g_state.syncNow) ||
+		    ((tNow > tSynced) && ((tNow - tSynced) >= (TimeserverRefreshGet() * 60UL * 60UL)))) {
+			if ((dontTryAgain == 0) || (g_state.syncNow)) {
+				g_state.syncNow = false;
+				NtpUpdate();
+				/* Someone might even block the client if there are too many tries.
+				   Also the RS232 input would not respond satisfyingly.
+				*/
+				dontTryAgain = 100 * 60; //wait at least 1min
+			}
+		}
+		if (dontTryAgain) {
+			dontTryAgain--;
 		}
 		vTaskDelay(10);
 	}

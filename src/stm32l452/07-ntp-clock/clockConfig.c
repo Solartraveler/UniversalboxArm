@@ -31,6 +31,8 @@ typedef struct {
 	uint16_t refreshInterval; //unit is [h]
 	uint8_t fgColor;
 	uint8_t bgColor;
+	uint16_t brightness;
+	bool ledFlash;
 } config_t;
 
 config_t g_config;
@@ -68,6 +70,8 @@ void ConfigInit(void) {
 	bool hasInterval = false;
 	bool hasFgColor = false;
 	bool hasBgColor = false;
+	bool hasBrightness = false;
+	g_config.ledFlash = true;
 	if (FilesystemReadFile(TIME_FILENAME, jsonfile, sizeof(jsonfile) - 1, &r)) {
 		hasServer = JsonValueGet(jsonfile, r, "ntpserver", g_config.timeserver, TEXT_MAX);
 		char value[TEXT_MAX];
@@ -94,6 +98,15 @@ void ConfigInit(void) {
 			g_config.bgColor = atoi(value);
 			hasBgColor = true;
 		}
+		if (JsonValueGet(jsonfile, r, "ledflash", value, TEXT_MAX)) {
+			if (strcmp(value, "false") == 0) {
+				g_config.ledFlash = false;
+			}
+		}
+		if (JsonValueGet(jsonfile, r, "brightness", value, TEXT_MAX)) {
+			g_config.brightness = atoi(value);
+			hasBrightness = true;
+		}
 	} else {
 		printf("No time configured\r\n");
 	}
@@ -108,6 +121,9 @@ void ConfigInit(void) {
 	}
 	if (!hasBgColor) {
 		g_config.fgColor = 0xFF;
+	}
+	if (!hasBrightness) {
+		g_config.brightness = 10000;
 	}
 	ConfigUnlock();
 }
@@ -127,8 +143,12 @@ void ConfigSaveWifi(void) {
 void ConfigSaveClock(void) {
 	ConfigLock();
 	char buffer[TEXT_MAX * 4];
-	snprintf(buffer, sizeof(buffer), "{\n  \"ntpserver\": \"%s\",\n  \"ntprefresh\": \"%u\",\n  \"timeoffset\": \"%i\",\n  \"summertime\": \"%s\",\n  \"fgcolor\": \"%u\",\n  \"bgcolor\":  \"%u\"\n\n}\n",
-	          g_config.timeserver, g_config.refreshInterval, g_config.timeOffset, g_config.summerTime ? "true" : "false", g_config.fgColor, g_config.bgColor);
+	snprintf(buffer, sizeof(buffer), "{\n  \"ntpserver\": \"%s\",\n  \"ntprefresh\": \"%u\",\n\
+  \"timeoffset\": \"%i\",\n  \"summertime\": \"%s\",\n  \"fgcolor\": \"%u\",\n\
+  \"bgcolor\":  \"%u\",\n  \"brightness\": \"%u\",\n  \"ledflash\": \"%s\"\n}\n",
+	          g_config.timeserver, g_config.refreshInterval, g_config.timeOffset,
+	          g_config.summerTime ? "true" : "false", g_config.fgColor, g_config.bgColor,
+	          g_config.brightness, g_config.ledFlash ? "true": "false");
 	if (FilesystemWriteEtcFile(TIME_FILENAME, buffer, strlen(buffer))) {
 		printf("Saved to %s\r\n", TIME_FILENAME);
 	} else {
@@ -236,4 +256,33 @@ void ColorFgSet(uint8_t color) {
 	g_config.fgColor = color;
 	ConfigUnlock();
 }
+
+uint16_t BacklightGet(void) {
+	uint16_t brightness;
+	ConfigLock();
+	brightness = g_config.brightness;
+	ConfigUnlock();
+	return brightness;
+}
+
+void BacklightSet(uint16_t brightness) {
+	ConfigLock();
+	g_config.brightness = brightness;
+	ConfigUnlock();
+}
+
+bool LedFlashGet(void) {
+	bool flash;
+	ConfigLock();
+	flash = g_config.ledFlash;
+	ConfigUnlock();
+	return flash;
+}
+
+void LedFlashSet(bool flash) {
+	ConfigLock();
+	g_config.ledFlash = flash;
+	ConfigUnlock();
+}
+
 

@@ -7,6 +7,7 @@
 #include "gui.h"
 
 #include "boxlib/lcd.h"
+#include "boxlib/lcdBacklight.h"
 #include "boxlib/leds.h"
 #include "tarextract.h"
 #include "menu-interpreter.h"
@@ -19,6 +20,7 @@
 #include "imageDrawerLowres.h"
 #include "clockMt.h"
 #include "dateTime.h"
+#include "screenshot.h"
 
 #include "femtoVsnprintf.h"
 
@@ -64,6 +66,8 @@ so do not try to find them before calling make.
 #define DIGITS_LEN_MAX 560
 
 #define TEXT_LEN_MAX 48
+
+#define BACKLIGHT_MAX 1000
 
 //with compression, two bytes can store 256 equal pixel
 #define PREVIEW_FG_BUFFER_LEN ((MENU_GFX_SIZEX_COLORFGPREVIEW * MENU_GFX_SIZEY_COLORFGPREVIEW + 255)/ 256 * 2)
@@ -265,6 +269,24 @@ uint8_t GuiEditColor(uint32_t textIndex, size_t pos, uint8_t color, uint8_t * pr
 	return color;
 }
 
+static void UpdateInterval(void) {
+	uint16_t interval = TimeserverRefreshGet();
+	femtoSnprintf(menu_strings[MENU_TEXT_NTPINTERVAL], TEXT_LEN_MAX, "%uh", interval);
+}
+
+static void UpdateTz(void) {
+	int16_t offset = UtcOffsetGet();
+	char pref = '+';
+	if (offset < 0) {
+		pref = '-';
+		offset = -offset;
+	}
+	uint16_t h = offset / 60;
+	uint16_t m = offset % 60;
+	femtoSnprintf(menu_strings[MENU_TEXT_TZOFFSET], TEXT_LEN_MAX, "%c%u:%02u", pref, h, m);
+}
+
+
 uint8_t menu_action(MENUACTION action) {
 	//wifi password
 	if (action == MENU_ACTION_PWINC) {
@@ -400,9 +422,77 @@ uint8_t menu_action(MENUACTION action) {
 			return 0;
 		}
 	}
+	//ntp interval
+	if (action == MENU_ACTION_NTPINTERVALINC) {
+		uint16_t interval = TimeserverRefreshGet();
+		if (interval < 222) { //1h less than the maximum supported by DerivationPPB()
+			interval++;
+		}
+		TimeserverRefreshSet(interval);
+		UpdateInterval();
+		return 1;
+	}
+	if (action == MENU_ACTION_NTPINTERVALDEC) {
+		uint16_t interval = TimeserverRefreshGet();
+		if (interval > 8) { //minimum supported by DerivationPPB()
+			interval--;
+		}
+		TimeserverRefreshSet(interval);
+		UpdateInterval();
+		return 1;
+	}
+	//timezone delta
+	if (action == MENU_ACTION_TZDELTAINC) {
+		int16_t delta = UtcOffsetGet();
+		if (delta < (60*14)) {
+			delta += 30;
+		}
+		UtcOffsetSet(delta);
+		UpdateTz();
+		return 1;
+	}
+	if (action == MENU_ACTION_TZDELTADEC) {
+		int16_t delta = UtcOffsetGet();
+		if (delta > (-60*14)) {
+			delta -= 30;
+		}
+		UtcOffsetSet(delta);
+		UpdateTz();
+		return 1;
+	}
+
+
 	if (action == MENU_ACTION_SAVE) {
 		ConfigSaveWifi();
 		ConfigSaveClock();
+	}
+	if (action == MENU_ACTION_LEDFLASHING) {
+		bool flashing = menu_checkboxstate[MENU_CHECKBOX_LEDFLASHING] ? true : false;
+		LedFlashSet(flashing);
+	}
+	if (action == MENU_ACTION_BACKLIGHT) {
+		const uint32_t blMax = BACKLIGHT_MAX;
+		uint32_t bl;
+		uint8_t blIndex = menu_radiobuttonstate[MENU_RBUTTON_BACKLIGHT];
+		switch(blIndex) {
+			case 1: bl = blMax * 50 / 100; break;
+			case 2: bl = blMax * 25 / 100; break;
+			case 3: bl = blMax * 12 / 100; break;
+			case 4: bl = blMax * 6 / 100; break;
+			case 5: bl = blMax * 3 / 100; break;
+			case 6: bl = blMax * 2 / 100; break;
+			case 7: bl = blMax * 1 / 100; break;
+			default: bl = blMax;
+		}
+		BacklightSet(bl);
+		LcdBacklightSet(bl);
+	}
+	if (action == MENU_ACTION_SYNC) {
+		SyncNow();
+	}
+	if (action == MENU_ACTION_SUMMERTIME) {
+		bool state = menu_checkboxstate[MENU_CHECKBOX_SUMMERTIME] ? true : false;
+		SummertimeSet(state);
 	}
 	return 0;
 }
@@ -411,6 +501,8 @@ static void GuiReloadConfig(void) {
 	ApGet(menu_strings[MENU_TEXT_WIFINAME], TEXT_LEN_MAX);
 	PasswordGet(menu_strings[MENU_TEXT_WIFIPW], TEXT_LEN_MAX);
 	TimeserverGet(menu_strings[MENU_TEXT_NTPNAME], TEXT_LEN_MAX);
+	UpdateInterval();
+	UpdateTz();
 }
 
 void GuiInit(void) {
@@ -458,14 +550,43 @@ void GuiInit(void) {
 	memset(g_gui.minuteHBuffer, 0xFF, DIGITS_LEN_MAX);
 	memset(g_gui.minuteLBuffer, 0xFF, DIGITS_LEN_MAX);
 	memset(g_gui.colonBuffer, 0xFF, DIGITS_LEN_MAX);
-	GuiLargeDigitsUpdate(0,0);
+	//update led flashing
+	if (LedFlashGet()) {
+		menu_checkboxstate[MENU_CHECKBOX_LEDFLASHING] = 1;
+	}
+	if (SummertimeGet()) {
+		menu_checkboxstate[MENU_CHECKBOX_SUMMERTIME] = 1;
+	}
+	//update backlight strength
+	const uint32_t blMax = BACKLIGHT_MAX;
+	uint32_t bl = BacklightGet();
+	uint8_t blIndex = 0;
+	if (bl <= (blMax * 1 / 100)) {
+		blIndex = 7;
+	} else if (bl <= (blMax * 2 / 100)) {
+		blIndex = 6;
+	} else if (bl <= (blMax * 3 / 100)) {
+		blIndex = 5;
+	} else if (bl <= (blMax * 6 / 100)) {
+		blIndex = 4;
+	} else if (bl <= (blMax * 12 / 100)) {
+		blIndex = 3;
+	} else if (bl <= (blMax * 25 / 100)) {
+		blIndex = 2;
+	} else if (bl <= (blMax * 50 / 100)) {
+		blIndex = 1;
+	}
+	menu_radiobuttonstate[MENU_RBUTTON_BACKLIGHT] = blIndex;
 	//prepare first draw
+	g_gui.timestampUtc = 0xFFFFFFFF;
 	g_gui.type = FilesystemReadLcd();
 	uint16_t action = 0;
 	if (g_gui.type != NONE) {
 		LcdBacklightOn();
 		LcdEnable(4); //8MHz
 		LcdInit(g_gui.type);
+		LcdBacklightInit();
+		LcdBacklightSet(bl);
 	}
 	menu_redraw();
 	if (g_gui.type == ST7735_128) {
@@ -558,6 +679,9 @@ void GuiCycle(char key) {
 
 	if (key == 'u') {
 		GuiReloadConfig();
+	}
+	if (key == 'x') {
+		Screenshot();
 	}
 
 	GuiUpdateClock();

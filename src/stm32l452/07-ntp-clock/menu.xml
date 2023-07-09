@@ -30,12 +30,17 @@
     <label number="7" Xpos="2" Ypos="16" font="5" storagemethod="1" text="DATE" multilang="0" transparency="0"/>
     <label number="12" Xpos="2" Ypos="32" font="4" storagemethod="0" text="Last sync: " multilang="0" transparency="0"/>
     <label number="13" Xpos="2" Ypos="48" font="4" storagemethod="1" text="SYNC" multilang="0" transparency="0"/>
-    <button number="14" Xpos="2" Ypos="64" focusable="-1" rectangle="-1" Xsize="60" Ysize="17" font="4" fontfocus="6" text="BG Color" storagemethod="0" action="POWERDOWN" screen="subwindow 4" multilang="0" transparency="0"/>
-    <button number="18" Xpos="63" Ypos="64" focusable="1" rectangle="1" Xsize="60" Ysize="17" font="4" fontfocus="6" text="Dig Color" storagemethod="0" action="" screen="subwindow 15" multilang="0" transparency="0"/>
-    <button number="15" Xpos="2" Ypos="83" focusable="1" rectangle="1" Xsize="39" Ysize="17" font="4" fontfocus="6" text="AP" storagemethod="0" action="" screen="subwindow 11" multilang="0" transparency="0"/>
-    <button number="16" Xpos="42" Ypos="83" focusable="-1" rectangle="-1" Xsize="40" Ysize="17" font="4" fontfocus="6" text="PWD" storagemethod="0" action="" screen="subwindow 12" multilang="0" transparency="0"/>
-    <button number="20" Xpos="83" Ypos="83" focusable="1" rectangle="1" Xsize="40" Ysize="17" font="4" fontfocus="6" text="NTP" storagemethod="0" action="NTPSERVER" screen="subwindow 17" multilang="0" transparency="0"/>
-    <button number="19" Xpos="2" Ypos="102" focusable="-1" rectangle="-1" Xsize="60" Ysize="17" font="4" fontfocus="6" text="Save conf" storagemethod="0" action="SAVE" screen="subwindow 16" multilang="0" transparency="0"/>
+    <button number="14" Xpos="2" Ypos="64" focusable="-1" rectangle="-1" Xsize="39" Ysize="17" font="4" fontfocus="6" text="BG Col" storagemethod="0" action="POWERDOWN" screen="subwindow 4" multilang="0" transparency="0"/>
+    <button number="18" Xpos="42" Ypos="64" focusable="1" rectangle="1" Xsize="40" Ysize="17" font="4" fontfocus="6" text="Dig Col" storagemethod="0" action="" screen="subwindow 15" multilang="0" transparency="0"/>
+    <button number="22" Xpos="83" Ypos="64" focusable="1" rectangle="1" Xsize="40" Ysize="17" font="4" fontfocus="6" text="BL" storagemethod="0" action="" screen="subwindow 22" multilang="0" transparency="0"/>
+    <button number="15" Xpos="2" Ypos="83" focusable="1" rectangle="-1" Xsize="34" Ysize="17" font="4" fontfocus="6" text="AP" storagemethod="0" action="" screen="subwindow 11" multilang="0" transparency="0"/>
+    <button number="16" Xpos="37" Ypos="83" focusable="-1" rectangle="-1" Xsize="32" Ysize="17" font="4" fontfocus="6" text="PWD" storagemethod="0" action="" screen="subwindow 12" multilang="0" transparency="0"/>
+    <button number="20" Xpos="70" Ypos="83" focusable="1" rectangle="1" Xsize="25" Ysize="17" font="4" fontfocus="6" text="NTP" storagemethod="0" action="NTPSERVER" screen="subwindow 17" multilang="0" transparency="0"/>
+    <button number="26" Xpos="96" Ypos="83" focusable="1" rectangle="1" Xsize="27" Ysize="17" font="4" fontfocus="6" text="TZ" storagemethod="0" action="" screen="subwindow 23" multilang="0" transparency="0"/>
+    <button number="19" Xpos="2" Ypos="102" focusable="-1" rectangle="-1" Xsize="34" Ysize="17" font="4" fontfocus="6" text="Save" storagemethod="0" action="SAVE" screen="subwindow 16" multilang="0" transparency="0"/>
+    <button number="23" Xpos="37" Ypos="102" focusable="-1" rectangle="-1" Xsize="25" Ysize="17" font="4" fontfocus="6" text="LED" storagemethod="0" action="" screen="subwindow 21" multilang="0" transparency="0"/>
+    <button number="24" Xpos="63" Ypos="102" focusable="1" rectangle="1" Xsize="28" Ysize="17" font="4" fontfocus="6" text="Inter" storagemethod="0" action="" screen="subwindow 20" multilang="0" transparency="0"/>
+    <button number="25" Xpos="92" Ypos="102" focusable="1" rectangle="1" Xsize="31" Ysize="17" font="4" fontfocus="6" text="Sync" storagemethod="0" action="SYNC" screen="" multilang="0" transparency="0"/>
     <shortcut number="21" shortcutkey="2" action="" screen="window 18"/>
   </window>
   <window number="7" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="320x240 - Main&#xA;">
@@ -43,13 +48,18 @@
     <label number="7" Xpos="120" Ypos="16" font="5" storagemethod="1" text="DATE" multilang="0" transparency="0"/>
     <label number="10" Xpos="80" Ypos="46" font="4" storagemethod="0" text="Last sync:" multilang="0" transparency="0"/>
     <label number="11" Xpos="140" Ypos="46" font="4" storagemethod="1" text="SYNC" multilang="0" transparency="0"/>
-    <button number="14" Xpos="80" Ypos="80" focusable="-1" rectangle="-1" Xsize="130" Ysize="17" font="4" fontfocus="6" text="Background color" storagemethod="0" action="POWERDOWN" screen="subwindow 4" multilang="0" transparency="0"/>
-    <button number="15" Xpos="80" Ypos="105" focusable="1" rectangle="1" Xsize="130" Ysize="17" font="4" fontfocus="6" text="Digits color" storagemethod="0" action="" screen="subwindow 15" multilang="0" transparency="0"/>
-    <button number="16" Xpos="80" Ypos="130" focusable="1" rectangle="1" Xsize="130" Ysize="17" font="4" fontfocus="6" text="Access point" storagemethod="0" action="" screen="subwindow 13" multilang="0" transparency="0"/>
-    <button number="18" Xpos="80" Ypos="155" focusable="1" rectangle="1" Xsize="130" Ysize="18" font="4" fontfocus="6" text="Password" storagemethod="0" action="" screen="subwindow 14" multilang="0" transparency="0"/>
-    <button number="20" Xpos="80" Ypos="179" focusable="1" rectangle="1" Xsize="130" Ysize="17" font="4" fontfocus="6" text="NTP server" storagemethod="0" action="" screen="subwindow 17" multilang="0" transparency="0"/>
-    <button number="19" Xpos="80" Ypos="203" focusable="1" rectangle="1" Xsize="130" Ysize="17" font="4" fontfocus="6" text="Save conf" storagemethod="0" action="SAVE" screen="subwindow 16" multilang="0" transparency="0"/>
+    <button number="14" Xpos="10" Ypos="80" focusable="-1" rectangle="-1" Xsize="130" Ysize="18" font="4" fontfocus="6" text="Background color" storagemethod="0" action="POWERDOWN" screen="subwindow 4" multilang="0" transparency="0"/>
+    <button number="15" Xpos="150" Ypos="80" focusable="1" rectangle="1" Xsize="130" Ysize="18" font="4" fontfocus="6" text="Digits color" storagemethod="0" action="" screen="subwindow 15" multilang="0" transparency="0"/>
+    <button number="16" Xpos="10" Ypos="105" focusable="1" rectangle="1" Xsize="130" Ysize="18" font="4" fontfocus="6" text="Access point" storagemethod="0" action="" screen="subwindow 13" multilang="0" transparency="0"/>
+    <button number="18" Xpos="150" Ypos="105" focusable="1" rectangle="1" Xsize="130" Ysize="18" font="4" fontfocus="6" text="Password" storagemethod="0" action="" screen="subwindow 14" multilang="0" transparency="0"/>
+    <button number="20" Xpos="10" Ypos="130" focusable="1" rectangle="1" Xsize="130" Ysize="18" font="4" fontfocus="6" text="NTP server" storagemethod="0" action="" screen="subwindow 17" multilang="0" transparency="0"/>
+    <button number="22" Xpos="150" Ypos="130" focusable="1" rectangle="1" Xsize="130" Ysize="18" font="4" fontfocus="6" text="Sync interval" storagemethod="0" action="" screen="subwindow 20" multilang="0" transparency="0"/>
+    <button number="23" Xpos="10" Ypos="155" focusable="1" rectangle="1" Xsize="130" Ysize="18" font="4" fontfocus="6" text="LED" storagemethod="0" action="" screen="subwindow 21" multilang="0" transparency="0"/>
+    <button number="24" Xpos="150" Ypos="155" focusable="1" rectangle="1" Xsize="130" Ysize="18" font="4" fontfocus="6" text="Backlight" storagemethod="0" action="" screen="subwindow 22" multilang="0" transparency="0"/>
+    <button number="19" Xpos="10" Ypos="180" focusable="1" rectangle="1" Xsize="130" Ysize="18" font="4" fontfocus="6" text="Save conf" storagemethod="0" action="SAVE" screen="subwindow 16" multilang="0" transparency="0"/>
+    <button number="25" Xpos="150" Ypos="180" focusable="1" rectangle="1" Xsize="130" Ysize="18" font="4" fontfocus="6" text="Sync now" storagemethod="0" action="SYNC" screen="" multilang="0" transparency="0"/>
     <shortcut number="21" shortcutkey="2" action="" screen="window 19"/>
+    <button number="26" Xpos="10" Ypos="205" focusable="1" rectangle="1" Xsize="130" Ysize="18" font="4" fontfocus="6" text="Timezone" storagemethod="0" action="" screen="subwindow 23" multilang="0" transparency="0"/>
   </window>
   <subwindow number="11" Xpos="0" Ypos="10" Xsize="128" Ysize="50" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="Edit ap 128x128">
     <label number="2" Xpos="23" Ypos="11" font="4" storagemethod="0" text="Wifi name" multilang="0" transparency="0"/>
@@ -101,6 +111,38 @@
     <shortcut number="8" shortcutkey="3" action="NTPINC" screen=""/>
     <shortcut number="7" shortcutkey="4" action="NTPDEC" screen=""/>
   </subwindow>
+  <subwindow number="20" Xpos="20" Ypos="10" Xsize="80" Ysize="38" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="Edit ntp interval">
+    <label number="2" Xpos="26" Ypos="11" font="4" storagemethod="0" text="NTP interval" multilang="0" transparency="0"/>
+    <label number="3" Xpos="40" Ypos="26" font="5" storagemethod="1" text="NTPINTERVAL" multilang="0" transparency="0"/>
+    <shortcut number="9" shortcutkey="2" action="" screen="RET"/>
+    <shortcut number="8" shortcutkey="3" action="NTPINTERVALINC" screen=""/>
+    <shortcut number="7" shortcutkey="4" action="NTPINTERVALDEC" screen=""/>
+  </subwindow>
+  <subwindow number="21" Xpos="10" Ypos="10" Xsize="108" Ysize="50" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="Edit LED">
+    <label number="2" Xpos="30" Ypos="11" font="4" storagemethod="0" text="LED mode" multilang="0" transparency="0"/>
+    <checkbox number="10" Xpos="30" Ypos="30" focusable="-1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Flashing" storagemethod="0" checkname="LEDFLASHING" action="LEDFLASHING" screen="" multilang="0" transparency="0"/>
+    <shortcut number="9" shortcutkey="2" action="" screen="RET"/>
+  </subwindow>
+  <subwindow number="22" Xpos="10" Ypos="10" Xsize="100" Ysize="84" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Edit backlight">
+    <label number="2" Xpos="20" Ypos="11" font="4" storagemethod="0" text="LCD backlight" multilang="0" transparency="0"/>
+    <radiobutton number="10" Xpos="20" Ypos="30" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="100%" storagemethod="0" checkname="BACKLIGHT" selectnum="0" action="BACKLIGHT" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="11" Xpos="70" Ypos="30" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="50%" storagemethod="0" checkname="BACKLIGHT" selectnum="1" action="BACKLIGHT" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="12" Xpos="20" Ypos="46" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="25%" storagemethod="0" checkname="BACKLIGHT" selectnum="2" action="BACKLIGHT" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="13" Xpos="70" Ypos="46" focusable="-1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="12%" storagemethod="0" checkname="BACKLIGHT" selectnum="3" action="BACKLIGHT" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="14" Xpos="20" Ypos="62" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="6%" storagemethod="0" checkname="BACKLIGHT" selectnum="4" action="BACKLIGHT" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="15" Xpos="70" Ypos="62" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="3%" storagemethod="0" checkname="BACKLIGHT" selectnum="5" action="BACKLIGHT" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="16" Xpos="20" Ypos="78" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="2%" storagemethod="0" checkname="BACKLIGHT" selectnum="6" action="BACKLIGHT" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="17" Xpos="70" Ypos="78" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="1%" storagemethod="0" checkname="BACKLIGHT" selectnum="7" action="BACKLIGHT" screen="" multilang="0" transparency="0"/>
+    <shortcut number="9" shortcutkey="2" action="" screen="RET"/>
+  </subwindow>
+  <subwindow number="23" Xpos="10" Ypos="30" Xsize="100" Ysize="55" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="Edit timezone">
+    <label number="2" Xpos="16" Ypos="32" font="4" storagemethod="0" text="Local to UTC" multilang="0" transparency="0"/>
+    <label number="3" Xpos="30" Ypos="46" font="5" storagemethod="1" text="TZOFFSET" multilang="0" transparency="0"/>
+    <checkbox number="10" Xpos="16" Ypos="63" focusable="-1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="4" text="Summert. adj" storagemethod="0" checkname="SUMMERTIME" action="SUMMERTIME" screen="" multilang="0" transparency="0"/>
+    <shortcut number="9" shortcutkey="2" action="" screen="RET"/>
+    <shortcut number="8" shortcutkey="3" action="TZDELTAINC" screen=""/>
+    <shortcut number="7" shortcutkey="4" action="TZDELTADEC" screen=""/>
+  </subwindow>
   <subwindow number="15" Xpos="10" Ypos="10" Xsize="108" Ysize="62" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="Digits color">
     <label number="2" Xpos="17" Ypos="11" font="4" storagemethod="0" text="Digits color" multilang="0" transparency="0"/>
     <gfx number="5" Xpos="17" Ypos="28" focusable="0" rectangle="0" Xsize="94" Ysize="8" text="COLORFGPREVIEW" storagemethod="1" action="" screen="" compressed="-1" multiimage="0" exportformat="2"/>
@@ -123,7 +165,8 @@
     <shortcut number="8" shortcutkey="3" action="COLORBGINC" screen=""/>
     <shortcut number="9" shortcutkey="4" action="COLORBGDEC" screen=""/>
   </subwindow>
-  <subwindow number="16" Xpos="39" Ypos="49" Xsize="50" Ysize="30" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="OK">
+  <subwindow number="16" Xpos="35" Ypos="28" Xsize="61" Ysize="50" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="OK">
+    <label number="2" Xpos="49" Ypos="34" font="4" storagemethod="0" text="Done" multilang="0" transparency="0"/>
     <button number="1" Xpos="50" Ypos="56" focusable="1" rectangle="1" Xsize="30" Ysize="17" font="4" fontfocus="6" text="OK" storagemethod="0" action="" screen="RET" multilang="0" transparency="0"/>
   </subwindow>
 </MenuConfig>

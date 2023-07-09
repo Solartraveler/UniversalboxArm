@@ -58,6 +58,7 @@ $(BOXLIB)/rs232debug.c \
 $(BOXLIB)/peripheral.c \
 $(BOXLIB)/flash.c \
 $(BOXLIB)/lcd.c \
+$(BOXLIB)/lcdBacklight.c \
 $(BOXLIB)/coproc.c \
 $(BOXLIB)/mcu.c \
 $(BOXLIB)/esp.c \
@@ -80,6 +81,8 @@ $(ALGORITHM)/imageDrawerLowres.c \
 $(ALGORITHM)/dateTime.c \
 $(ALGORITHM)/clockMt.c \
 $(ALGORITHM)/peripheralMt.c \
+$(ALGORITHM)/screenshot.c \
+$(ALGORITHM)/imageTgaWrite.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 $(SIMCOMMON)/simhelper.c \
