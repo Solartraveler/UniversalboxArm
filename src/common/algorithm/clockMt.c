@@ -27,7 +27,9 @@ void ClockPrintRegistersMt(void) {
 }
 
 bool ClockInitMt(void) {
-	g_clockSemaphore = xSemaphoreCreateMutexStatic(&g_clockSemaphoreState);
+	if (g_clockSemaphore == NULL) {
+		g_clockSemaphore = xSemaphoreCreateMutexStatic(&g_clockSemaphoreState);
+	}
 	bool result = ClockInit();
 	xSemaphoreGive(g_clockSemaphore);
 	return result;
