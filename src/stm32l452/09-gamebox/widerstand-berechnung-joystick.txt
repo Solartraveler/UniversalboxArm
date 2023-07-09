@@ -1,0 +1,52 @@
+//wir wollen das Verhältnis von Rx zu Ua
+ | +
+| | Rx
+| |<-\------o
+ |   |
+     |
+    | |
+    | | R2
+     |
+     -
+Ua = Ui/(Rx+R2)*R2	
+Ui = 5V; R2= 100kO
+
+Ua = 5V/(Rx+100k)*100kO
+Ua = 500kO*V/(Rx+100k)
+//umstellen nach Rx
+Ua*(Rx+100k) = 500kO*V		|/Ua
+Rx+100k = 500kO*V/Ua		|/k
+Rx/1000 +100 = 500O*V/Ua	|-100
+Rx/1000 = 500O*V/Ua -100
+
+
+Wert = 500/Ua -100 //Wert zwischen 0 und 100
+
+Ua = ADC/1024*5V = ADC*5V/1024
+
+
+--------für R2 wurden 120K eingebaut-------
+Ua = 5V/(Rx+120K)*120K    |nach Rx
+Ua = 5V*120k/(Rx+120K)    |*(Rx+120k)
+Ua*(Rx+120k) = 5V*120k    |:Ua
+Rx+120k = (5V*120k)/Ua    |-120k
+Rx = (5V*120k)/Ua -120k
+
+------------einsetzen----------------------
+Rx = (5V*120k)/(ADC*5V/1024)-120k
+Rx = (5V*120k*1024)/(ADC*5V)-120k     |:1k
+R2x= (5V*120O*1024)/(ADC*5V)-120
+R2x= (12O*1024)/ADC -120
+R2x= 122880O/ADC -120O
+
+
+
+----Nullpunkt Kalibrierung-----------------
+0 = 122880/medium -calib.zero       umstellen nach calib.zero
+calib.zero = 122880/medium
+
+---Min-Max Kalibrierung--------------------
+255 = wert*255/calib.max           |:255
+wert = 122880/ADC - calib.zero     einsetzen
+1 = (122880/ADC - calib.zero)/calib.max       umstellen nach calib.max
+calib.max = 122880/ADC -calib.zero
