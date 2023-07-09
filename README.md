@@ -99,9 +99,13 @@ Moreover the compressed data needs to fit within 7000byte. Due to RAM constraint
 
 - A wakeup time for the ARM processor can be set
 
-#### Test software
+#### More software
 
 Software testing all the hardware to be working as intended has been written for the ARM processor and the AVR coprocessor.
+
+There is a implementation for using the 8MiB flash as USB pen drive.
+
+One application implements an NTP client and uses the display as digital clock.
 
 ### Hardware
 

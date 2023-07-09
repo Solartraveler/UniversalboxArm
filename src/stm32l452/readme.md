@@ -55,3 +55,8 @@ To allow updateing the GUI while the WIFI is served, FreeRTOS is used.
 All settings are saved to the filesystem.
 Debug prints are available over the RS232 port with 19200baud.
 Also entering the AP and password is much easier over the RS232 port.
+
+## 08-freertos-helloworld
+Simple example how to use FreeRTOS.
+Starts four threads, one for reading the serial port, one for resetting the watchdog, one for flashing the LEDs and one for reading the buttons.
+
