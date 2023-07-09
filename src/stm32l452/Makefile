@@ -12,6 +12,9 @@ all:
 	$(MAKE) -j -C 07-ntp-clock/pc-simulator
 	$(MAKE) -j -C 08-freertos-helloworld
 	$(MAKE) -j -C 08-freertos-helloworld/pc-simulator
+	$(MAKE) -j -C 09-gamebox/pc-simulator
+	$(MAKE) -j -C 09-gamebox/avr
+
 
 
 clean:
@@ -28,4 +31,6 @@ clean:
 	$(MAKE) clean -C 07-ntp-clock/pc-simulator
 	$(MAKE) clean -C 08-freertos-helloworld
 	$(MAKE) clean -C 08-freertos-helloworld/pc-simulator
+	$(MAKE) clean -C 09-gamebox/pc-simulator
+	$(MAKE) clean -C 09-gamebox/avr
 

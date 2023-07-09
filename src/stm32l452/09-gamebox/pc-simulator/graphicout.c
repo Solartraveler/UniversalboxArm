@@ -74,7 +74,7 @@ if (cpus > 1) {
 glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 glutInitWindowSize(600,600);
 glutInitWindowPosition(100,20);
-windowid_main = glutCreateWindow("Game Box 1.02 (Final)");
+windowid_main = glutCreateWindow("Game Box 1.03 (Final)");
 glutDisplayFunc(drawboard);    //Zeichnet das Spielfeld neu bei überlappen o.ä.
 glutReshapeFunc(update_window_size);
 glutTimerFunc(redraw_ms,redraw, 0); //20FPS, Periodisches neuzeichnen

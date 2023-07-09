@@ -8,10 +8,12 @@
 
 MCU = atmega32
 FORMAT = ihex
-TARGET = main
-SRC = $(TARGET).c ../gameoflife.c ../graphicfunctions.c graphicint.c ../text.c ../demo.c ../menu.c userinput.c ../prace.c ../ppong.c ../psnake.c ../ptetris.c ../pxxo.c ../sram.c ../highscore.c ../other.c timings.c ../prev.c ../xmas.c
+BUILD_DIR = build
+TARGET = $(BUILD_DIR)/main
+SRC = main.c ../gameoflife.c ../graphicfunctions.c graphicint.c ../text.c ../demo.c ../menu.c userinput.c ../prace.c ../ppong.c ../psnake.c ../ptetris.c ../pxxo.c ../sram.c ../highscore.c ../other.c timings.c ../prev.c ../xmas.c
 ASRC =
 OPT = -Os -ffast-math -fweb -Winline
+
 # you may use the -frename-registers parameter for code optimization as well
 # but it does not seem to always reduce the code size
 
@@ -93,10 +95,18 @@ MV = mv -f
 UPLOAD  = avrbootloader/SP12v2_1.1/sp12
 
 # Define all object files.
-OBJ = $(SRC:.c=.o) $(ASRC:.S=.o)
+OBJ = $(addprefix $(BUILD_DIR)/,$(notdir $(SRC:.c=.o)))
 
 # Define all listing files.
-LST = $(ASRC:.S=.lst) $(SRC:.c=.lst)
+LST = $(addprefix $(BUILD_DIR)/,$(notdir $(SRC:.c=.lst)))
+
+# .d files
+DEP = $(addprefix $(BUILD_DIR)/,$(notdir $(SRC:.c=.s)))
+
+# .s files
+DIS = $(addprefix $(BUILD_DIR)/,$(notdir $(SRC:.c=.d)))
+
+vpath %.c $(sort $(dir $(SRC)))
 
 # Combine all necessary flags and optional flags.
 # Add target processor to flags.
@@ -104,10 +114,14 @@ ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 
-# Default target.
-all: build
 
-build: clean elf hex eep
+# Default target.
+all: compile
+
+$(BUILD_DIR):
+	mkdir -p $@
+
+compile: clean elf hex eep
 	avr-size $(TARGET).elf
 
 elf: $(TARGET).elf
@@ -165,31 +179,25 @@ extcoff: $(TARGET).elf
 
 
 # Link: create ELF output file from object files.
-$(TARGET).elf: $(OBJ)
+$(TARGET).elf: $(OBJ) Makefile
 	$(CC) $(ALL_CFLAGS) $(OBJ) --output $@ $(LDFLAGS)
 
 
 # Compile: create object files from C source files.
-.c.o:
+$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 	$(CC) -c $(ALL_CFLAGS) $< -o $@
 
 
 # Compile: create assembler files from C source files.
-.c.s:
+$(BUILD_DIR)/%.s: %.c Makefile | $(BUILD_DIR)
 	$(CC) -S $(ALL_CFLAGS) $< -o $@
-
-
-# Assemble: create object files from assembler source files.
-.S.o:
-	$(CC) -c $(ALL_ASFLAGS) $< -o $@
-
 
 
 # Target: clean project.
 clean:
 	$(REMOVE) $(TARGET).hex $(TARGET).eep $(TARGET).cof $(TARGET).elf \
 	$(TARGET).map $(TARGET).sym $(TARGET).lss \
-	$(OBJ) $(LST) $(SRC:.c=.s) $(SRC:.c=.d)
+	$(OBJ) $(LST) $(DEP) $(DIS)
 
 depend:
 	if grep '^# DO NOT DELETE' $(MAKEFILE) >/dev/null; \

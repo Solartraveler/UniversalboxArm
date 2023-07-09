@@ -143,8 +143,13 @@ const char characters[] PROGMEM = {
 };
 
 
-void load_text(PGM_VOID_P x){
-  memcpy_P(textbuff,x,36);
+void load_text(PGM_VOID_P x) {
+  for (uint8_t i = 0; i < 36; i++) {
+    memcpy_P(textbuff + i, x + i, 1);
+    if (textbuff[i] == '\0') {
+      break;
+    }
+  }
 }
 
 

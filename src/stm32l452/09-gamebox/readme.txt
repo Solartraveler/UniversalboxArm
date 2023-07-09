@@ -1,7 +1,7 @@
 Titel:    Gamebox mit SAMSUNG SLM1608 Display
 Autor:    (c) 2004-2006 by Malte Marwedel
-Datum:    2006-11-03
-Version:  1.00 (Final 1)
+Datum:    2023-07-09
+Version:  1.03 (Final 1)
 Zweck:    Spiele auf einem Grafikdisplay
 Software: GCC-AVR / GCC
 Hardware: LED Panel, ATMEGA32 oder ähnlichen mit 8MHZ.
@@ -240,9 +240,14 @@ gewarnt. Falls möglich sollte gcc 3.4.5 verwendet werden, hier treten die oben
 genannten Fehler nicht auf.
 
 ------------------------------ Changelog ---------------------------------------
+Version 1.03 Datum: 2023-07-09
+  Makefile angepasst
+  Bufferüberläufe korrigiert, die durch asan gefunden wurden.
+
 Version 1.02 Datum: 2013-12-18
   i386 Timing verbessert
-  Weihnachtssternmodus ohne Joystick, startet nach 20sec ohne automatisch
+  Weihnachtssternmodus ohne Joystick, startet nach 20sec ohne Eingaben
+  automatisch
 
 Version 1.01 Datum: 2009-07-24
   Bug im Textrenderer korrigiert

@@ -1,7 +1,7 @@
 /*
    Gamebox
-    Copyright (C) 2004-2006  by Malte Marwedel
-    m.marwedel AT onlinehome dot de
+    Copyright (C) 2004-2006, 2023  by Malte Marwedel
+    m.talk AT marwedels dot de
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,9 +21,9 @@
 
 /* Datei Beschreibung
   Titel:    Gamebox mit SAMSUNG SLM1608 Display
-  Autor:    (c) 2004-2006 by Malte Marwedel
-  Datum:    2006-10-19
-  Version:  1.00 (Final 1)
+  Autor:    (c) 2004-2006, 2023 by Malte Marwedel
+  Datum:    2023-07-09
+  Version:  1.03 (Final 1)
   Zweck:    Spiele auf einem Grafikdisplay
   Software: AVR-GCC
   Hardware: LED Panel, ATMEGA32 oder ähnlichen mit 8MHZ

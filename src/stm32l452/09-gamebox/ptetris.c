@@ -105,7 +105,7 @@ for (nuny = newblock->posy; nuny < newblock->posy+4; nuny++) {
         collide = 1;
       }
       //Bildspeicher und neuer Block kollidieren
-      if (pixel_get(nunx,nuny) != 0) {
+      else if (pixel_get(nunx,nuny) != 0) {
         //Testen ob es überhaubt einen altern Block gibt
         if (oldblock != NULL) {
           //Position ist jedoch innerhalb des alten Blockes
