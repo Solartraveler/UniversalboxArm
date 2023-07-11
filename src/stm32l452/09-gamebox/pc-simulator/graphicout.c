@@ -57,11 +57,14 @@ glFlush();
 }
 
 static void redraw(int param) {
+(void)param;
 glutPostRedisplay();
 glutTimerFunc(redraw_ms,redraw, 0); //10FPS
 }
 
 static void update_window_size(int width, int height) {
+(void)width;
+(void)height;
 drawboard();
 }
 

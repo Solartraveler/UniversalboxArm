@@ -28,7 +28,7 @@
   Hardware: PC mit mind 500MHZ und 800x600 @ 256 Farben 3D beschleunigte Grafik
             Für die Mikrocontroller Version siehe ../avr
   Wer Fragen oder Anregungen zu dem Programm hat, kann an
-             m.marwedel <AT> onlinehome DOT de mailen.
+             m.talk AT marwedels dot de mailen.
             Mehr über Elektronik und AVRs gibt es auf meiner Homepage:
              http://www.marwedels.de/malte/
   Code Größe:ATMEGA32: 24524 Byte (getestet, alle Module)
@@ -91,6 +91,7 @@ if (init_random_done == 0) { //Nur einmal initialisieren
 }
 
 static void *avr_thread(void * arg) {
+(void)arg;
 printf("Info: avr_thread is running\n");
 menu_start();
 printf("Warning: avr_thread stopped\n");

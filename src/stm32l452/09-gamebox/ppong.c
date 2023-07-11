@@ -122,6 +122,7 @@ return tb.posx;
 static s08 pong_ai_analyze(struct pong_ballstruct *ball,
              struct pong_shotstruct *shot1, struct pong_shotstruct *shot2,
              u08 analyzepos, u08 player2pos) {
+(void)shot2;
 s08 bewertung = 0;
 s08 tdiff, tdiff2;
 /*Kommt Ball an dieser Stelle auf: +20
@@ -187,6 +188,7 @@ return bewertung;
 
 static u08 pong_ai(struct pong_ballstruct *ball, struct pong_shotstruct *shot1,
           struct pong_shotstruct *shot2, u08 play1pos, u08 play2pos, u08 mode) {
+(void)play1pos;
 u08 poswish = 8, ballhitposx;
 s08 votes[4], bestvote;
 

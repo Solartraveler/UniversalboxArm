@@ -100,12 +100,6 @@ OBJ = $(addprefix $(BUILD_DIR)/,$(notdir $(SRC:.c=.o)))
 # Define all listing files.
 LST = $(addprefix $(BUILD_DIR)/,$(notdir $(SRC:.c=.lst)))
 
-# .d files
-DEP = $(addprefix $(BUILD_DIR)/,$(notdir $(SRC:.c=.s)))
-
-# .s files
-DIS = $(addprefix $(BUILD_DIR)/,$(notdir $(SRC:.c=.d)))
-
 vpath %.c $(sort $(dir $(SRC)))
 
 # Combine all necessary flags and optional flags.
@@ -121,7 +115,7 @@ all: compile
 $(BUILD_DIR):
 	mkdir -p $@
 
-compile: clean elf hex eep
+compile: elf hex eep
 	avr-size $(TARGET).elf
 
 elf: $(TARGET).elf
@@ -195,9 +189,7 @@ $(BUILD_DIR)/%.s: %.c Makefile | $(BUILD_DIR)
 
 # Target: clean project.
 clean:
-	$(REMOVE) $(TARGET).hex $(TARGET).eep $(TARGET).cof $(TARGET).elf \
-	$(TARGET).map $(TARGET).sym $(TARGET).lss \
-	$(OBJ) $(LST) $(DEP) $(DIS)
+	$(REMOVE) -R $(BUILD_DIR)
 
 depend:
 	if grep '^# DO NOT DELETE' $(MAKEFILE) >/dev/null; \

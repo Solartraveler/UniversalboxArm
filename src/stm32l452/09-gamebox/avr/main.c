@@ -31,7 +31,7 @@
             "modul_pxxo" und "modul_psnake" könnten jedoch mangels RAM
             möglicherweise garnicht oder nur fehlerhaft laufen.
   Wer Fragen oder Anregungen zu dem Programm hat, kann an
-             m.marwedel <AT> onlinehome DOT de mailen.
+             m.talk AT marwedels dot de mailen.
             Mehr über Elektronik und AVRs gibt es auf meiner Homepage:
              http://www.marwedels.de/malte/
   Code Größe:ATMEGA32: 27194 Byte (getestet, alle Module)

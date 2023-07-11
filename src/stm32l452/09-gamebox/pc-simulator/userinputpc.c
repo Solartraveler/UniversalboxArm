@@ -47,6 +47,8 @@ void input_select(void) {
 }
 
 void input_key_key (unsigned char key, int x, int y) {
+(void)x;
+(void)y;
 if (key == ' ') {
   userin.press = 1;
 }
@@ -56,6 +58,8 @@ if (key == 'q') {  //Programm beenden
 }
 
 void input_key_cursor (int key, int x, int y) {
+(void)x;
+(void)y;
 if (key == GLUT_KEY_LEFT) {
   userin.left = 1;
 }
@@ -71,6 +75,8 @@ if (key == GLUT_KEY_DOWN) {
 }
 
 void input_mouse_key(int button, int state, int x, int y) {
+(void)x;
+(void)y;
 if ((state == GLUT_UP) && (button == GLUT_LEFT_BUTTON)) {
   userin.press = 1;
 }

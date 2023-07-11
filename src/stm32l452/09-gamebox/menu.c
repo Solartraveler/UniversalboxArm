@@ -79,8 +79,8 @@ waitms(500);
 }
 
 const struct menupoint mainmenu[menuentries_nr] PROGMEM = {
-  {254,5,4,1,"Game\0"},			//0
-  {254,11,0,2,"AdvC\0"},		//1
+  {254,5,4,1,"Game\0", NULL},			//0
+  {254,11,0,2,"AdvC\0", NULL},		//1
   {254,255,1,3,"Cali\0",input_calib},	//2
   {254,255,2,4,"Demo\0",play_demo},	//3
   {254,255,3,0,"Xmas\0",xmas_start},		//4

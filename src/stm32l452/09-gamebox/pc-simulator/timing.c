@@ -45,12 +45,13 @@ return time1000k;
 
 //void timer1_sim(int foo) {
 void * timer1_sim(void * arg) {
+(void)arg;
 unsigned long long currenttime, delta;
 long long volatile timeprev = -1;
 while (1) {
   currenttime = get_time1M();
   if (TCCR1B) { //wenn timer aktiv
-    delta = abs(currenttime - timeprev);
+    delta = currenttime - timeprev;
     //printf("Timer Update: %lld, delta: %lld\n",currenttime,delta);
     if (TCCR1B == 0x04) {
       //TCNT1 muss 32768 mal pro Sec hoch-zählen

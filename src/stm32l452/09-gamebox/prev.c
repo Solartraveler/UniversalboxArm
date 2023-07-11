@@ -445,7 +445,7 @@ s16 points, bestpoints = -10000, worstpoints = 1000;
 u16 stones1, stones2;
 struct rev_spielfeldstruct subtestfeld;
 subtestfeld.address = malloc(rev_x*rev_y*sizeof(u08));
-if (subtestfeld.address > 0) { //Ohne freien RAM wird einfach direkt bewertet
+if (subtestfeld.address != NULL) { //Ohne freien RAM wird einfach direkt bewertet
   for (nunx = 1; nunx <= rev_x; nunx++) {
     for (nuny = 1; nuny <= rev_y; nuny++) {
       if (rev_placestone_test(testfeld, playerturn, nunx, nuny)) {
@@ -498,7 +498,7 @@ u08 bestpos;
 bestposlist[0] = 0x11;
 testfeld.address = malloc(rev_x*rev_y*sizeof(u08));
 aivotedops = 0;
-if (testfeld.address > 0) {
+if (testfeld.address != NULL) {
   //Teste alle Positionen und bestimme die Beste
   for (nunx = 1; nunx <= rev_x; nunx++) {
     for (nuny = 1; nuny <= rev_y; nuny++) {
