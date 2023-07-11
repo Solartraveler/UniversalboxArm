@@ -57,7 +57,7 @@ extern uint8_t volatile gdata[screeny][screenx];
 void resync_led_display(void);
 void init_window(void);
 
-/* In i386/graphicout.c als static deklariert:
+/* In pc-simulator/graphicout.c als static deklariert:
 static void drawboard(void);
 static void redraw(int param);
 static void update_window_size(int width, int height);

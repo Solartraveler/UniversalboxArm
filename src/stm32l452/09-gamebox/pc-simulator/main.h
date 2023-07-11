@@ -194,7 +194,7 @@ void eeprom_write_byte(u08 *addr, u08 value);
 void eeprom_write_word(u16 *addr, u16 value);
 void init_random(void);
 int main(int argc, char **arg);
-/* In i386/main.c als static deklariert:
+/* In pc-simulator/main.c als static deklariert:
 static void *avr_thread(void * arg);
 */
 

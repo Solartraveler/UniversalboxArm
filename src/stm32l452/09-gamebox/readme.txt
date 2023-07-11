@@ -12,13 +12,13 @@ Hardware: LED Panel, ATMEGA32 oder ähnlichen mit 8MHZ.
           PC mit 500MHZ und 800x600 @ 256 Farben 3D beschleunigte Grafik
 Bemerkung:Der Quellcode steht unter der GPL. Der Lizenztext kann in der Datei
           gpl-license.txt gefunden werden.
-          Ausgenommen hiervon sind die Dateien "avr/Makefile" und
-          "i386/Makefile". Sie entstammt dem Programm "mfile" und für die Datei
+          Ausgenommen hiervon sind die Dateien "avr/Makefile".
+          Sie entstammt dem Programm "mfile" und für die Datei
           gelten entsprechende andere Bedingungen für die Verwendung.
 Wer Fragen oder Anregungen zu dem Programm hat, kann an
-           m.marwedel <AT> onlinehome.de mailen.
+          m.talk AT marwedels dot de mailen.
           Mehr über Elektronik und AVRs gibt es auf meiner Homepage:
-           http://www.marwedels.de/malte/
+          http://www.marwedels.de/malte/
 Code Größe:ATMEGA32: 29710 Byte (getestet, alle Module)
 Compiler Optionen:
           AVR: -Os -ffast-math -fweb -Winline
@@ -28,7 +28,7 @@ Verwendete Software zum compilieren:
           avr-gcc  Version: 4.7.2
           avr-libc Version: 1.8.0
        PC:
-          gcc Version: 4.7.2
+          gcc Version: 10.2.1
           GLUT
 
 -------------------------Hinweise zur AVR und PC Version -----------------------
@@ -36,7 +36,7 @@ Die Software wurde ursprünglich nur zum Ausführen auf einem Mikrocontroller
 geschrieben. Die Möglichkeit die Software auch auf dem PC zu testen kam erst
 später hinzu. Dabei habe ich versucht den Code möglichst wenig zu ändern.
 Im primärem Verzeichnis befindet sich der vom AVR und PC gemeinsam benutzte
-Code. Das Verzeichnis /avr enthält den AVR spezifischen und /i386 den PC
+Code. Das Verzeichnis /avr enthält den AVR spezifischen und /pc-simulator den PC
 spezifischen Code. Der Code ist also optimiert für einen Mikrocontroller, sprich
 eine Endlosschleife erledigt die meisten Berechnungen und Zeitsteuerungen werden
 sowohl über Delay Schleifen, als auch über einen 16Bit Timer geregelt. Der
@@ -195,7 +195,8 @@ und 3. um die Möglichkeiten der Gamebox auch Personen die die Hardware
 
 ----------------------------- PC Step-by-Step Anleitung ------------------------
 Die Anpassung der zu Compilierenden Module erfolgt wie bei der AVR Anleitung
-oben in den Punkten 2.3 nur eben in der Datei i386/main.h. Das Modul calib_save
+oben in den Punkten 2.3 nur eben in der Datei pc-simulator/main.h.
+Das Modul calib_save
 (2.3.2) macht auf dem PC keinen Sinn und sollte daher nicht aktiviert
 werden. Das Modul highscore (2.3.4) vergisst derzeit noch die Punkte
 sobald das Programm beendet wird.
@@ -207,11 +208,6 @@ den Namen freeglut3, freeglut3-dev und libglut3 installiert werden wenn die
 Compilierung fehlschlägt. Unter Ubuntu lassen sich diese beispielsweise mit
 >>sudo apt-get install freeglut3 freeglut3-dev libglut3<<
 erledigen.
-Falls gcc Version 3.4.x vorhanden ist, sollte wenn möglich diese verwendet
-werden (siehe Bugs unten). Dazu muss in der Datei /i386/Makefile in Zeile 74
-der Parameter von "CC = gcc" auf "CC = gcc-3.4" geändert werden.
-Ein Aufruf von make im Verzeichnis /i386 erzeug das Programm. Starten lässt sich
-das compilierte Programm danach mit ./main.elf
 
 ------------------------------ Eigene Spiele schreiben -------------------------
 Wer eigene Spiele schreiben möchte schaut sich am besten mal den Quellcode der
@@ -234,10 +230,6 @@ selben Quellcode.
 PC:
 Das Timing ist nicht optimal, dies könnte in seltenenen Fällen zu Fehlern in den
 Spielen führen. Beobachtet habe ich bisher aber keine.
-Mit der gcc 4.0.2 wird an einer Stelle das Menu nicht richtig dargestellt,
-außerdem wird fälschlicherweise wegen eine nicht inititialisierten Variable
-gewarnt. Falls möglich sollte gcc 3.4.5 verwendet werden, hier treten die oben
-genannten Fehler nicht auf.
 
 ------------------------------ Changelog ---------------------------------------
 Nächste Version:
