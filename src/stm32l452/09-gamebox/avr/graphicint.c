@@ -1,7 +1,7 @@
 /*
    Gamebox
     Copyright (C) 2004-2006  by Malte Marwedel
-    m.marwedel AT onlinehome dot de
+    m.talk AT marwedels dot de
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
