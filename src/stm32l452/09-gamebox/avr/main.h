@@ -26,17 +26,17 @@
 //Der eingestellte Takt
 #define F_CPU 8000000
 /*Falls der interne Oszillator verwendet wird, sollte mit dem Programmer einmal
-das entsprechende Calibrierungsbyte ausgelesen und für osccaleradout
+das entsprechende Calibrierungsbyte ausgelesen und fÃ¼r osccaleradout
 gesetzt werden. Dieser Wert kann sich von Chip zu Chip unterscheiden!
-Bei falschen Werten läuft der Chip zu schnell oder zu langsam.
+Bei falschen Werten lÃ¤uft der Chip zu schnell oder zu langsam.
 Der osccaleradout Wert wird dann beim Programmstart in das OSCCAL Register
 geschrieben. Wird ein externer Takt verwendet, so hat dies keine Bedeutung.
 */
 #define osccaleradout 0xad
 
 /*Berechnung der Timer Geschwindigkeit.
-Der Timer2 soll alle 4800mal pro Sekunde auslösen. (100Hz*16Zeilen*3Durchläufe)
-Der Prescaler des Timers ist 8. Der Timer läuft bis 255 und ruft dann den
+Der Timer2 soll alle 4800mal pro Sekunde auslÃ¶sen. (100Hz*16Zeilen*3DurchlÃ¤ufe)
+Der Prescaler des Timers ist 8. Der Timer lÃ¤uft bis 255 und ruft dann den
 Interrupt auf. Daraus folgt:
 4800 = (F_CPU/8)/(255-timerset)
 umgestellt:
@@ -53,20 +53,20 @@ umgestellt:
 #endif
 
 #if (timerset_test > 174)
-#error "Der gewählte Takt ist zu langsam. 4MHZ sind Minnimum, 8MHZ werden empfohlen"
+#error "Der gewÃ¤hlte Takt ist zu langsam. 4MHZ sind Minnimum, 8MHZ werden empfohlen"
 #endif
 
-/* Berechnen des Wertes für waitms. Dieser Wert ist abhängig von F_CPU und
-der Zeit die von der Interrupt Routine benötigt wird
-Jeder Durchlauf durch die Interruptroutine benötigt rund 538 Takte,
+/* Berechnen des Wertes fÃ¼r waitms. Dieser Wert ist abhÃ¤ngig von F_CPU und
+der Zeit die von der Interrupt Routine benÃ¶tigt wird
+Jeder Durchlauf durch die Interruptroutine benÃ¶tigt rund 538 Takte,
 Angenommen der Systemtakt liegt innerhalb von 3-11MHZ, so wird der Interrupt
 4800 mal aufgerufen, was 2582400 Take pro Sekune sind.
-eigentlich müsste F_CPU_msdelay als((F_CPU-(2582400))/4000) definiert sein.
+eigentlich mÃ¼sste F_CPU_msdelay als((F_CPU-(2582400))/4000) definiert sein.
 Allerdings passt die Geschwindigkeit besser, wenn statt durch 4000 durch 5000
 geteilt wird, da ich beim Schreiben der Demo die genaue Rechenzeit der Interrupt
-Routine nicht genau ermittelt hatte und pauschal von 50% für die Interrupts
+Routine nicht genau ermittelt hatte und pauschal von 50% fÃ¼r die Interrupts
 Routine ausging. Somit sind die verwendeten Delayzeiten in der Demos selbst
-etwas zu groß.
+etwas zu groÃŸ.
 */
 #define F_CPU_msdelay (uint16_t)((F_CPU-(2582400))/5000)
 
@@ -82,7 +82,7 @@ etwas zu groß.
 #include <stdlib.h>
 #include <math.h>
 
-//Um zu wissen für was uint8_t u.s.w. steht siehe inttypes.h
+//Um zu wissen fÃ¼r was uint8_t u.s.w. steht siehe inttypes.h
 typedef uint8_t  u08;
 typedef int8_t   s08;
 typedef uint16_t u16;

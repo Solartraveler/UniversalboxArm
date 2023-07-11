@@ -18,7 +18,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-//Funktionsprototypen für Graphic
+//Funktionsprototypen fÃ¼r Graphic
 #ifndef GRAPHICINT_H
  #define GRAPHICINT_H
 
@@ -41,7 +41,7 @@
 #define LED_RED_PORT    PORTC
 #define LED_RED_DDR     DDRC
 #define LED_RED_PIN     0
-//Die grüne LED Datenleitung
+//Die grÃ¼ne LED Datenleitung
 #define LED_GREEN_PORT  PORTC
 #define LED_GREEN_DDR   DDRC
 #define LED_GREEN_PIN   1
@@ -50,13 +50,13 @@
 #define LED_CLOCK_DDR   DDRC
 #define LED_CLOCK_PIN   2
 
-//Konstanten, ändern nur mit Vorsicht
+//Konstanten, Ã¤ndern nur mit Vorsicht
 
-/*Definieren der LED Feld Größe.
+/*Definieren der LED Feld GrÃ¶ÃŸe.
 Achtung: Alle Funktionen wurden nur mit screenx = 16 und screeny = 16 getestet.
-Manche Funktionen sind nicht explizit dafür ausgelegt, mit größeren
-'Auflösungen' zu funktionieren. Mit 'Auflösungen' die mehr als 254 Pixel
-Kantenläge haben, werden die Funktionieren nicht funktionieren.
+Manche Funktionen sind nicht explizit dafÃ¼r ausgelegt, mit grÃ¶ÃŸeren
+'AuflÃ¶sungen' zu funktionieren. Mit 'AuflÃ¶sungen' die mehr als 254 Pixel
+KantenlÃ¤ge haben, werden die Funktionieren nicht funktionieren.
 */
 #define screenx 16
 #define screeny 16
@@ -67,7 +67,7 @@ Kantenläge haben, werden die Funktionieren nicht funktionieren.
 #define maxscreen screeny
 #endif
 
-//'Auflösungen' unterhalb 16x16 würden in der Demo Fehler verursachen
+//'AuflÃ¶sungen' unterhalb 16x16 wÃ¼rden in der Demo Fehler verursachen
 #if ((screenx < 16) || (screeny < 16))
 #error "Mit screenx oder screeny kleiner als 16 kann die Demo nicht funktionieren!"
 #endif
@@ -81,7 +81,7 @@ Kantenläge haben, werden die Funktionieren nicht funktionieren.
 
 extern uint8_t volatile gdurchlauf;   //welcher Durchlauf
 extern uint8_t volatile gzeile;       //Welche Zeile gerade behandelt wird
-//Die Daten fürs Display[y;Zeile][x;Spalte]
+//Die Daten fÃ¼rs Display[y;Zeile][x;Spalte]
 extern uint8_t volatile gdata[screeny][screenx];
 
 

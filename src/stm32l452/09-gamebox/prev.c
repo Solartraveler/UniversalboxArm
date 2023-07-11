@@ -109,7 +109,7 @@ rev_field_set(spielfeld,rev_x/2+1,rev_y/2, 2);
 rev_field_set(spielfeld,rev_x/2+1,rev_y/2+1, 1);
 while (userin_press()); //Warte bis Taster losgelassen
 userin_flush();
-//Spielerzahl ausw�len
+//Spielerzahl auswälen
 players = 1;
 rev_drawmenu(players);
 while (userin_press() == 0) {
@@ -300,7 +300,7 @@ while (1) {
   if (userin.y < -50) { //Nach open
     posy = max(posy-1,1);
   }
-  if (oposx != posx) { //X-Positions�derung, neu zeichnen
+  if (oposx != posx) { //X-Positionsänderung, neu zeichnen
     draw_line(0,wally,16,0,0x00,0); //Obere Zeile leeren
     if (playerturn == 1) { //Grner Spieler
       pixel_set_safe(posx+wallx+1,wally,0x30);
@@ -309,7 +309,7 @@ while (1) {
     }
     waitms(550-abs(userin.x*3));
   }
-  if (oposy != posy) { //Y-Positions�derung, neu zeichnen
+  if (oposy != posy) { //Y-Positionsänderung, neu zeichnen
     draw_line(wallx,0,0,16,0x00,0); //Obere Zeile leeren
     if (playerturn == 1) { //Grner Spieler
       pixel_set_safe(wallx,posy+wally+1,0x30);
@@ -321,7 +321,7 @@ while (1) {
   oposx = posx;
   oposy = posy;
 }
-return ((posy<<4)+posx);  //Cursor Position zurckliefern
+return ((posy<<4)+posx);  //Cursor Position zurückliefern
 }
 
 static s16 rev_votegame(struct rev_spielfeldstruct *spielfeld, u08 playerturn) {
@@ -577,7 +577,7 @@ if (players) {
         gameinprogress = 0;
       }
     }
-  } //Ende Spiel l�ft
+  } //Ende Spiel läuft
   rev_highlightwinner(&spielfeld); //Die gewonnenen aufblinken lassen
   free(spielfeld.address);
 } else { //Out of RAM!

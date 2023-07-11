@@ -53,7 +53,7 @@ while (1) {
     delta = abs(currenttime - timeprev);
     //printf("Timer Update: %lld, delta: %lld\n",currenttime,delta);
     if (TCCR1B == 0x04) {
-      //TCNT1 muss 32768 mal pro Sec hoch-z‰hlen
+      //TCNT1 muss 32768 mal pro Sec hoch-z√§hlen
       TCNT1 += (u16)((float)delta*0.032768);
     }
   }

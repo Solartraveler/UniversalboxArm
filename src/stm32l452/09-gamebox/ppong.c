@@ -82,7 +82,7 @@ if (ball->movey != 0) { //Wenn er sich noch bewegt
   //An neuer Position roten Punkt zeichnen
   pixel_set_safe(ball->posx,ball->posy,pixel_get(ball->posx,ball->posy)|0x03);
 }
-//Gegenseitiges Vernichten beider Schüsse, wenn auf gleicher Position und noch
+//Gegenseitiges Vernichten beider SchÃ¼sse, wenn auf gleicher Position und noch
 //eher in der Mitte des Spielfeldes (noch nicht direkt vor dem Spieler)
 if ((ball->posx == ball2->posx) && (ball->posy == ball2->posy) &&
     (ball->movey != 0) && (ball2->movey != 0) &&
@@ -94,7 +94,7 @@ if ((ball->posx == ball2->posx) && (ball->posy == ball2->posy) &&
 }
 
 static u08 pong_ai_precalcball(struct pong_ballstruct *ball) {
-//Gibt die Position aus, an der der Ball den nächsten Spieler trifft
+//Gibt die Position aus, an der der Ball den nÃ¤chsten Spieler trifft
 struct pong_ballstruct tb; //Temp ball
 tb.posx = ball->posx;
 tb.posy = ball->posy;
@@ -131,13 +131,13 @@ s08 tdiff, tdiff2;
   Wird Ball abgelengt auf schiefe Bahn: + 25
   Kommt Schuss an dieser Stelle auf: -8
   Kommt Schuss auf eine Kante auf: -5
-  Ist Schuss an dieser Stelle näher als 3: -50
-  Ist Schuss daneben näher als 2: -30
-  Stelle ist nächer in der Mitte als vorher: +1
+  Ist Schuss an dieser Stelle nÃ¤her als 3: -50
+  Ist Schuss daneben nÃ¤her als 2: -30
+  Stelle ist nÃ¤cher in der Mitte als vorher: +1
   Stelle ist weiter weg von der Mitte als Vorher: -1
-  Wenn zu analysierende Position außerhalb der Gültigkeit: -100
+  Wenn zu analysierende Position auÃŸerhalb der GÃ¼ltigkeit: -100
 */
-if (ball->speedy == -1) { //Ball nähert sich
+if (ball->speedy == -1) { //Ball nÃ¤hert sich
   tdiff = pong_ai_precalcball(ball) - analyzepos;
   if (tdiff == 0) { //Ball an dieser Stelle
     bewertung += 20;
@@ -171,7 +171,7 @@ if (shot1->movey != 0) { //Wenn sich feindlicher Schuss bewegt
     bewertung -= 20;
   }
 }
-tdiff = abs(8-player2pos); //Je näher an 0, desto besser
+tdiff = abs(8-player2pos); //Je nÃ¤her an 0, desto besser
 tdiff2 = abs(8-analyzepos);
 if (tdiff > tdiff2) {
   bewertung++;
@@ -193,7 +193,7 @@ s08 votes[4], bestvote;
 if (mode < 3) {
   if (ball->speedx != 0) {
     poswish = ball->posx;
-  } else { //Ball fällt gerade, dass hat gefälligst aufzuhören
+  } else { //Ball fÃ¤llt gerade, dass hat gefÃ¤lligst aufzuhÃ¶ren
     if (ball->posx < 8) { //Ob nach links oder rechts davon stellen
       poswish = ball->posx+2;
     } else {
@@ -207,9 +207,9 @@ if (mode < 3) {
   }
 }
 if (mode > 2) { //Bessere KI
-/* Wie mode = 2, jedoch versuche Schüssen auszuweichen.
+/* Wie mode = 2, jedoch versuche SchÃ¼ssen auszuweichen.
    Versuche zur vorberechneten Position zu bewegen. Vermeide aber Felder mit
-   einer Bewertung < 10. Ansonsten das höchstbewertetet Feld.
+   einer Bewertung < 10. Ansonsten das hÃ¶chstbewertetet Feld.
 */
   votes[0] = pong_ai_analyze(ball, shot1, shot2, play2pos, play2pos);
   votes[1] = pong_ai_analyze(ball, shot1, shot2, play2pos+1, play2pos);
@@ -227,7 +227,7 @@ if (mode > 2) { //Bessere KI
     poswish = play2pos-1;
     bestvote = votes[2];
   }
-  if (ball->speedy < 0) { //Ball nähert sich
+  if (ball->speedy < 0) { //Ball nÃ¤hert sich
     if (votes[3] > bestvote) {
       //Ermittle ob position links oder rechts von aktueller Position
       if (((ballhitposx < play2pos) && (votes[2] > -11)) || //Links davon
@@ -236,18 +236,18 @@ if (mode > 2) { //Bessere KI
         poswish = ballhitposx;
       }
     } //Ende Ball hit pos besser
-  } //Ende Ball nähert sich
+  } //Ende Ball nÃ¤hert sich
   if (shot2->movey == 0) { //Wenn Schuss nicht bereits unterwegs
     if (ball->speedy > 0) { //Wenn sich Ball entfernt
       if ((rand() & 0x07) == 0x07) { // 1/8 wahscheinl.
         pong_shotstart(shot2, play2pos, 2);
       }
     }//Ende Ball entfernt sich
-    //Auf gleicher Höhe mit feindl. Schuss
+    //Auf gleicher HÃ¶he mit feindl. Schuss
     if ((play2pos == shot1->posx) && (mode == 4)) {
-      pong_shotstart(shot2, play2pos, 2); //Feindl. Schuss abschießen
+      pong_shotstart(shot2, play2pos, 2); //Feindl. Schuss abschieÃŸen
     }
-  } //Ende Schuss möglich
+  } //Ende Schuss mÃ¶glich
 } //Ende mode > 2
 //Bewegen
 if (play2pos < poswish) {
@@ -256,7 +256,7 @@ if (play2pos < poswish) {
 if (play2pos > poswish) {
   play2pos--;
 }
-//Überläufe verhindern
+//ÃœberlÃ¤ufe verhindern
 play2pos = max(play2pos,1);
 play2pos = min(play2pos,14);
 return play2pos;
@@ -265,7 +265,7 @@ return play2pos;
 static void pong_moveball(struct pong_ballstruct *ball, u08 play1pos,
                           u08 play2pos) {
 s08 tmpdiff;
-pixel_set_safe(ball->posx,ball->posy,0x00); //Alten Ball löschen
+pixel_set_safe(ball->posx,ball->posy,0x00); //Alten Ball lÃ¶schen
 ball->posx += ball->speedx;
 if (ball->posx == 0) { //Linke Wand
   ball->speedx = 1;
@@ -352,11 +352,11 @@ static void pong_drawplayers(u08 play1pos, u08 play1pos_o,
                       u08 play2pos, u08 play2pos_o) {
 //Zeichen der Spielerposition
 if (play1pos != play1pos_o) { //Player1 ist unten, menschlicher Spieler
-  draw_line(play1pos_o-1,15,3,0,0,0);  //Löschen an alter Position
+  draw_line(play1pos_o-1,15,3,0,0,0);  //LÃ¶schen an alter Position
   draw_line(play1pos-1,15,3,0,0x32,0); //Zeichnen an neuer Position
 }
 if (play2pos != play2pos_o) { //Player2 ist oben, AI Spieler
-  draw_line(play2pos_o-1,0,3,0,0,0);  //Löschen an alter Position
+  draw_line(play2pos_o-1,0,3,0,0,0);  //LÃ¶schen an alter Position
   draw_line(play2pos-1,0,3,0,0x32,0); //Zeichnen an neuer Position
 }
 }
@@ -384,7 +384,7 @@ draw_char('4', 9, 9, 0x03,1,0);
 static u08 pong_selectmode(void) {
 u08 mode = 1;
 /*1. Modi: Einfaches hin und her spielen
-  2. Modi: Möglichkeit zu schießen
+  2. Modi: MÃ¶glichkeit zu schieÃŸen
   3. Modi: wie 2.Modi jedoch besserer Gegner
   4. Modi: wie 2.Modi jedoch optimaler Gegner
 */
@@ -429,7 +429,7 @@ struct pong_shotstruct shot1 = {0,0,0}, shot2 = {0,0,0};
 mode = pong_selectmode();
 //Zufallsgenerator initialisieren
 init_random();
-//Timer1 wird für das Timing verwendet, 31,25KHZ Takt
+//Timer1 wird fÃ¼r das Timing verwendet, 31,25KHZ Takt
 TCNT1 = 0; //Reset Timer
 TCCR1B = (1<<CS12); //Prescaler: 256
 while (gameend == 0) {
@@ -451,8 +451,8 @@ while (gameend == 0) {
     timings[0] = 0;
     pong_moveball(&ball, play1pos, play2pos);
   }
-  //AI ausführen
-  if (timings[1] >= (35 - mode*5)) { //Je höher der mode desto schneller
+  //AI ausfÃ¼hren
+  if (timings[1] >= (35 - mode*5)) { //Je hÃ¶her der mode desto schneller
     timings[1] = 0;
     play2pos = pong_ai(&ball, &shot1, &shot2, play1pos, play2pos, mode);
   }
@@ -466,7 +466,7 @@ while (gameend == 0) {
     timings[3] = 0;
     pong_moveshot(&shot2,&shot1);
   }
-  //Punkte zählen
+  //Punkte zÃ¤hlen
   if (timings[4] >= 200) {//Jede Sekunde ein Punkt
     timings[4] = 0;
     points++;
@@ -476,10 +476,10 @@ while (gameend == 0) {
     pong_shotstart(&shot1,play1pos,1);
     timings[2] = 0;
   }
-  //Ball herausgesprungen überprüfen
+  //Ball herausgesprungen Ã¼berprÃ¼fen
   if (ball.posy == 0) { gameend = 2; }  //Player 2 hat verloren
   if (ball.posy == 15) { gameend = 1; } //Player 1 hat verloren
-  //Schuss abbekommen überprüfen
+  //Schuss abbekommen Ã¼berprÃ¼fen
   gameend |= pong_shotdown(&shot2,play1pos,1);
   gameend |= pong_shotdown(&shot1,play2pos,2);
   //Game Abbruch

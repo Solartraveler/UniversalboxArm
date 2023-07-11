@@ -21,7 +21,7 @@
 #ifndef PREV_H
  #define PREV_H
 
-//Spielfeld Größe
+//Spielfeld GrÃ¶ÃŸe
 //Grenzen: 15x15 kann das Programm verwalten
 //         12x12 kann mit den LEDs dargestellt werden
 #define rev_x 8

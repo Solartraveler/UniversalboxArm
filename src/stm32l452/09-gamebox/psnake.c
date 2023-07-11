@@ -22,7 +22,7 @@
 
 #if modul_psnake
 
-/* Der zu löschende Punkt wird in einem FIFO (256 Byte)gespeichert,
+/* Der zu lÃ¶schende Punkt wird in einem FIFO (256 Byte)gespeichert,
  Die Kollisionserkennung erfolgt mittles des Bildspeichers
 */
 
@@ -62,7 +62,7 @@ fifo->writepoint++;
 if (fifo->writepoint >= fifo->size) {
   fifo->writepoint = 0;
 }
-return 1; //OK, wurde ausgeführt
+return 1; //OK, wurde ausgefÃ¼hrt
 }
 
 static u08 snake_fifo_get(struct snake_fifostruct *fifo) {
@@ -183,7 +183,7 @@ if (fifo.address != NULL) {
   snake_fifo_put(&fifo, snakestart);
   //Apfel setzen
   snake_placeapple();
-  //Timer1 wird für das Timing verwendet, 31,25KHZ Takt
+  //Timer1 wird fÃ¼r das Timing verwendet, 31,25KHZ Takt
   TCNT1 = 0; //Reset Timer
   TCCR1B = (1<<CS12); //Prescaler: 256
   userin_flush();
@@ -200,7 +200,7 @@ if (fifo.address != NULL) {
       } else {
         waittime = 100-xabs*2/3;
       }
-      if (waitcount > waittime) { //Nächste Schritt
+      if (waitcount > waittime) { //NÃ¤chste Schritt
         waitcount = 0;
         //Benutzereingabe bearbeiten - Richtung
         if (yabs > xabs) { //yabs wird beachtet
@@ -218,9 +218,9 @@ if (fifo.address != NULL) {
             direction = 2;
           }
         }
-        //Zeichne alte Position in normalem Grün
+        //Zeichne alte Position in normalem GrÃ¼n
         snake_place(snakestart);
-        //Neue Position berechnen, auf Schlange oder Wand überprüfen
+        //Neue Position berechnen, auf Schlange oder Wand Ã¼berprÃ¼fen
         tmppos = snake_move(snakestart,direction);
         if (tmppos < 0) { //Game over
           life = 0;
@@ -241,7 +241,7 @@ if (fifo.address != NULL) {
           snakeend = snake_fifo_get(&fifo);
           snake_placeend(snakeend);
         } //Ende aktualisiere Schlangeende
-      } //Ende nächster Schritt
+      } //Ende nÃ¤chster Schritt
     } //Ende 10ms Durchlauf
   } //Ende while Schleife
   free(fifo.address);

@@ -23,14 +23,14 @@
 
 
 /* Wenn auf 1 gesetzt, so wird bei jedem verwenden von pixel_set eine
- Bereichsüberprüfung vorgenommen
+ BereichsÃ¼berprÃ¼fung vorgenommen
 Nachteil: Mehr Code und langsamer
 Allerdings wird derzeit pixel_set nicht immer verwendet,
-näheres dazu siehe graphicfunctions.c
+nÃ¤heres dazu siehe graphicfunctions.c
 */
 #define pixel_set_always_safe 0
 
-//Universeller Speicher für eine Spalte/Zeile + 0 Zeichen
+//Universeller Speicher fÃ¼r eine Spalte/Zeile + 0 Zeichen
 extern uint8_t linebuff[maxscreen+1];
 extern uint8_t no_delays;
 

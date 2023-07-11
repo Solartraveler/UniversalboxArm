@@ -38,9 +38,9 @@
 ##13 Freien SRAM anzeigen -> ram_showfree()
 ##14 Highscore zurcksetzen -> highscore_clear()
 
-Menü Animation:
+MenÃ¼ Animation:
 Schwaches grn im Hintergrund
-Text während des Einblendens schwach rot
+Text wÃ¤hrend des Einblendens schwach rot
 Sobald Text an Position starkes rot
 
 */
@@ -60,14 +60,14 @@ char text[5];
 void (*execute) (void);
 };
 
-/* Neue Menü Nummer 255 bedeutet, es wird die angegebene Routine ausgeführt.
-   Ansonsten werden alle Nummern größer gleich menuentries_nr ignoriert, so
-   dass die Zahl 254 dafür verwendet wird, wenn eine Bedienrichtung keine
+/* Neue MenÃ¼ Nummer 255 bedeutet, es wird die angegebene Routine ausgefÃ¼hrt.
+   Ansonsten werden alle Nummern grÃ¶ÃŸer gleich menuentries_nr ignoriert, so
+   dass die Zahl 254 dafÃ¼r verwendet wird, wenn eine Bedienrichtung keine
    Funktion haben soll.
 */
 
 
-/*Die Warnung darüber, dass menu_notcompiled nicht benutzt wird, kann problemlos
+/*Die Warnung darÃ¼ber, dass menu_notcompiled nicht benutzt wird, kann problemlos
   ignoriert werden
 */
 const char menu_gamemissing[] PROGMEM = "Not compiled in";
@@ -164,11 +164,11 @@ for (;;) {
       menu_move_prev(menupos);
     }
   }
-  if (userin_right()) { //Vorwï¿½ts im Men
+  if (userin_right()) { //VorwÃ¯Â¿Å“ts im Men
     wishmenu = pgm_read_byte(&mainmenu[menupos].next);
     if (wishmenu == 255) { //Funktion aufrufen
       clear_buff();
-      fill_3(); //auflï¿½en des Mens
+      fill_3(); //auflÃ¯Â¿Å“en des Mens
       userin_flush();
       resync_led_display(); //falls Fehler auftraten
       memcpy_P(&subprog,&mainmenu[menupos].execute,sizeof(subprog));

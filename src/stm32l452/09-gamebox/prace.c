@@ -39,9 +39,9 @@ for (nun = 2;nun <= 13;nun++) { //Rote Punkte zeichnen
   pixel_set(nun,0,color);
   value = value >> 1;
 }
-//Einen grünen Punkt zeichnen
+//Einen grÃ¼nen Punkt zeichnen
 value = rand();
-if ((value & 0x03) == 0x03) { //25% wahrscheinlich einen grünen Punkt
+if ((value & 0x03) == 0x03) { //25% wahrscheinlich einen grÃ¼nen Punkt
   value >>= 2;
   value %= 12;
   value += 2;
@@ -72,7 +72,7 @@ level = 1;
 steps = 0;
 moved = 0;
 glsteps = -8;
-//Timer1 wird für das Timing verwendet, 31,25KHZ Takt
+//Timer1 wird fÃ¼r das Timing verwendet, 31,25KHZ Takt
 TCNT1 = 0; //Reset Timer
 TCCR1B = (1<<CS12); //Prescaler: 256
 //Zufallsgenerator initialisieren
@@ -93,7 +93,7 @@ while (lifes > 0) { //Solange noch Leben vorhanden
     carpos = 13;
   }
   //Falls Auto die Spur gewechselt hat
-  if (carpos_old != carpos) { //bei Positionsveränderung
+  if (carpos_old != carpos) { //bei PositionsverÃ¤nderung
     moved = 1;
     //Auto an alter Position entfernen
     pixel_set_safe(carpos_old,15, 0x00);
@@ -104,7 +104,7 @@ while (lifes > 0) { //Solange noch Leben vorhanden
     if (pixel_get(carpos,15) == 0x03) { //Roter Punkt an neuer Position
       lifes--;
     }
-  //Grüner Punkt an neuer Position
+  //GrÃ¼ner Punkt an neuer Position
     if ((pixel_get(carpos,15) == 0x30) && (lifes <= 15)) {
       lifes++;
     }
@@ -113,7 +113,7 @@ while (lifes > 0) { //Solange noch Leben vorhanden
   }
   //Spielfeld einen Schritt herunter bewegen
   if (TCNT1 > (F_CPU/1280)) { //Mehr als 200ms sind vergangen; (8M/1280) = 6250
-    moved = 1; //Neue Berührungen überprüfen
+    moved = 1; //Neue BerÃ¼hrungen Ã¼berprÃ¼fen
     TCNT1 = (level-1)*(F_CPU/26229); //(8M/26229) = 305
     for (nun = 2;nun <= 13;nun++) { //Spielfeld um 1 nach unten
       move_line_down(nun);

@@ -19,8 +19,8 @@
 */
 
 /*Die Demo gibt es auch als Stand-alone Version auf meiner Homepage.
-Die Stand-alone Version (Endlosschleife) läuft auch
-auf einem Mega8 und benötigt keine Eingabegeräte.
+Die Stand-alone Version (Endlosschleife) lÃ¤uft auch
+auf einem Mega8 und benÃ¶tigt keine EingabegerÃ¤te.
 */
 
 #include "main.h"
@@ -42,14 +42,14 @@ const char text11[] PROGMEM = "MCU";
 
 static void demo_intro(void) {
 u08 nun;
-//Mit leichtem Grün füllen
+//Mit leichtem GrÃ¼n fÃ¼llen
 fill_1();
 load_text(text1); //A
 draw_string(6, 1, 0x0f,0,0);
 load_text(text2); //Demo
 scrolltext (9, 0x0f,0x10,120);
 waitms(300);
-load_buff(intro1); //Lade leichtes Grün in den Puffer
+load_buff(intro1); //Lade leichtes GrÃ¼n in den Puffer
 //Schiebe Text nach oben
 for (nun = 0; nun < 9; nun++) {
   move_up();
@@ -72,7 +72,7 @@ waitms(300);
 
 static void house(void) {
 u08 nun;
-//grün füllen
+//grÃ¼n fÃ¼llen
 fill_2();
 waitms(200);
 load_text(text5); //This is the house of santaclaus
@@ -136,7 +136,7 @@ scrolltext (4, 0x31,0x00,100);
 for (nun = 0; nun < 280;nun++) {
   gameoflife_step();
   waitms(100);
-  //Glider in game of life einfügen
+  //Glider in game of life einfÃ¼gen
   if (nun == 48) {
     gdata[13][6] = 0x31;
     gdata[13][5] = 0x31;
@@ -145,7 +145,7 @@ for (nun = 0; nun < 280;nun++) {
     gdata[15][6] = 0x31;
     waitms(1000);
   }
-  //Spaceship in game of life einfügen
+  //Spaceship in game of life einfÃ¼gen
   if (nun == 90) {
     gdata[0][3] = 0x31;
     gdata[1][4] = 0x31;
@@ -342,7 +342,7 @@ for (nun = 0; nun < 750; nun++) {
   draw_line(8,8,x2,y2,red+(green<<4),0);
   waitms(15);
 }
-//Bildschirm löschen
+//Bildschirm lÃ¶schen
 for (y = 0; y < 16; y++) {
   draw_line(0,15,16,-y,0x00,0);
   waitms(75);

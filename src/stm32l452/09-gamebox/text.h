@@ -30,9 +30,9 @@ extern char textbuff[37];          //Text Puffer
 void load_text(PGM_VOID_P x);
 
 
-/* draw_char prüft, vor dem schreiben auf das Display ob die Position
-innerhalb des gültigen Bereiches ist. Daher sind für posx und posy auch negative
-oder zu große Werte kein Problem. Die Buchstaben sind dann normalerweise nicht
+/* draw_char prÃ¼ft, vor dem schreiben auf das Display ob die Position
+innerhalb des gÃ¼ltigen Bereiches ist. Daher sind fÃ¼r posx und posy auch negative
+oder zu groÃŸe Werte kein Problem. Die Buchstaben sind dann normalerweise nicht
 sichtbar.
 Im schlimmsten Fall werden sie an die falsche Stelle auf dem Display gezeichnet.
 */

@@ -23,24 +23,24 @@
 
 const char game_pts[] PROGMEM = "Pts:";
 
-//Leichtes grün
+//Leichtes grÃ¼n
 const char intro1[16] PROGMEM = {0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,
                                  0x10,0x10,0x10,0x10,0x10,0x10,0x10};
 
 u08 init_random_done = 0;
 
 void fill_1(void) {
-//Mit leichtem Grün füllen
+//Mit leichtem GrÃ¼n fÃ¼llen
 u08 x,y;
 for (x = 0; x < screenx; x++) {
   for (y = 0; y < screeny; y++) {
-    gdata[x][y] = 0x10;//Grün füllen
+    gdata[x][y] = 0x10;//GrÃ¼n fÃ¼llen
   }
 }
 }
 
 void fill_2(void) {
-//Grün füllen, ping pong mäßig
+//GrÃ¼n fÃ¼llen, ping pong mÃ¤ÃŸig
 u08 x,y;
 for (x = 0; x < (screenx/2); x++) {
   for (y = 0; y < screeny; y++) {
@@ -64,7 +64,7 @@ for (x = 0; x < screenx; x++) {
    } else {
      move_line_right(y);
    }
-   waitms(5); //1,28sec fürs Auflösen des Bildes
+   waitms(5); //1,28sec fÃ¼rs AuflÃ¶sen des Bildes
   }
 }
 }

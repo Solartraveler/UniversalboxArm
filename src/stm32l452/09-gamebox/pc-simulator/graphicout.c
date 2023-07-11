@@ -24,7 +24,7 @@ uint8_t volatile gdata[screeny][screenx];
 
 int windowid_main;
 
-int redraw_ms = 100; //Alle x ms neu Zeichnen. Bei > 1 CPU -> 16ms erhöht
+int redraw_ms = 100; //Alle x ms neu Zeichnen. Bei > 1 CPU -> 16ms erhÃ¶ht
 
 void resync_led_display(void) {
 }
@@ -75,8 +75,8 @@ glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 glutInitWindowSize(600,600);
 glutInitWindowPosition(100,20);
 windowid_main = glutCreateWindow("Game Box 1.03 (Final)");
-glutDisplayFunc(drawboard);    //Zeichnet das Spielfeld neu bei überlappen o.ä.
+glutDisplayFunc(drawboard);    //Zeichnet das Spielfeld neu bei Ã¼berlappen o.Ã¤.
 glutReshapeFunc(update_window_size);
 glutTimerFunc(redraw_ms,redraw, 0); //20FPS, Periodisches neuzeichnen
-glClearColor(0.0,0.0,0.0,0.0); //"Farbe" zum löschen
+glClearColor(0.0,0.0,0.0,0.0); //"Farbe" zum lÃ¶schen
 }

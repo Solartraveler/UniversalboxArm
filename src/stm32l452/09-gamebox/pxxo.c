@@ -18,8 +18,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/* Tests haben gezeigt, dass bei 1KB RAM rund 458 Byte frei sind. Diese können
-  für Stack und malloc() verwendet werden. Bei 2KB steht entsprechend mehr zur
+/* Tests haben gezeigt, dass bei 1KB RAM rund 458 Byte frei sind. Diese kÃ¶nnen
+  fÃ¼r Stack und malloc() verwendet werden. Bei 2KB steht entsprechend mehr zur
   Verfgung.
 */
 #include "main.h"
@@ -71,7 +71,7 @@ if ((posx < sizex) && (posy < sizey)) {
 }
 
 static void xxo_drawmenu1(u08 wahl) {
-//Größe des Spielfeldes Auswahl zeichnen
+//GrÃ¶ÃŸe des Spielfeldes Auswahl zeichnen
 clear_screen();
 if (wahl == 1) {
   draw_box(0,0,16,8,0x03,0x00);
@@ -110,7 +110,7 @@ draw_string(3,9,0x31,0,0);
 const char xxo_ai[] PROGMEM = "AI:";
 
 static void xxo_drawmenu3(u08 wahl) {
-//Ausgewählte KI Stärke zeichnen
+//AusgewÃ¤hlte KI StÃ¤rke zeichnen
 clear_screen();
 load_text(xxo_ai);
 draw_string(0,1,0x31,0,0);
@@ -134,8 +134,8 @@ if (wahl > 4) {
 
 static u08 xxo_selectmode(struct xxo_spielfeldstruct *spielfeld, u08 *aipower) {
 u08 players, nunx,nuny;
-//Spielfeldgröße auswählen: 7x6, 10x10
-//Bei Größe 12x12 ist die KI einfach unerträglich lahm, aber möglich ist es
+//SpielfeldgrÃ¶ÃŸe auswÃ¤hlen: 7x6, 10x10
+//Bei GrÃ¶ÃŸe 12x12 ist die KI einfach unertrÃ¤glich lahm, aber mÃ¶glich ist es
 xxo_drawmenu1(1);
 spielfeld->sizex = 7;
 spielfeld->sizey = 6;
@@ -164,7 +164,7 @@ for (nunx = 1; nunx <= spielfeld->sizex; nunx++) {
 }
 while (userin_press()); //Warte bis Taster losgelassen
 userin_flush();
-//Spielerzahl auswählen
+//Spielerzahl auswÃ¤hlen
 players = 1;
 xxo_drawmenu2(players);
 while (userin_press() == 0) {
@@ -177,20 +177,20 @@ while (userin_press() == 0) {
     xxo_drawmenu2(players);
   }
 }
-//AI Stärke auswählen
+//AI StÃ¤rke auswÃ¤hlen
 if (players == 1) { //AI Spielt mit
   *aipower = 3;
   while (userin_press()); //Warte bis Taster losgelassen
   userin_flush();
   xxo_drawmenu3(*aipower);
   while (userin_press() == 0) {
-    if (userin_down()) { //Schwächer
+    if (userin_down()) { //SchwÃ¤cher
       if (*aipower > 0) {
         (*aipower)--;
         xxo_drawmenu3(*aipower);
       }
     }
-    if (userin_up()) { //Stärker
+    if (userin_up()) { //StÃ¤rker
       if (spielfeld->sizex < 8) {
         *aipower = min((*aipower)+1, 5);
       } else {
@@ -199,7 +199,7 @@ if (players == 1) { //AI Spielt mit
       xxo_drawmenu3(*aipower);
     }
   }
-  //*aipower = 7; //Nur für PC benutzen, ein AVR wäre zu langsam
+  //*aipower = 7; //Nur fÃ¼r PC benutzen, ein AVR wÃ¤re zu langsam
 }
 clear_screen();
 return players;
@@ -222,7 +222,7 @@ for (nunx = 0; nunx < spielfeld->sizex; nunx++) {
     typ = xxo_field_get(spielfeld,nunx+1,nuny+1);
     color = 0;
     if (typ == 1) {
-      color = 0x30;  //Grün
+      color = 0x30;  //GrÃ¼n
     }
     if (typ == 2) {
       color = 0x03;  //Rot
@@ -290,9 +290,9 @@ while (1) {
   if (userin.x < -50) { //Nach links
     posx = max(posx-1,1);
   }
-  if (posx_o != posx) { //Positionsänderung, neu zeichnen
+  if (posx_o != posx) { //PositionsÃ¤nderung, neu zeichnen
     draw_line(0,posy,16,0,0x00,0); //Obere Zeile leeren
-    if (playerturn == 1) { //Grüner Spieler
+    if (playerturn == 1) { //GrÃ¼ner Spieler
       pixel_set_safe(posx+startx-1,posy,0x30);
     } else {
       pixel_set_safe(posx+startx-1,posy,0x03); //Roter Spieler
@@ -301,7 +301,7 @@ while (1) {
   }
   posx_o = posx;
 }
-return posx;  //Cursor Position zurückliefern
+return posx;  //Cursor Position zurÃ¼ckliefern
 }
 
 static void xxo_vote_inarow(u08 inarow1, u08 inarow2, u16 *vote1, u16 *vote2) {
@@ -341,7 +341,7 @@ if ((*vote1 < 0xffff) && (*vote2 < 0xffff)) {
 static s16 xxo_votegame(struct xxo_spielfeldstruct *spielfeld, u08 playerturn) {
 u08 nunx,nuny, nunz;
 s16 globalvote = 0;
-u16 vote1 = 0, vote2 = 0; //Bewertung für Spieler 1 und Spieler 2
+u16 vote1 = 0, vote2 = 0; //Bewertung fÃ¼r Spieler 1 und Spieler 2
 u08 inarow[4] = {0,0,0,0};
 u08 sitting;
 u08 freeline;
@@ -352,12 +352,12 @@ const u08 sizey = spielfeld->sizey;
 for (nuny = sizey; nuny > 0; nuny--) {
   freeline = 1;
   for (nunx = 1; nunx <= spielfeld->sizex; nunx++) {
-    /* Es wird immer vier nach rechts, vier nach schräg unten und vier nach
-       unten getestet. Dabei wird gezählt wie viele bereits in einer Reihe sind.
+    /* Es wird immer vier nach rechts, vier nach schrÃ¤g unten und vier nach
+       unten getestet. Dabei wird gezÃ¤hlt wie viele bereits in einer Reihe sind.
        Sind es 4, so hat ein Spieler bereits gewonnen.
        Bei 3 gibt es eine sehr hohe Bewertung.
-       Bei 2 eine erhöhte
-       Bei einem leicht erhöhte
+       Bei 2 eine erhÃ¶hte
+       Bei einem leicht erhÃ¶hte
        Allerdings ist die Bewertung immer 0, wenn der Gegner dazwischen sitzt
     */
     //Nach rechts sehen
@@ -424,7 +424,7 @@ for (nuny = sizey; nuny > 0; nuny--) {
   if (freeline) {
     freelines++;
   }
-  if (freelines == 4) { //Darüber kommt auch nichts mehr
+  if (freelines == 4) { //DarÃ¼ber kommt auch nichts mehr
     break;
   }
 } //Ende y Schleife
@@ -437,7 +437,7 @@ if (vote2 == 0xffff) {
 if (playerturn == 2) {
   globalvote *= (-1);
 }
-//Positiv: gut für den Spieler playerturn, negativ: schlecht für ihn
+//Positiv: gut fÃ¼r den Spieler playerturn, negativ: schlecht fÃ¼r ihn
 return globalvote;
 }
 
@@ -448,10 +448,10 @@ u08 playertype;
 u08 place1, place2;
 /* Diese Funktion achtet nicht sonderlich auf saubere Programmierung
   - hauptsache sie ist schnell!!!
-  Die Bereichsüberprüfung übernimmt die xxo_field_get() Funktione, deshalb darf
+  Die BereichsÃ¼berprÃ¼fung Ã¼bernimmt die xxo_field_get() Funktione, deshalb darf
   meistens nicht die xxo_field_get_quick() Funktion verwendet werden.
-  Die Funktion sieht nach ob sich bei den übergebenen posx, posy Koordinaten
-  vier in einer Reihe befinden. Dann wird 32000 zurückgegeben, ansonsten 0.
+  Die Funktion sieht nach ob sich bei den Ã¼bergebenen posx, posy Koordinaten
+  vier in einer Reihe befinden. Dann wird 32000 zurÃ¼ckgegeben, ansonsten 0.
    */
 playertype = xxo_field_get_quick(spielfeld,posx,posy);
 if ((playertype != 1) && (playertype != 2)) { //is doch nix!
@@ -497,7 +497,7 @@ for (nun = 1; nun < 4; nun++) {
 if ((place1+place2) > 2) {
   return 120;
 }
-//Schräg rechts unten
+//SchrÃ¤g rechts unten
 place1 = 0;
 for (nun = 1; nun < 4; nun++) {
   if (xxo_field_get(spielfeld,posx+nun,posy+nun) != playertype) {
@@ -505,7 +505,7 @@ for (nun = 1; nun < 4; nun++) {
   }
   place1++;
 }
-//Schräg links oben
+//SchrÃ¤g links oben
 place2 = 0;
 for (nun = 1; nun < 4; nun++) {
   if (xxo_field_get(spielfeld,posx-nun,posy-nun) != playertype) {
@@ -517,7 +517,7 @@ for (nun = 1; nun < 4; nun++) {
 if ((place1+place2) > 2) {
   return 120;
 }
-//Schräg rechts oben
+//SchrÃ¤g rechts oben
 place1 = 0;
 for (nun = 1; nun < 4; nun++) {
   if (xxo_field_get(spielfeld,posx+nun,posy-nun) != playertype) {
@@ -525,7 +525,7 @@ for (nun = 1; nun < 4; nun++) {
   }
   place1++;
 }
-//Schräg links unten
+//SchrÃ¤g links unten
 place2 = 0;
 for (nun = 1; nun < 4; nun++) {
   if (xxo_field_get(spielfeld,posx-nun,posy+nun) != playertype) {
@@ -559,10 +559,10 @@ u08 nun;
 u08 startx, starty;
 for (nunx = 1; nunx <= spielfeld->sizex; nunx++) {
   for (nuny = 1; nuny <= spielfeld->sizey; nuny++) {
-    /* Es wird immer vier nach rechts, vier nach schräg unten und vier nach
-       unten getestet. Dabei wird gezählt wie viele bereits in einer Reihe sind.
+    /* Es wird immer vier nach rechts, vier nach schrÃ¤g unten und vier nach
+       unten getestet. Dabei wird gezÃ¤hlt wie viele bereits in einer Reihe sind.
        Sind es 4, so hat ein Spieler bereits gewonnen und dies wird gelb
-       gefärbt
+       gefÃ¤rbt
     */
     //Nach rechts sehen
     if (nunx < (spielfeld->sizex-2)) {
@@ -666,35 +666,35 @@ s16 currvote[sizex];
 s16 bestvote, worstvote;
 u08 nun;
 u08 testplacey;
-for (nun = 1; nun <= sizex; nun++) { //Wir bewerten alle Plätze (max 12)
+for (nun = 1; nun <= sizex; nun++) { //Wir bewerten alle PlÃ¤tze (max 12)
   testplacey = xxo_placestone(testfeld, playerturn, nun);
   if (testplacey) { //Wenn platziert werden konnte
     //Bewertung einholen
     currvote[nun-1] = xxo_voteplace_quick(testfeld,nun,testplacey);
     if (playerturn != oplayer) { //Wenn Zug von gegner Bewertet wurde
-      //Was für den Gegner gut ist für einen selber schlecht:
+      //Was fÃ¼r den Gegner gut ist fÃ¼r einen selber schlecht:
       currvote[nun-1] *= (-1);
     }
-    if (abs(currvote[nun-1]) < 120) { //Spiel läuft noch
+    if (abs(currvote[nun-1]) < 120) { //Spiel lÃ¤uft noch
       if (remdepth) {  //Wenn noch tiefer und nicht entschieden
         currvote[nun-1] = xxo_calcai(testfeld, 3-playerturn,
         oplayer, remdepth-1);
       }
     }
-    xxo_field_set(testfeld, nun, testplacey,0); //Testplatzierung lï¿½chen
+    xxo_field_set(testfeld, nun, testplacey,0); //Testplatzierung lÃ¯Â¿Å“chen
   } else {
-    currvote[nun-1] = -125; //nicht möglich, da Spalte voll
+    currvote[nun-1] = -125; //nicht mÃ¶glich, da Spalte voll
   }
 } //Ende for Schleife
 
-/*So, wir haben jetzt eine Bewertung für jede mögliche Position
-  Wenn oplayer == playerturn, so wird die beste Bewertung zurückgeliefert
-  Wenn oplayer != playerturn, so wird die schlechteste zurückgeliefert
+/*So, wir haben jetzt eine Bewertung fÃ¼r jede mÃ¶gliche Position
+  Wenn oplayer == playerturn, so wird die beste Bewertung zurÃ¼ckgeliefert
+  Wenn oplayer != playerturn, so wird die schlechteste zurÃ¼ckgeliefert
 */
 bestvote = -127;
 worstvote = 127;
 for (nun = 0; nun < sizex; nun++) { //Die besten und schlechtesten Punkte
-  if (currvote[nun] > -125) { //-125 steht für Wand und somit egal
+  if (currvote[nun] > -125) { //-125 steht fÃ¼r Wand und somit egal
     if (currvote[nun] > bestvote) { //Bessere Bewertung
       bestvote = currvote[nun];
     }
@@ -703,7 +703,7 @@ for (nun = 0; nun < sizex; nun++) { //Die besten und schlechtesten Punkte
     }
   }
 }
-//Bewertung zurückgeben
+//Bewertung zurÃ¼ckgeben
 if (playerturn == oplayer) { //KI am Zug
   if (bestvote >= 10) {
     bestvote -= 10;
@@ -727,41 +727,41 @@ s16 bestvote, worstvote;
 u08 bestplace;
 u08 nun;
 u08 testplacey;
-for (nun = 1; nun <= sizex; nun++) { //Wir bewerten alle Plätze (max 12)
+for (nun = 1; nun <= sizex; nun++) { //Wir bewerten alle PlÃ¤tze (max 12)
   testplacey = xxo_placestone(testfeld, playerturn, nun);
   if (testplacey) { //Wenn platziert werden konnte
     //Bewertung einholen
     currvote[nun-1] = xxo_voteplace_quick(testfeld,nun,testplacey);
     if (playerturn != oplayer) { //Wenn Zug von Gegner bewertet wurde
-      //Was für den Gegner gut ist für einen selber schlecht:
+      //Was fÃ¼r den Gegner gut ist fÃ¼r einen selber schlecht:
       currvote[nun-1] *= (-1);
     }
-    if (abs(currvote[nun-1]) < 120) { //Spiel läuft noch
+    if (abs(currvote[nun-1]) < 120) { //Spiel lÃ¤uft noch
       if (remdepth) {  //Wenn noch tiefer und nicht entschieden
         currvote[nun-1] = xxo_calcai(testfeld, 3-playerturn,
         oplayer, remdepth-1);
       }
     }
-    xxo_field_set(testfeld, nun, testplacey,0); //Testplatzierung löschen
+    xxo_field_set(testfeld, nun, testplacey,0); //Testplatzierung lÃ¶schen
   } else {
-    currvote[nun-1] = -125; //nicht möglich, da Spalte voll
+    currvote[nun-1] = -125; //nicht mÃ¶glich, da Spalte voll
   }
   //Statusanzeige
   if (playerturn == 2) { //Rote Statusanzeige
     pixel_set_safe(nun+8-testfeld->sizex/2-1,8-testfeld->sizey/2-2,0x03);
-  } else { //Grüne Statusanzeige
+  } else { //GrÃ¼ne Statusanzeige
     pixel_set_safe(nun+8-testfeld->sizex/2-1,8-testfeld->sizey/2-2,0x30);
   }
 } //Ende for Schleife
 
-/*So, wir haben jetzt eine Bewertung für jede mögliche Position
-  Wir geben die Position mit dem besten Wert zurück
+/*So, wir haben jetzt eine Bewertung fÃ¼r jede mÃ¶gliche Position
+  Wir geben die Position mit dem besten Wert zurÃ¼ck
 */
 bestvote = -127;
 worstvote = 125;
 bestplace = 3;
 for (nun = 0; nun < sizex; nun++) { //Die besten und schlechtesten Punkte
-  if (currvote[nun] > -125) { //-125 steht für Wand und somit eher egal
+  if (currvote[nun] > -125) { //-125 steht fÃ¼r Wand und somit eher egal
     if (currvote[nun] == bestvote) { //Gleichwertig
       if ((rand() & 3) == 3) { //25% Wahrscheinlichkeit
         bestvote = currvote[nun];
@@ -774,7 +774,7 @@ for (nun = 0; nun < sizex; nun++) { //Die besten und schlechtesten Punkte
     }
   }
   if (currvote[nun] < worstvote) { //Schlechtere Bewertung
-    worstvote = currvote[nun]; //Hier nur für Mitte setzen wichtig
+    worstvote = currvote[nun]; //Hier nur fÃ¼r Mitte setzen wichtig
   }
 /*
 #ifdef is_i386
@@ -782,9 +782,9 @@ for (nun = 0; nun < sizex; nun++) { //Die besten und schlechtesten Punkte
 #endif
 */
 }
-//Zurückgeben der Werte
+//ZurÃ¼ckgeben der Werte
 if (bestvote <= -110) { //Verloren, platziere irgendwo
-  //Suche nächsten freien Platz
+  //Suche nÃ¤chsten freien Platz
   bestplace = rand() % sizex; //Zufallsgenerator
   for (nun = 1; nun <= sizex; nun++) {
     bestplace %= sizex;
@@ -812,7 +812,7 @@ if (playerturn == 1) {
   color = 0x03;
 }
 draw_line(8-spielfeld->sizex/2,8-spielfeld->sizey/2-2,spielfeld->sizex,
-          0,color,0); //Obere Zeile füllen
+          0,color,0); //Obere Zeile fÃ¼llen
 xxo_placestone_visual(spielfeld, playerturn, bestpos);
 }
 
@@ -822,11 +822,11 @@ void xxo_start(void) {
 u08 players, playerturn;
 u08 gameinprogress = 1;
 struct xxo_spielfeldstruct spielfeld;
-u08 playeroldpos[2];  //Cursor für beide Spieler
+u08 playeroldpos[2];  //Cursor fÃ¼r beide Spieler
 u08 aipower = 0; //wird durch xxo_selectmode initialisiert falls AI verwendet
 
 players = xxo_selectmode(&spielfeld,&aipower);
-init_random(); //Zufallsgenerator für KI
+init_random(); //Zufallsgenerator fÃ¼r KI
 playeroldpos[0] = (spielfeld.sizex+1)/2;
 playeroldpos[1] = (spielfeld.sizex+1)/2;
 if (players) {
@@ -848,7 +848,7 @@ if (players) {
     if (xxo_is_tie(&spielfeld)) { //Es kann kein Stein mehr gesetzt werden
       gameinprogress = 0;
     }
-  } //Ende Spiel läuft
+  } //Ende Spiel lÃ¤uft
   if (xxo_is_tie(&spielfeld) == 0) { //Wenn jemand gewonnen hat
     xxo_highlightwinner(&spielfeld); //Die gewonnenen 4 aufblinken lassen
   }

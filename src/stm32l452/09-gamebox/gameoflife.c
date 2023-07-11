@@ -18,12 +18,12 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/*Die Game-of-life Funktionen benötigen ungefähr 386 Byte Flash
-Um in der Demo immer die gleichen Resultate unabhängig der 'Auflösung' zu
-erhalten verwende ich hier eine feste Größe von 16x16 Punkten und nicht
-die durch screenx und screeny angegebene Größe.
-Eine Anpassung an andere 'Auflösungen' dürfe aber nicht schwierig sein.
-Datum der letzten Änderung: 2006-11-03
+/*Die Game-of-life Funktionen benÃ¶tigen ungefÃ¤hr 386 Byte Flash
+Um in der Demo immer die gleichen Resultate unabhÃ¤ngig der 'AuflÃ¶sung' zu
+erhalten verwende ich hier eine feste GrÃ¶ÃŸe von 16x16 Punkten und nicht
+die durch screenx und screeny angegebene GrÃ¶ÃŸe.
+Eine Anpassung an andere 'AuflÃ¶sungen' dÃ¼rfe aber nicht schwierig sein.
+Datum der letzten Ã„nderung: 2006-11-03
 2005-07-30: modul_demo Abfrage eingebaut
 2005-08-19: Kommentare aktualisiert
 2006-11-03: Tippfehler in den Kommentaren + Formatierungen korrigiert
@@ -42,7 +42,7 @@ u08 the_data;
 
 if ((px < 16) && (py < 16)) {
   the_data = gdata[py][px];
-  the_data &= 0x30; //Extrahiere grüne Daten
+  the_data &= 0x30; //Extrahiere grÃ¼ne Daten
   if (the_data == 0) {
     return 0;
   } else {
@@ -96,7 +96,7 @@ u08 usedfield;
 usedfield = getneighbour(posx,posy);
   if (is_object(posx,posy) == 0) { //Frei
     if (usedfield == 3) { //Beginne zu leben
-      return 0x40;//Schwaches grün - beginne zu leben
+      return 0x40;//Schwaches grÃ¼n - beginne zu leben
     } else {
       return 0x00; //Pixel aus - bleibe frei
     }
@@ -104,15 +104,15 @@ usedfield = getneighbour(posx,posy);
     if ((usedfield > 3) || (usedfield < 2)) {//Eenn zu viel oder zu wenig
       return 0x04; //Gestorben - schwaches rot
     } else {
-      return 0xc0; //Bleibe am leben - starkes grün
+      return 0xc0; //Bleibe am leben - starkes grÃ¼n
     }
   }//Ende wenn bereits lebt
 }
 
 void gameoflife_step(void) {
-/* 1: Basierend auf den grünen Inhalt erstelle neues Display in unbenutztem
+/* 1: Basierend auf den grÃ¼nen Inhalt erstelle neues Display in unbenutztem
       Speicherteil
-   2: Überschreibe angezeige Daten mit dem unsichtbarem Teil
+   2: Ãœberschreibe angezeige Daten mit dem unsichtbarem Teil
 */
 u08 posx,posy;
 u08 the_data;
@@ -120,7 +120,7 @@ u08 the_data;
 for (posx = 0; posx < 16; posx++) {
   for (posy = 0; posy < 16; posy++) {
     the_data = gdata[posy][posx]; //Lade Daten
-    the_data &= 0x33;//Lösche unsichtbare Daten
+    the_data &= 0x33;//LÃ¶sche unsichtbare Daten
     the_data |= whattodo(posx,posy);
     gdata[posy][posx] = the_data;
   }

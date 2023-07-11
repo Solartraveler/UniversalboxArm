@@ -19,19 +19,19 @@
 */
 
 /* Diese Funktion schreibt einzelne Buchstaben auf das LED Display
-Die Schriftgröße beträgt 5x8 Pixel, wobei nur 5x7 auch gezeichnet werden.
-Jeder Buchstabe benötigt 5 Byte Speicher
-Insgesammt werden ungefähr 465 Byte für die Buchstaben verbaucht
-Der Funktion kann zusätzlich die Font Farbe und Transparenz als
-Parameter übergeben werden
+Die SchriftgrÃ¶ÃŸe betrÃ¤gt 5x8 Pixel, wobei nur 5x7 auch gezeichnet werden.
+Jeder Buchstabe benÃ¶tigt 5 Byte Speicher
+Insgesammt werden ungefÃ¤hr 465 Byte fÃ¼r die Buchstaben verbaucht
+Der Funktion kann zusÃ¤tzlich die Font Farbe und Transparenz als
+Parameter Ã¼bergeben werden
 Die Schrift basiert auf einer modifizierten Schrift von:
 http://overcode.yak.net/12
 
-Zusätzlich gibt es Funktionen zum anzeigen von Texten und Scrolltexten
+ZusÃ¤tzlich gibt es Funktionen zum anzeigen von Texten und Scrolltexten
 
-Datum der letzten Änderung:
+Datum der letzten Ã„nderung:
   2005-07-19: Buchstabe "P" war falsch
-  2005-07-23: draw_tinynumber(), draw_tinydigit() hinzugefügt
+  2005-07-23: draw_tinynumber(), draw_tinydigit() hinzugefÃ¼gt
 
 */
 #include "main.h"
@@ -162,9 +162,9 @@ uint8_t byte_eq_count,nun;
 
 charwidth = 0;
 zeichen -= 32;
-if (zeichen < 94) { //gültiges Zeichen
+if (zeichen < 94) { //gÃ¼ltiges Zeichen
  memcpy_P(copyedbytes,characters+zeichen*5,5);
- //Automatisches verkürzen der Buchstaben
+ //Automatisches verkÃ¼rzen der Buchstaben
  if (shrink != 0) {
    byte_eq_count = 0;
    for (nun = 0; nun < 4; nun++) {
@@ -210,7 +210,7 @@ uint8_t i = 0;       //welches Zeichen gezeichnet wird
 const uint8_t end = strlen(textbuff); //erspart Rechenzeit!
 while (i < end) {
  posx += draw_char(textbuff[i], posx+i, posy, color, transparency, shrink);
-  i++;  // Zeiger um 1 erhöhen
+  i++;  // Zeiger um 1 erhÃ¶hen
 }
 }
 
@@ -221,24 +221,24 @@ uint8_t posshift=0;
 const uint8_t end = strlen(textbuff); //erspart Rechenzeit!
 uint8_t tomove = end;//wie oft geschoben werden muss
 
-//Erstes Zeichnen um die maximale Länge zu ermitteln, jedoch nicht sichtbar
-if ((end < 36) && (end != 0)) { //maximale Textlänge = 35 Zeichen
-  while (i < end) { //Ermittelt die Textlänge in Pixel
+//Erstes Zeichnen um die maximale LÃ¤nge zu ermitteln, jedoch nicht sichtbar
+if ((end < 36) && (end != 0)) { //maximale TextlÃ¤nge = 35 Zeichen
+  while (i < end) { //Ermittelt die TextlÃ¤nge in Pixel
     tomove += draw_char(textbuff[i], screenx, 0, 0, 0, 1);
-    i++;  // Zeiger um 1 erhöhen
+    i++;  // Zeiger um 1 erhÃ¶hen
   }
   tomove -= 2; //zwei Pixel weniger schieben
   while (tomove != 0) { //eigentliche Animation
     tomove --;//Schiebe Text um 1 Pixel nach links
     posshift++;
-    //alten Text mit Hintergrundfarbe überzeichnen
+    //alten Text mit Hintergrundfarbe Ã¼berzeichnen
     draw_box(0, posy, screenx, 7, bcolor, bcolor);
     //Text neu schreiben
     posx = screenx-1;
     i = 0;
     while (i < end) {
       posx += draw_char(textbuff[i], posx+i-posshift, posy, color, 0, 1);
-      i++;  // Zeiger um 1 erhöhen
+      i++;  // Zeiger um 1 erhÃ¶hen
     }
     //Warten, damit der Text sichbar ist
     waitms(waittime);
@@ -261,7 +261,7 @@ const u08 tinynumbers[] PROGMEM = {
 
 void draw_tinydigit(uint8_t ziffer, uint8_t posx,uint8_t posy, uint8_t color) {
 u08 nun, muster, pixely;
-if (ziffer < 10) { //Bereichsüberprüfung
+if (ziffer < 10) { //BereichsÃ¼berprÃ¼fung
   for (nun = 0; nun <3; nun++) {
     muster = pgm_read_byte(tinynumbers +ziffer*3+nun);
     for (pixely = 0; pixely < 5; pixely++) {

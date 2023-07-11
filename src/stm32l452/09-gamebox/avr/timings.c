@@ -21,11 +21,11 @@
 #include "main.h"
 
 void waitms(uint16_t zeitms) {
-//50% der Zeit gehen fürs Anzeigen drauf, also gehen wir von 4MHZ aus
+//50% der Zeit gehen fÃ¼rs Anzeigen drauf, also gehen wir von 4MHZ aus
 if (no_delays != 1) {
   while (zeitms != 0) { //Nicht sonderlich genau
     zeitms--;
-    _delay_loop_2(F_CPU_msdelay);//Jeder Duchlauf mit n=1 benötigt 4 Takte
+    _delay_loop_2(F_CPU_msdelay);//Jeder Duchlauf mit n=1 benÃ¶tigt 4 Takte
   }
 }
 }

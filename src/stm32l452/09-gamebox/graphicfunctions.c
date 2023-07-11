@@ -19,7 +19,7 @@
 */
 
 /*Graphic functions
-Letzte Änderungen: Version 1.0: GPL Header eingefügt
+Letzte Ã„nderungen: Version 1.0: GPL Header eingefÃ¼gt
                    Version 0.50: showbin() hierher verschoben
 
 */
@@ -38,9 +38,9 @@ Letzte Änderungen: Version 1.0: GPL Header eingefügt
 #include "graphicfunctions.h"
 #include <inttypes.h>
 
-//Universeller Speicher für eine Spalte/Zeile + 0 Zeichen
+//Universeller Speicher fÃ¼r eine Spalte/Zeile + 0 Zeichen
 uint8_t linebuff[maxscreen+1];
-uint8_t no_delays;         //Wenn 1, dann werden sämtliche Delays übersprungen
+uint8_t no_delays;         //Wenn 1, dann werden sÃ¤mtliche Delays Ã¼bersprungen
 
 void clear_buff(void) {
 uint8_t pos;
@@ -54,10 +54,10 @@ memcpy_P(linebuff,x,maxscreen);
 }
 
 
-/* Derzeit wird auf gdata noch direkt zugegriffen. Später soll
+/* Derzeit wird auf gdata noch direkt zugegriffen. SpÃ¤ter soll
   dies mit den inline Funktionen pixel_set und pixel_get erfolgen,
   dies ist derzeit jedoch noch nicht der Fall, da der Compiler bei der
-  Verwenung diese Funktionen größeren Code generiert. Möglicherweise
+  Verwenung diese Funktionen grÃ¶ÃŸeren Code generiert. MÃ¶glicherweise
   liegt hier ein Compilerfehler in avr-gcc 3.4.1 vor.
   Siehe dazu auch: http://www.mikrocontroller.net/forum/read-2-127952.html
 */
@@ -156,14 +156,14 @@ for (y = 0;y < screeny;y++) {
 }
 }
 
-//Zeichnet eine Linie, benötigt 340 Byte Flash
+//Zeichnet eine Linie, benÃ¶tigt 340 Byte Flash
 void draw_line (uint8_t posx, uint8_t posy, int8_t lengthx, int8_t lengthy,
                 uint8_t color, uint8_t overlay) {
 uint8_t rundung,pixelx,pixely;
 int16_t steigung;
 int8_t nun;
 uint16_t temp;
-//Bei overlay ist die Farbe nicht überall die gleiche; kostet: 4 Byte
+//Bei overlay ist die Farbe nicht Ã¼berall die gleiche; kostet: 4 Byte
 uint8_t ncolor;
   if (lengthx != 0) {
     steigung = lengthy*256 / lengthx;
@@ -178,7 +178,7 @@ uint8_t ncolor;
       pixelx = posx+nun;
       pixely = posy+rundung+(temp / 256);
       ncolor = color;
-      if (overlay != 0) { //Überlappen durch OR Verknüpfung
+      if (overlay != 0) { //Ãœberlappen durch OR VerknÃ¼pfung
         ncolor |= gdata[pixely][pixelx];
       }
       pixel_set_safe(pixelx,pixely,ncolor);
@@ -202,7 +202,7 @@ uint8_t ncolor;
       pixelx = posx+rundung+(temp) / 256;
       pixely = posy+nun;
       ncolor = color;
-      if (overlay != 0) { // Überlappen durch OR Verknüpfung
+      if (overlay != 0) { // Ãœberlappen durch OR VerknÃ¼pfung
         ncolor |= gdata[pixely][pixelx];
       }
       pixel_set_safe(pixelx,pixely,ncolor);
@@ -225,7 +225,7 @@ for (x = 0;x <screenx;x++) {
     temp = gdata[y][x];//temp ist nicht volatile
     temp &= 0x33;      //Restlichen Bits auf 0 setzen
     temp |= temp*4;    //In die auf 0 gesetzten Bits den anderen Inhalt kopieren
-    gdata[y][x] = temp;//Zurückschreiben
+    gdata[y][x] = temp;//ZurÃ¼ckschreiben
   }
 }
 //Nun die eigentliche Flip Funktion
@@ -235,7 +235,7 @@ for (durchlauf = 3; durchlauf > 0;durchlauf--) {
       temp = gdata[y][x];
       //Rote Pixel
       ocolor = temp & 0x03;//Aktuelles Rot
-      ncolor = temp >>6;//Zukünftiges Rot
+      ncolor = temp >>6;//ZukÃ¼nftiges Rot
       if (ocolor > ncolor) {
         ocolor--;
       }
@@ -243,9 +243,9 @@ for (durchlauf = 3; durchlauf > 0;durchlauf--) {
         ocolor++;
       }
       temp = (temp & 0xfc) | ocolor;
-      //Grüne Pixel
-      ocolor = (temp & 0x30)>>4;//Aktuelles Grün
-      ncolor = (temp & 0x0c)>>2;//Zukünftiges Grün
+      //GrÃ¼ne Pixel
+      ocolor = (temp & 0x30)>>4;//Aktuelles GrÃ¼n
+      ncolor = (temp & 0x0c)>>2;//ZukÃ¼nftiges GrÃ¼n
       if (ocolor > ncolor) {
         ocolor--;
       }
@@ -292,7 +292,7 @@ for (nun = 0; nun < 16; nun++) {
   if ((value & 1) == 0) { //Wenn Bit eine 0
     color = 0; //Keine Farbe
   } else {
-    color = oncolor; //Kräftiges rot
+    color = oncolor; //KrÃ¤ftiges rot
   }
   value = value >> 1; //Rechts Shift
   pixel_set_safe(15-nun,posx,color);

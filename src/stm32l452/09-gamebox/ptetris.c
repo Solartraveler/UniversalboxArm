@@ -21,11 +21,11 @@
 /*
 Spielfeld 12x16 Felder
 Levelanstieg alle 10 Zeilen, 10 Level
-Farben für Steine zufällig außer 0x00
+Farben fÃ¼r Steine zufÃ¤llig auÃŸer 0x00
 Links Statusanzeige, rote Begrenzungslinien
 Objektspeicher 4x4 Felder, wird bei jeder Bewegung mit Kollision im
-Bildspeicher überprüft.
-Bei Drehen wird ebenfalls auf Kollisionen mit dem Bildspeicher überprüft
+Bildspeicher Ã¼berprÃ¼ft.
+Bei Drehen wird ebenfalls auf Kollisionen mit dem Bildspeicher Ã¼berprÃ¼ft
 und gegebenenfalls abgebrochen.
 Block Typen:
 0:    1:    2:    3:    4:    5:    6:
@@ -55,7 +55,7 @@ static void tetris_newblock(struct tetris_blockstruct *theblock) {
 u08 nunx, nuny;
 u16 compactblock;
 u08 color;
-//Nächsten Stein aus Flash lesen
+//NÃ¤chsten Stein aus Flash lesen
 compactblock = pgm_read_word(tetris_compact_block_data+theblock->nexttype);
 //Altes Array leeren und neue Werte hereinsetzen
 for (nuny = 0; nuny < 4; nuny++) {
@@ -72,7 +72,7 @@ theblock->posx = 8;
 theblock->posy = 0;
 //Neue Farbe ermitteln
 theblock->color = ((rand() % 4)) + (((rand() % 3) +1)<<4);
-//Nächsten Block ermitteln
+//NÃ¤chsten Block ermitteln
 theblock->nexttype = rand() % 7;
 //Vorschau Block laden
 compactblock = pgm_read_word(tetris_compact_block_data+theblock->nexttype);
@@ -96,7 +96,7 @@ static u08 tetris_checkcollide(struct tetris_blockstruct *oldblock,
                  struct tetris_blockstruct *newblock) {
 u08 nunx,nuny;
 u08 collide = 0;
-//Testen ob es an der neuen Position zu einer Kollision kommen würde
+//Testen ob es an der neuen Position zu einer Kollision kommen wÃ¼rde
 for (nuny = newblock->posy; nuny < newblock->posy+4; nuny++) {
   for (nunx = newblock->posx; nunx < newblock->posx+4; nunx++) {
     //Wenn an der Stelle ein Punkt im neuem Block
@@ -106,12 +106,12 @@ for (nuny = newblock->posy; nuny < newblock->posy+4; nuny++) {
       }
       //Bildspeicher und neuer Block kollidieren
       else if (pixel_get(nunx,nuny) != 0) {
-        //Testen ob es überhaubt einen altern Block gibt
+        //Testen ob es Ã¼berhaubt einen altern Block gibt
         if (oldblock != NULL) {
           //Position ist jedoch innerhalb des alten Blockes
           if ((nunx >= oldblock->posx) && (nunx < oldblock->posx+4) &&
               (nuny >= oldblock->posy) && (nuny < oldblock->posy+4)) {
-            //Testen ob der Bildpunkt einfach nur von dem alten Block herrührt
+            //Testen ob der Bildpunkt einfach nur von dem alten Block herrÃ¼hrt
          if ((oldblock->block[nunx-oldblock->posx][nuny-oldblock->posy]) == 0) {
             //Ne- ist nicht der Fall, also doch Kollision
               collide = 1;
@@ -134,7 +134,7 @@ static u08 tetris_moveblock(struct tetris_blockstruct *theblock, s08 movex,
 struct tetris_blockstruct testblock;
 u08 nunx,nuny, color;
 u08 collide;
-//Kopiere block, color und nexttype werden nicht kopiert, da unnötig
+//Kopiere block, color und nexttype werden nicht kopiert, da unnÃ¶tig
 testblock.posx = theblock->posx + movex;
 testblock.posy = theblock->posy + movey;
 for (nuny = 0; nuny < 4; nuny++) {
@@ -145,15 +145,15 @@ for (nuny = 0; nuny < 4; nuny++) {
 if ((movex) || (movey)) { //Bewegt sich
   collide = (tetris_checkcollide(theblock,&testblock));
 } else {
-  /* Es ist egal on theblock oder testblock als zweiter Parameter übergeben
+  /* Es ist egal on theblock oder testblock als zweiter Parameter Ã¼bergeben
      wird, da beide bei keiner Bewegung den gleichen Inhalt haben. */
   collide = (tetris_checkcollide(NULL,theblock));
 }
 if (collide == 0) { //Kollidieren nicht
   for (nuny = 0; nuny < 16; nuny++) {
     for (nunx = 3; nunx < 15; nunx++) {
-      color = 0xff; //0xff bedeutet keine Änderung
-      //Wenn innerhalb von theblock, dann löschen
+      color = 0xff; //0xff bedeutet keine Ã„nderung
+      //Wenn innerhalb von theblock, dann lÃ¶schen
       if ((nunx >= theblock->posx) && (nunx < theblock->posx+4) &&
           (nuny >= theblock->posy) && (nuny < theblock->posy+4)) {
         if (theblock->block[nunx-theblock->posx][nuny-theblock->posy]) {
@@ -178,7 +178,7 @@ if (collide == 0) { //Kollidieren nicht
   return 1;
 }
 //Kollidieren
-return 0; //Bewegen nicht möglich
+return 0; //Bewegen nicht mÃ¶glich
 }
 
 static void tetris_removeline(u08 liney) {
@@ -200,7 +200,7 @@ nuny = 0;
 while (nuny < 16) {
   linefull = 1;
   for (nunx = 3; nunx < 15; nunx++) {
-    //Überprüfe eine Zeile
+    //ÃœberprÃ¼fe eine Zeile
     if (pixel_get(nunx,nuny) == 0) {
       linefull = 0;
     }
@@ -225,7 +225,7 @@ for (nuny = 0; nuny < 4; nuny++) {
     testblock.block[nuny][3-nunx] = theblock->block[nunx][nuny];
   }
 }
-//Übertrage Position
+//Ãœbertrage Position
 testblock.posx = theblock->posx;
 testblock.posy = theblock->posy;
 //Auf Kollision testen
@@ -233,8 +233,8 @@ if (tetris_checkcollide(theblock,&testblock) == 0) { //Kollidiert nicht
   //Zeichnen des neuen Blocks
   for (nuny = 0; nuny < 4; nuny++) {
     for (nunx = 0; nunx < 4; nunx++) {
-      color = 0xff; //0xff bedeutet keine Änderung
-      //Wenn innerhalb von theblock, dann löschen
+      color = 0xff; //0xff bedeutet keine Ã„nderung
+      //Wenn innerhalb von theblock, dann lÃ¶schen
       if (theblock->block[nunx][nuny]) {
         color = 0;
       }
@@ -242,7 +242,7 @@ if (tetris_checkcollide(theblock,&testblock) == 0) { //Kollidiert nicht
       if (testblock.block[nunx][nuny]) {
         color = theblock->color;
       }
-      if (color != 0xff) { //wenn Änderung
+      if (color != 0xff) { //wenn Ã„nderung
         pixel_set_safe(theblock->posx+nunx,theblock->posy+nuny,color);
       }
     }
@@ -278,7 +278,7 @@ init_random();
 theblock.nexttype = rand() % 7;
 tetris_newblock(&theblock);
 tetris_moveblock(&theblock,0,0);
-//Timer1 wird für das Timing verwendet, 31,25KHZ Takt
+//Timer1 wird fÃ¼r das Timing verwendet, 31,25KHZ Takt
 TCNT1 = 0; //Reset Timer
 TCCR1B = (1<<CS12); //Prescaler: 256
 userin_flush();
@@ -286,7 +286,7 @@ while (life) {
   if (userin_press())  {
     tetris_rotateblock(&theblock);
   }
-  if (TCNT1 > (F_CPU/25641)) { //100 Durchläufe pro Sekunde; 8MHZ/25641 = 312
+  if (TCNT1 > (F_CPU/25641)) { //100 DurchlÃ¤ufe pro Sekunde; 8MHZ/25641 = 312
     TCNT1 = 0;
     //Links-Rechts schieben
     if (timings[1] != 0xff) { //Links-Rechts schieben Counter
@@ -306,12 +306,12 @@ while (life) {
     //Block nach unten bewegen
     timings[0]++;
     tempabs = 100-(level-1)*10;
-    if (userin.y > 40) { //Der Benutzer möchte den Block schneller platzieren
+    if (userin.y > 40) { //Der Benutzer mÃ¶chte den Block schneller platzieren
       tempabs = min(tempabs,(42-userin.y/4));
     }
     if (timings[0] >= tempabs) {
       timings[0] = 0;
-      if (tetris_moveblock(&theblock,0,1) == 0) { //Wenn bewegen nicht möglich
+      if (tetris_moveblock(&theblock,0,1) == 0) { //Wenn bewegen nicht mÃ¶glich
         //Entferne volle Zeilen
         linesremoved = tetris_checkline();
         //Addiere Pumkte basierend auf der Anzahl der entfernten Zeilen
@@ -327,7 +327,7 @@ while (life) {
         if (linesremoved == 4) {
           points += 8;
         }
-        //Bei einem wirklinch *gutem* Spieler Überlauf verhindern
+        //Bei einem wirklinch *gutem* Spieler Ãœberlauf verhindern
         if (points > 64000) {
           points = 64000;
         }
@@ -337,7 +337,7 @@ while (life) {
           linesdone -= 10;
         }
         tetris_newblock(&theblock);
-        if (tetris_moveblock(&theblock,0,0) == 0) {//Neuer Block nicht möglich
+        if (tetris_moveblock(&theblock,0,0) == 0) {//Neuer Block nicht mÃ¶glich
           life = 0;
         }
       }

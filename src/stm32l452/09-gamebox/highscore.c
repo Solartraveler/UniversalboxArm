@@ -52,10 +52,10 @@ while (userin_press() == 0) { //Warte auf Tastendruck
   }
   draw_string(1,8,0x31,0,1);
 }
-if (accepted == 1) { // Highscores löschen
+if (accepted == 1) { // Highscores lÃ¶schen
   for (nun = 0; nun <scoregames; nun++) {
-    eeprom_write_word(&globalscores[nun],0); //EEProm löschen
-    sessionscores[nun] = 0; //RAM löschen
+    eeprom_write_word(&globalscores[nun],0); //EEProm lÃ¶schen
+    sessionscores[nun] = 0; //RAM lÃ¶schen
   }
   load_text(highscore_clear_save2);
   scrolltext(3,0x13,0,120);

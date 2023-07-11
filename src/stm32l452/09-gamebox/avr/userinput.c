@@ -18,7 +18,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/* Wie die Formeln für die Berechnungen des Joysticks zustandekommen
+/* Wie die Formeln fÃ¼r die Berechnungen des Joysticks zustandekommen
   kann in widerstand-berechnung-joystick.txt nachgelesen werden.
 */
 
@@ -28,7 +28,7 @@
 
 struct userinputstruct userin;
 //Reine A/D Werte: 484, 640, 1022
-//Die min Werte müssen mit (-1) mal-genommen werden (also nur positive Werte)
+//Die min Werte mÃ¼ssen mit (-1) mal-genommen werden (also nur positive Werte)
 struct userinputcalibstruct calib_x = {71, 192, 61}; //Default Werte
 struct userinputcalibstruct calib_y = {71, 192, 61}; //Default Werte
 
@@ -44,7 +44,7 @@ u08 input_calib_ignoretext = 0;
 
 #if modul_calib_save
 
-/*Da die AVRs leider beim Starten EEPRom Zellen überschreiben und dies besonders
+/*Da die AVRs leider beim Starten EEPRom Zellen Ã¼berschreiben und dies besonders
   oft die erste Zelle betrifft, wird diese reservier aber nicht verwendet:
 */
 u08 dummy eeprom_data;
@@ -166,15 +166,15 @@ if (userinputtype == 1) {
     waitms(250);
   }
   load_text(input_calib_text2);
-  draw_box(0,0,16,8,0x00,0x00); //Löschen des Textes
+  draw_box(0,0,16,8,0x00,0x00); //LÃ¶schen des Textes
   draw_string(0,0,0x03,0,1);
   //Deakiviere Timer0 Interrupt
   TIMSK &= ~(1<<TOV0);
-  //Taster sind Low-Aktiv; solange keine Taste gedrückt wird:
+  //Taster sind Low-Aktiv; solange keine Taste gedrÃ¼ckt wird:
   while ((AD_PIN & (JOY_KEY1_PIN_MASK | JOY_KEY2_PIN_MASK)) ==
          (JOY_KEY1_PIN_MASK | JOY_KEY2_PIN_MASK)) {
     //Kalib von X
-    ADMUX = JOY_XAXIS_PIN;   //Kanal wählen
+    ADMUX = JOY_XAXIS_PIN;   //Kanal wÃ¤hlen
     ADCSRA|= (1<<ADSC); //Starte Konvertierung
     while ((ADCSRA & (1<<ADSC)) != 0); //Warte auf Ende
     temp = ADC;
@@ -186,7 +186,7 @@ if (userinputtype == 1) {
       max_x = temp;
     }
     //Kalib von Y
-    ADMUX = JOY_YAXIS_PIN;   //Kanal wählen
+    ADMUX = JOY_YAXIS_PIN;   //Kanal wÃ¤hlen
     ADCSRA|= (1<<ADSC); //Starte Konvertierung
     while ((ADCSRA & (1<<ADSC)) != 0); //Warte auf Ende
     temp = ADC;
@@ -197,23 +197,23 @@ if (userinputtype == 1) {
     if (temp > max_y) {
       max_y = temp;
     }
-    //Anzeigen der bisherigen Werte in Binärzahlen
+    //Anzeigen der bisherigen Werte in BinÃ¤rzahlen
     showbin(8 , min_x, 0x03);
     showbin(10, max_x, 0x03);
     showbin(12, min_y, 0x03);
     showbin(14, max_y, 0x03);
   }
   //Mittelstellung Messen
-  ADMUX = JOY_XAXIS_PIN;   //Kanal wählen (X)
+  ADMUX = JOY_XAXIS_PIN;   //Kanal wÃ¤hlen (X)
   ADCSRA|= (1<<ADSC); //Starte Konvertierung
   while ((ADCSRA & (1<<ADSC)) != 0); //Warte auf Ende
   medium_x = ADC;
-  ADMUX = JOY_YAXIS_PIN;   //Kanal wählen (Y)
+  ADMUX = JOY_YAXIS_PIN;   //Kanal wÃ¤hlen (Y)
   ADCSRA|= (1<<ADSC); //Starte Konvertierung
   while ((ADCSRA & (1<<ADSC)) != 0); //Warte auf Ende
   medium_y = ADC;
   //Da dividiert wird, darf kein Wert = 0 sein!
-  //max Werte können nicht Null sein, brauchen nicht überprüft werden
+  //max Werte kÃ¶nnen nicht Null sein, brauchen nicht Ã¼berprÃ¼ft werden
   if (min_x == 0) {
     min_x = 1;
   }
@@ -229,8 +229,8 @@ if (userinputtype == 1) {
   //Jetzt Kalibrierungswerte berechnen
   calib_x.zero = 122880/medium_x;
   calib_y.zero = 122880/medium_y;
-  calib_x.max = (122880/max_x - calib_x.zero) *(-1); // *(-1) für positive Werte
-  calib_y.max = (122880/max_y - calib_y.zero) *(-1); // *(-1) für positive Werte
+  calib_x.max = (122880/max_x - calib_x.zero) *(-1); // *(-1) fÃ¼r positive Werte
+  calib_y.max = (122880/max_y - calib_y.zero) *(-1); // *(-1) fÃ¼r positive Werte
   calib_x.min = 122880/min_x - calib_x.zero;
   calib_y.min = 122880/min_y - calib_y.zero;
   //Reaktiviere Timer0 Interrupt
@@ -244,9 +244,9 @@ const char input_select_text2[] PROGMEM = "Joy";
 const char input_select_text3[] PROGMEM = "Grav";
 
 void input_select(void) {
-/* Wenn Taste am Joystick gedrückt: joystick = 1;
+/* Wenn Taste am Joystick gedrÃ¼ckt: joystick = 1;
    Wenn Beschleunigungssensoren.z > 64: joystick = 0;
-   Sobald userin_right() -> gehe zurück zu main, welches ins Menü wechselt.
+   Sobald userin_right() -> gehe zurÃ¼ck zu main, welches ins MenÃ¼ wechselt.
 */
 #if modul_xmas
 u16 xmas;
@@ -256,7 +256,7 @@ userin_flush();
 load_text(input_select_text1);
 scrolltext(0,0x03,0,110);
 load_text(input_select_text1b);
-draw_box(0,0,16,8,0x00,0x00); //Löschen des Textes
+draw_box(0,0,16,8,0x00,0x00); //LÃ¶schen des Textes
 draw_string(0,0,0x03,0,1);
 while (userin_right() == 0) {
   //Bei der Taster des Joysticks
@@ -287,9 +287,9 @@ if (userinputtype == 1) {
 
 void input_init(void) {
 /*Initialisieren der Pins.
-  Möglicherweise schon teilweise durch init_io_pins() erfolgt
-  Alle Port Pins werden auf Eingang gestellt. Für alle Pins, mit Außnahme der
-  der Joystick Achsen, werden die Pull-up Widerstände aktiviert.*/
+  MÃ¶glicherweise schon teilweise durch init_io_pins() erfolgt
+  Alle Port Pins werden auf Eingang gestellt. FÃ¼r alle Pins, mit AuÃŸnahme der
+  der Joystick Achsen, werden die Pull-up WiderstÃ¤nde aktiviert.*/
 AD_DDR = 0x00; //Eingang
 AD_PORT = ~((1<<JOY_XAXIS_PIN)|(1<<JOY_YAXIS_PIN)|(1<<JOY_ZAXIS_PIN));
 //Timer0 soll jede ms aufgerufen werden also alle 8000 Takte bei 8MHZ
@@ -304,9 +304,9 @@ ISR(TIMER0_OVF_vect) {  //knapp 1000 Aufrufe pro Sekunde
 s16 adwert;
 s08 tinyadwert;
 
-sei(); //Wir müssen den Graphic Interrupt zulassen!
+sei(); //Wir mÃ¼ssen den Graphic Interrupt zulassen!
 if (userinputtype != 0) { //Joystick oder Taster
-  if ((AD_PIN & JOY_KEY1_PIN_MASK) == 0) { //Taste 1 gedrückt
+  if ((AD_PIN & JOY_KEY1_PIN_MASK) == 0) { //Taste 1 gedrÃ¼ckt
     if (snap_key == 0) {
       userin.press = 1;
       snap_key = 1;
@@ -334,19 +334,19 @@ if (userinputtype == 1) { //Joystick
     precount_x = 0;
     adwert = presample_x/25; //min 0, max 1023
     presample_x = 0;
-    if (adwert > 10) { //Verhindern eines Überlaufes oder Division durch Null
+    if (adwert > 10) { //Verhindern eines Ãœberlaufes oder Division durch Null
       adwert = (s16)((u32)122880/adwert); //Linearisierung
-      adwert -= calib_x.zero; //Offset abziehen, wenn man so möchte
+      adwert -= calib_x.zero; //Offset abziehen, wenn man so mÃ¶chte
       if (adwert < 0) {
         adwert = adwert*255/calib_x.min;
       } else
       if (adwert > 0) {
         adwert = adwert*255/calib_x.max;
       }
-      if (adwert < -127) { //Überläufe nach unten verhindern
+      if (adwert < -127) { //ÃœberlÃ¤ufe nach unten verhindern
         adwert = -127;
       }
-      if (adwert > 127) { //Überläufe nach oben verhindern
+      if (adwert > 127) { //ÃœberlÃ¤ufe nach oben verhindern
         adwert = 127;
       }
       tinyadwert = (u08)adwert;
@@ -369,7 +369,7 @@ if (userinputtype == 1) { //Joystick
     precount_y = 0;
     adwert = presample_y/25;
     presample_y = 0;
-    if (adwert > 10) { //Verhindern eines Überlaufes oder Division durch Null
+    if (adwert > 10) { //Verhindern eines Ãœberlaufes oder Division durch Null
       adwert = (s16)((u32)122880/adwert); //Linearisierung
       adwert -= calib_y.zero;
       if (adwert < 0) {
@@ -378,10 +378,10 @@ if (userinputtype == 1) { //Joystick
       if (adwert > 0) {
         adwert = adwert*255/calib_y.max;
       }
-      if (adwert < -127) { //überläufe nach unten verhindern
+      if (adwert < -127) { //Ã¼berlÃ¤ufe nach unten verhindern
         adwert = -127;
       }
-      if (adwert > 127) { //Überläufe nach oben verhindern
+      if (adwert > 127) { //ÃœberlÃ¤ufe nach oben verhindern
         adwert = 127;
       }
       tinyadwert = (u08)adwert;

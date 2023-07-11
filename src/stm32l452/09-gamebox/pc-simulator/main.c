@@ -26,21 +26,21 @@
   Zweck:    Spiele auf einem Grafikdisplay - Demonstration auf dem PC.
   Software: GCC
   Hardware: PC mit mind 500MHZ und 800x600 @ 256 Farben 3D beschleunigte Grafik
-            Für die Mikrocontroller Version siehe ../avr
+            FÃ¼r die Mikrocontroller Version siehe ../avr
   Wer Fragen oder Anregungen zu dem Programm hat, kann an
              m.marwedel <AT> onlinehome DOT de mailen.
-            Mehr über Elektronik und AVRs gibt es auf meiner Homepage:
+            Mehr Ã¼ber Elektronik und AVRs gibt es auf meiner Homepage:
              http://www.marwedels.de/malte/
-  Code Größe:ATMEGA32: 24524 Byte (getestet, alle Module)
+  Code GrÃ¶ÃŸe:ATMEGA32: 24524 Byte (getestet, alle Module)
   Compiler Optionen: -Os -ffast-math -fweb -Winline
   Verwendete Software zum compilieren:
             gcc  Version: 4.0.2 / 3.4.5 (epfohlen) / 3.3.6
             GLUT
 
 Steuerung des Spiels:
-Leertaste oder linke Maustaste: Auswählen
+Leertaste oder linke Maustaste: AuswÃ¤hlen
 Cursor oder Maus: Nach links, rechts, oben, unten bewegen
-Maus: Analoge Eingabe wie mit einem Joystic möglich
+Maus: Analoge Eingabe wie mit einem Joystic mÃ¶glich
 
 */
 
@@ -126,7 +126,7 @@ glutKeyboardFunc(input_key_key);         //Space Taste
 if (pthread_create(&avr_timer_id, NULL, timer1_sim, (void *)(0))) {
   printf("Error: Creating avr_timer_thread failed\n");
 }
-//Die primäre Endlosschleife des AVRs läuft auf dem PC als extra Thread
+//Die primÃ¤re Endlosschleife des AVRs lÃ¤uft auf dem PC als extra Thread
 if (pthread_create(&avr_thread_id, NULL, avr_thread, (void *)(0))) {
   printf("Error: Creating avr_thread failed\n");
 }

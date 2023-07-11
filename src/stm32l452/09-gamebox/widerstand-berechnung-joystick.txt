@@ -1,4 +1,4 @@
-//wir wollen das Verh‰ltnis von Rx zu Ua
+//wir wollen das Verh√§ltnis von Rx zu Ua
  | +
 | | Rx
 | |<-\------o
@@ -25,7 +25,7 @@ Wert = 500/Ua -100 //Wert zwischen 0 und 100
 Ua = ADC/1024*5V = ADC*5V/1024
 
 
---------f¸r R2 wurden 120K eingebaut-------
+--------f√ºr R2 wurden 120K eingebaut-------
 Ua = 5V/(Rx+120K)*120K    |nach Rx
 Ua = 5V*120k/(Rx+120K)    |*(Rx+120k)
 Ua*(Rx+120k) = 5V*120k    |:Ua
