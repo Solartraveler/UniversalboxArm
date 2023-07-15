@@ -18,7 +18,7 @@
 #Name of this application
 NAME     = Test-everything
 #Version of this application, to be used in the metadata
-VERSION  = 0.13.1
+VERSION  = 0.14.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -26,7 +26,8 @@ LICENSE  = BSD-3-Clause
 #The MCU, this binary is compiled for, to be used in the metadata
 CHIP     = stm32l452
 #Watchdog in [ms]. 0 disables, maximum is 65535
-WATCHDOG = 60000
+#WATCHDOG = 60000
+WATCHDOG = 0
 
 #If the name is not readme.md, --transform needs to be used to adjust the name
 TARREADME = readme.md

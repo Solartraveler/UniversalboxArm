@@ -63,6 +63,7 @@ void MainMenu(void) {
 	printf("k: Check coprocessor communication\r\n");
 	printf("n: Manual coprocessor SPI voltage control\r\n");
 	printf("l: Minimize power for 4 seconds\r\n");
+	printf("p: Set analog, pull-up or pull down on pin\r\n");
 	printf("r: Reboot with reset controller\r\n");
 	printf("s: Jump to DFU bootloader\r\n");
 	printf("t: Reboot to normal mode (needs coprocessor)\r\n");
@@ -80,6 +81,28 @@ void AppInit(void) {
 	PeripheralInit();
 	MainMenu();
 }
+
+#define PIN_NUM 11
+
+typedef struct {
+	GPIO_TypeDef * port;
+	uint32_t pin;
+	const char * name;
+} pin_t;
+
+const pin_t g_pins[PIN_NUM] = {
+	{GPIOC, GPIO_PIN_1, "PC1, ADC2"},
+	{GPIOC, GPIO_PIN_0, "PC0, ADC1"},
+	{GPIOC, GPIO_PIN_3, "PC3, ADC4"},
+	{GPIOA, GPIO_PIN_4, "PA4, ADC9, DAC1"},
+	{GPIOB, GPIO_PIN_3, "PB3, SPI1SCK"},
+	{GPIOB, GPIO_PIN_4, "PB4, SPI1MISO"},
+	{GPIOB, GPIO_PIN_5, "PB5, SPI1MOSI"},
+	{GPIOA, GPIO_PIN_3, "PA3, ADC8, UART2RX"},
+	{GPIOA, GPIO_PIN_2, "PA2, ADC7, UART2TX"},
+	{GPIOA, GPIO_PIN_1, "PA1, ADC6, Tim2Ch2"},
+	{GPIOA, GPIO_PIN_0, "PA0, ADC5, Tim2Ch1"},
+};
 
 #define CHANNELS 19
 
@@ -105,7 +128,7 @@ const char * g_adcNames[CHANNELS] = {
 	"Bat"
 };
 
-void ReadSensors() {
+void ReadSensors(void) {
 	KeysInit();
 	bool right = KeyRightPressed();
 	bool left = KeyLeftPressed();
@@ -144,9 +167,69 @@ void ReadSensors() {
 			printf("  Temp = %u.%u°C\r\n", (int)temperatureCelsius, (int)diff);
 		}
 	}
+	for (uint32_t i = 0; i < PIN_NUM; i++) {
+		unsigned int set = 0;
+		if (HAL_GPIO_ReadPin(g_pins[i].port, g_pins[i].pin) == GPIO_PIN_SET) {
+			set = 1;
+		}
+		printf("%s: %u\r\n", g_pins[i].name, set);
+	}
 }
 
-void SetLeds() {
+void ChangePullPin(void) {
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+	static uint8_t pinMode[PIN_NUM] = {0};
+	const char * modeName[4] = {"analog", "input", "input pull-up", "input pull-down"};
+	printf("Select pin to change\r\n");
+	for (uint32_t i = 0; i < PIN_NUM; i++) {
+		const char * state = modeName[pinMode[i]];
+		printf("%02i: %s = %s\r\n", (unsigned int)i, g_pins[i].name, state);
+	}
+	char buffer[8];
+	ReadSerialLine(buffer, sizeof(buffer));
+	unsigned int pin;
+	sscanf(buffer, "%u", &pin);
+	if (pin >= PIN_NUM) {
+		printf("Pin unknown\r\n");
+		return;
+	}
+	printf("Enter new mode: a: analog i: input floating, u: input + pull-up, d: input + pull-down\r\n");
+	ReadSerialLine(buffer, sizeof(buffer));
+	char c = buffer[0];
+	uint32_t pull;
+	uint32_t mode;
+	if (c == 'a') {
+		pinMode[pin] = 0; //Default after reset
+		pull = GPIO_NOPULL;
+		mode = GPIO_MODE_ANALOG;
+	} else if (c == 'i') {
+		pinMode[pin] = 1;
+		pull = GPIO_NOPULL;
+		mode = GPIO_MODE_INPUT;
+	} else if (c == 'u') {
+		pinMode[pin] = 2;
+		pull = GPIO_PULLUP;
+		mode = GPIO_MODE_INPUT;
+	} else if (c == 'd') {
+		pinMode[pin] = 3;
+		pull = GPIO_PULLDOWN;
+		mode = GPIO_MODE_INPUT;
+	} else {
+		printf("Mode unsupported\r\n");
+		return;
+	}
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	GPIO_InitStruct.Pin = g_pins[pin].pin;
+	GPIO_InitStruct.Mode = mode;
+	GPIO_InitStruct.Pull = pull;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(g_pins[pin].port, &GPIO_InitStruct);
+	printf("Done\r\n");
+}
+
+void SetLeds(void) {
 	printf("\r\nToggle LEDs by entering 1...4. All other keys return\r\n");
 	char c;
 	bool valid;
@@ -979,6 +1062,7 @@ void AppCycle(void) {
 		case 'l': MinPower(); break;
 		case 'm': ManualLcdCmd(); break;
 		case 'n': ManualSpiCoprocLevel(); break;
+		case 'p': ChangePullPin(); break;
 		case 'r': NVIC_SystemReset(); break;
 		case 's': JumpDfu(); break;
 		case 't': RebootToNormal(); break;
