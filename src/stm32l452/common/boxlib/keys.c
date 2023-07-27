@@ -36,8 +36,7 @@ __attribute__((weak)) void KeysInit(void) {
 }
 
 bool KeyRightPressed(void) {
-	if (HAL_GPIO_ReadPin(KeyRight_GPIO_Port, KeyRight_Pin) == GPIO_PIN_RESET)
-	{
+	if (HAL_GPIO_ReadPin(KeyRight_GPIO_Port, KeyRight_Pin) == GPIO_PIN_RESET) {
 		return true;
 	}
 	return false;
