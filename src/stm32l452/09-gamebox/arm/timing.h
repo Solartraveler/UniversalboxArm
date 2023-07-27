@@ -1,6 +1,6 @@
 /*
    Gamebox
-    Copyright (C) 2004-2006, 2023  by Malte Marwedel
+    Copyright (C) 2023 by Malte Marwedel
     m.talk AT marwedels dot de
 
     This program is free software; you can redistribute it and/or modify
@@ -18,26 +18,18 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef TIMINGS_H
- #define TIMINGS_H
+#ifndef TIMING_H
+ #define TIMING1_H
 
-static inline void timer_start(uint8_t prescaler) {
-	TCNT1 = 0; //Reset Timer
-	TCCR1B = prescaler;
-}
+#define CS12 2
 
-static inline void timer_set(uint16_t newValue) {
-	TCNT1 = newValue;
-}
+void timer_start(uint8_t prescaler);
+void timer_set(uint16_t newValue);
+uint16_t timer_get(void);
+void timer_stop(void);
 
-static inline uint16_t timer_get(void) {
-	return TCNT1;
-}
-
-static inline void timer_stop(void) {
-	TCCR1B = 0;
-}
-
+unsigned long long get_time1M(void);
 void waitms(uint16_t zeitms);
+
 
 #endif

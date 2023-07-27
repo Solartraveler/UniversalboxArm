@@ -432,16 +432,15 @@ mode = pong_selectmode();
 //Zufallsgenerator initialisieren
 init_random();
 //Timer1 wird für das Timing verwendet, 31,25KHZ Takt
-TCNT1 = 0; //Reset Timer
-TCCR1B = (1<<CS12); //Prescaler: 256
+timer_start(1<<CS12); //Prescaler: 256
 while (gameend == 0) {
   //Setzen der Spieler 1 Position
   play1pos = 7 + userin.x/18;
   play1pos = min(play1pos,14);
   play1pos = max(play1pos,1);
   //Timings erzeugen
-  if (TCNT1 > (F_CPU/51282)) { //Wenn 5ms vergangen sind; (8MHZ/51282)=156
-    TCNT1 = 0;
+  if (timer_get() > (F_CPU/51282)) { //Wenn 5ms vergangen sind; (8MHZ/51282)=156
+    timer_set(0);
     for (nun = 0; nun < pong_virtual_timers; nun++) {
       if (timings[nun] != 0xff) {
         timings[nun]++;
@@ -489,7 +488,7 @@ while (gameend == 0) {
   play1pos_o = play1pos;
   play2pos_o = play2pos;
 }
-TCCR1B = 0; //Stopp Timer1
+timer_stop(); //Stopp Timer1
 waitms(1000);
 draw_box(0,1,16,14,0x00,0x00);
 userin_flush();

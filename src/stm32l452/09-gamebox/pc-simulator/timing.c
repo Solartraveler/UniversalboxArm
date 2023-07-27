@@ -42,8 +42,23 @@ time1000k = data1.tv_sec*1000000+data1.tv_usec;
 return time1000k;
 }
 
+void timer_start(uint8_t prescaler) {
+	TCNT1 = 0; //Reset Timer
+	TCCR1B = prescaler;
+}
 
-//void timer1_sim(int foo) {
+void timer_set(uint16_t newValue) {
+	TCNT1 = newValue;
+}
+
+uint16_t timer_get(void) {
+	return TCNT1;
+}
+
+void timer_stop(void) {
+	TCCR1B = 0;
+}
+
 void * timer1_sim(void * arg) {
 (void)arg;
 unsigned long long currenttime, delta;

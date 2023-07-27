@@ -184,12 +184,11 @@ if (fifo.address != NULL) {
   //Apfel setzen
   snake_placeapple();
   //Timer1 wird für das Timing verwendet, 31,25KHZ Takt
-  TCNT1 = 0; //Reset Timer
-  TCCR1B = (1<<CS12); //Prescaler: 256
+  timer_start(1<<CS12); //Prescaler: 256
   userin_flush();
   while(life == 1) {
-    if (TCNT1 > (F_CPU/25641)) { //Wenn 10ms vergangen, bei 8MHZ TCNT1 > 312
-      TCNT1 = 0;
+    if (timer_get() > (F_CPU/25641)) { //Wenn 10ms vergangen, bei 8MHZ TCNT1 > 312
+      timer_set(0);
       time++;
       waitcount++;
       //Benutzereingabe bearbeiten - Geschwindigkeit
@@ -245,7 +244,7 @@ if (fifo.address != NULL) {
     } //Ende 10ms Durchlauf
   } //Ende while Schleife
   free(fifo.address);
-  TCCR1B = 0; //Timer stoppen
+  timer_stop(); //Timer stoppen
   waitms(600);
   points *= 10;
   time /= 100;

@@ -23,8 +23,11 @@
 
 #define CS12 2
 
-extern u08 volatile TCCR1B;
-extern u16 volatile TCNT1;
+void timer_start(uint8_t prescaler);
+void timer_set(uint16_t newValue);
+uint16_t timer_get(void);
+void timer_stop(void);
+
 
 unsigned long long get_time10k(void);
 //void timer1_sim(int foo);

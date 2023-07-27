@@ -73,8 +73,7 @@ steps = 0;
 moved = 0;
 glsteps = -8;
 //Timer1 wird für das Timing verwendet, 31,25KHZ Takt
-TCNT1 = 0; //Reset Timer
-TCCR1B = (1<<CS12); //Prescaler: 256
+timer_start(1<<CS12); //Prescaler: 256
 //Zufallsgenerator initialisieren
 init_random();
 while (lifes > 0) { //Solange noch Leben vorhanden
@@ -112,9 +111,9 @@ while (lifes > 0) { //Solange noch Leben vorhanden
     pixel_set_safe(carpos,15, pixel_get(carpos,15) | 0x31);
   }
   //Spielfeld einen Schritt herunter bewegen
-  if (TCNT1 > (F_CPU/1280)) { //Mehr als 200ms sind vergangen; (8M/1280) = 6250
+  if (timer_get() > (F_CPU/1280)) { //Mehr als 200ms sind vergangen; (8M/1280) = 6250
     moved = 1; //Neue Berührungen überprüfen
-    TCNT1 = (level-1)*(F_CPU/26229); //(8M/26229) = 305
+    timer_set((level-1)*(F_CPU/26229)); //(8M/26229) = 305
     for (nun = 2;nun <= 13;nun++) { //Spielfeld um 1 nach unten
       move_line_down(nun);
     }
@@ -136,7 +135,7 @@ while (lifes > 0) { //Solange noch Leben vorhanden
   carpos_old = carpos;
 }
 waitms(1000);
-TCCR1B = 0; //Stopp Timer1
+timer_stop(); //Stopp Timer1
 //Bildschrim leeren
 for (nun = 0; nun < 16;nun++) {
   move_up();

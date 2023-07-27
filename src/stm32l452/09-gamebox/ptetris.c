@@ -279,15 +279,14 @@ theblock.nexttype = rand() % 7;
 tetris_newblock(&theblock);
 tetris_moveblock(&theblock,0,0);
 //Timer1 wird für das Timing verwendet, 31,25KHZ Takt
-TCNT1 = 0; //Reset Timer
-TCCR1B = (1<<CS12); //Prescaler: 256
+timer_start(1<<CS12); //Prescaler: 256
 userin_flush();
 while (life) {
   if (userin_press())  {
     tetris_rotateblock(&theblock);
   }
-  if (TCNT1 > (F_CPU/25641)) { //100 Durchläufe pro Sekunde; 8MHZ/25641 = 312
-    TCNT1 = 0;
+  if (timer_get() > (F_CPU/25641)) { //100 Durchläufe pro Sekunde; 8MHZ/25641 = 312
+    timer_set(0);
     //Links-Rechts schieben
     if (timings[1] != 0xff) { //Links-Rechts schieben Counter
       timings[1]++;
@@ -350,7 +349,7 @@ while (life) {
   draw_line(1,15,0,-(linesdone%10),0x31,0); //Gelber Balken
   draw_line(1,6,0,10-(linesdone%10),0x00,0); //Dunkler Balken
 }
-TCCR1B = 0; //Stopp Timer1
+timer_stop(); //Stopp Timer1
 waitms(1000);
 draw_gamepoints(points, TETRIS_ID);
 }
