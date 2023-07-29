@@ -290,7 +290,7 @@ void menu_screen_colorize_border(FB_COLOR_OUT_TYPE color, FB_SCREENPOS_TYPE size
 			LcdWriteRect(g_fbOffsetX, y, borderMiddle, 1, (const uint8_t*)block, borderMiddle * sizeof(FB_COLOR_OUT_TYPE));
 		}
 	}
-	LcdWaitBackgroundDone();
+	LcdWaitBackgroundDoneRelease();
 }
 
 

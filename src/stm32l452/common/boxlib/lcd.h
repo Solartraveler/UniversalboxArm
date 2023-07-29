@@ -81,7 +81,7 @@ void LcdCommandDataBackground(uint8_t command, const uint8_t * dataOut, uint8_t 
 //Background operation if spiDma.c is used.
 //Waits for previous transfers to finish by calling LcdWaitBackgroundDone
 //Thread safe, if peripheralMt.c is used.
-//The lock is only taken, a release is done by a call to LcdWaitBackgroundDone
+//The lock is only taken, a release is done by a call to LcdWaitBackgroundDoneRelease
 void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint8_t * data, size_t len);
 
 /*If LcdWriteRect is using DMA, the buffer data must be valid until this function
@@ -89,6 +89,12 @@ void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const
   LcdWaitDmaDone before a next LcdWriteRect call. Other functions however need a call
   before too. If DMA and threadsafetyness is not used by the implementation,
   the function may be left empty.
-  After disabling chip select, this releases the threadsafe lock.
+  This function disables the chip select. If a lock was taken, this will stay as it is.
 */
 void LcdWaitBackgroundDone(void);
+
+/*
+This function calls LcdWaitBackgroundDone() and then releases the lock if it was taken by
+by LcdWriteRect()
+*/
+void LcdWaitBackgroundDoneRelease(void);

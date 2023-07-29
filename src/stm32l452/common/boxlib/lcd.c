@@ -170,7 +170,11 @@ void LcdCommandDataBackground(uint8_t command, const uint8_t * dataOut, uint8_t 
 void LcdWaitBackgroundDone(void) {
 	PeripheralTransferWaitDone();
 	LcdCsOff();
-	if (g_lcdTransferStarted) { //only unlock, if a LCD function was the one who locked
+}
+
+void LcdWaitBackgroundDoneRelease(void) {
+	LcdWaitBackgroundDone();
+	if (g_lcdTransferStarted) {
 		PeripheralUnlockMt();
 		g_lcdTransferStarted = false;
 	}
@@ -192,7 +196,7 @@ void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const
 	if (!g_lcdEnabled) {
 		return;
 	}
-	LcdWaitBackgroundDone();
+	LcdWaitBackgroundDoneRelease();
 	PeripheralLockMt();
 	g_lcdTransferStarted = true;
 	PeripheralPrescaler(g_lcdPrescaler);
@@ -211,6 +215,7 @@ void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const
 			Ili9341WriteArray(data, len);
 		}
 	}
+	LcdWaitBackgroundDoneRelease();
 }
 
 void LcdDrawHLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {

@@ -480,6 +480,11 @@ void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const
 void LcdWaitBackgroundDone(void) {
 }
 
+void LcdWaitBackgroundDoneRelease(void) {
+	LcdWaitBackgroundDone();
+}
+
+
 //shows colored lines, a black square in the upper left and a box around it
 void LcdTestpattern(void) {
 	uint16_t height = g_lcdHeight;

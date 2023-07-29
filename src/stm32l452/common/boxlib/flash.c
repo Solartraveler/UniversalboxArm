@@ -163,7 +163,12 @@ bool FlashWriteBuffer1(const uint8_t * buffer) {
 	return result;
 }
 
+//Thread safe if peripheralMt.c is used
 static bool FlashWritePage(uint32_t address, const uint8_t * buffer) {
+	//0. thread safetyness
+	PeripheralLockMt();
+	//1. set prescaler
+	PeripheralPrescaler(g_flashPrescaler);
 	//1. delete page
 	FlashWaitNonBusy();
 	uint8_t out[4];
@@ -182,6 +187,8 @@ static bool FlashWritePage(uint32_t address, const uint8_t * buffer) {
 	out[3] = address & 0xFF;
 	FlashTransfer(out, NULL, sizeof(out));
 	FlashWaitNonBusy();
+	//4. unlock
+	PeripheralUnlockMt();
 	return success;
 }
 
@@ -192,7 +199,6 @@ bool FlashWrite(uint32_t address, const uint8_t * buffer, size_t len) {
 	if (!g_flashInit) {
 		return false;
 	}
-	PeripheralPrescaler(g_flashPrescaler);
 	while (len) {
 		if (!FlashWritePage(address, buffer)) {
 			return false;

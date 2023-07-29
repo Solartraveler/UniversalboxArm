@@ -148,7 +148,7 @@ void menu_screen_flush(void) {
 		}
 	}
 	g_fbWritten = 1;
-	LcdWaitBackgroundDone(); //is an empty function if DMA is not used
+	LcdWaitBackgroundDoneRelease();
 	//uint32_t timeStop = HAL_GetTick();
 	//printf("Redraw took %uticks\r\n", (unsigned int)(timeStop - timeStart));
 }
