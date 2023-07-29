@@ -232,7 +232,9 @@ Das Timing ist nicht optimal, dies könnte in seltenenen Fällen zu Fehlern in d
 Spielen führen. Beobachtet habe ich bisher aber keine.
 
 ------------------------------ Changelog ---------------------------------------
-Nächste Version:
+Version: 1.10 Datum: 2023-07-29
+  ARM port
+  Timer Abstrahierung
   Dateien von iso 8859-15 in utf-8 konvertiert
 
 Version 1.03 Datum: 2023-07-09

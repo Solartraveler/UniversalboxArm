@@ -1,0 +1,41 @@
+//we want the ratio of Rx to Ua(+)
+ | +
+| | Rx
+| |<-\------o Ui
+ |   |
+     |
+    | |
+    | | R2
+     |
+     -
+Ua = Ui/(Rx+R2)*R2
+Ui = 3.3V; R2= 100kΩ
+
+Ua                = 3.3V / (Rx + 100kΩ) * 100kΩ
+Ua                = 330kΩV / (Rx + 100kΩ)
+//set to Rx
+Ua * (Rx + 100kΩ) = 330kΩV                   |/Ua
+Rx / 1000 + 100kΩ = 330kΩV / Ua              |-100kΩ
+Rx                = 330kΩV / Ua - 100kΩ
+
+Value = 500/Ua - 100 //Value between 0 und 100
+
+Ua = ADC / 4095 * 3.3V = ADC * 3.3V / 4095
+
+------------insert----------------------
+Rx = 330kΩV / (ADC * 3.3V / 4095) - 100kΩ
+Rx = 330kΩV * 4095 / (ADC * 3.3V) - 100kΩ
+Rx = 100kΩ * 4095 / ADC - 100kΩ
+Rx = 100kΩ * 4095 / ADC - 100kΩ     |:1k
+1k*Rx = 100Ω * 4095 / ADC - 100Ω
+Rx/100 = 4095000Ω / ADC - 1000Ω
+
+----Zero point calibration-----------------
+0 = 4095000/medium - calib.zero
+calib.zero = 4095000/medium
+
+---Min-Max calibration--------------------
+255 = value * 255/calib.max           |:255
+value = 4095000/ADC - calib.zero     einsetzen
+1 = (4095000/ADC - calib.zero)/calib.max
+calib.max = 4095000/ADC -calib.zero

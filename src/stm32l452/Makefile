@@ -14,8 +14,7 @@ all:
 	$(MAKE) -j -C 08-freertos-helloworld/pc-simulator
 	$(MAKE) -j -C 09-gamebox/pc-simulator
 	$(MAKE) -j -C 09-gamebox/avr
-
-
+	$(MAKE) -j -C 09-gamebox/arm
 
 clean:
 	$(MAKE) clean -C 01-blinky-hal
@@ -33,4 +32,4 @@ clean:
 	$(MAKE) clean -C 08-freertos-helloworld/pc-simulator
 	$(MAKE) clean -C 09-gamebox/pc-simulator
 	$(MAKE) clean -C 09-gamebox/avr
-
+	$(MAKE) clean -C 09-gamebox/arm
