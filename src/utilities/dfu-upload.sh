@@ -58,7 +58,7 @@ if [[ "$DEVICES" == *"name=\"@Internal RAM"* ]]; then
 #remove :leave to not start the program after downloading
 #replace -a 0 by -a 1 to store the program in the external flash. Can be combined with :leave.
 
-dfu-util -S "Loader" -a $STORETOEXTFLASH -s 0x01000$LEAVE -D "$PREFIX-ram.tar"
+dfu-util -S "Loader" -d 0x1209:7702 -a $STORETOEXTFLASH -s 0x01000$LEAVE -D "$PREFIX-ram.tar"
 
 elif [[ "$DEVICES" == *"name=\"@Internal Flash"* ]]; then
 #Use the DFU download program stored in the ROM by ST

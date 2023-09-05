@@ -50,7 +50,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #define USB_STRING_TARGET 4
 #define USB_STRING_EXTTARGET 5
 
-/* The PID used here is reserved for general test purpose.
+/* The PID used here is reserved for this DFU compatible project.
 See: https://pid.codes/1209/
 */
 uint8_t g_deviceDescriptor[] = {
@@ -62,7 +62,7 @@ uint8_t g_deviceDescriptor[] = {
 	0x0,        //device protocol
 	USB_MAX_PACKET_SIZE, //maximum packet size
 	0x09,0x12,  //vid
-	0x03,0x00,  //pid
+	0x02,0x77,  //pid
 	0x00,0x01,  //revision
 	USB_STRING_MANUF,   //manufacturer index
 	USB_STRING_PRODUCT, //product name index
