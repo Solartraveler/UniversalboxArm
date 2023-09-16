@@ -10,6 +10,12 @@ FreeRTOS from (https https://github.com/FreeRTOS/FreeRTOS-Kernel) version 10.5.1
 
 License: MIT
 
+# irmp
+IRMP, the [infrared multiprotocol decoder library](https://www.mikrocontroller.net/articles/IRMP).
+The files are taken from the .zip archive version 3.2.6 (27.01.2021).
+
+License: GPL v2 or newer
+
 # jsmn
 Json parser from (https://github.com/zserge/jsmn) version 1.1.0
 
