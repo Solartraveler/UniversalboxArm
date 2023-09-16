@@ -28,3 +28,8 @@ bool BeginsWith(const char * string, const char * starting);
 uint32_t BytesFlip(uint32_t in);
 
 size_t strlcpy(char * dest, const char * src, size_t maxDest);
+
+static inline uint32_t AtomicExchange32(uint32_t * ptr, uint32_t newValue) {
+	uint32_t old = __atomic_exchange_n(ptr, newValue, __ATOMIC_SEQ_CST );
+	return old;
+}
