@@ -77,8 +77,6 @@ typedef struct {
 	bool syncNow; //flag, set by the GUI thread, cleared here
 } state_t;
 
-uint32_t g_cycleTick;
-
 state_t g_state;
 
 StaticTask_t g_IdleTcb;
