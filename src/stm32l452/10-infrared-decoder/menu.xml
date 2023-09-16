@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MenuConfig Xsize="320" Ysize="240" compact="-1" multilang="0" languages="1" utf8="1" mousesupport="0" fileformat="2" colorFormatRed1="3" colorFormatRed2="5" colorFormatRed3="8" colorFormatGreen1="3" colorFormatGreen2="6" colorFormatGreen3="8" colorFormatBlue1="2" colorFormatBlue2="5" colorFormatBlue3="8" backgroundcolor="16777215" bordercolor="0" textcolor="0" subwindowBordercolor="0" subwindowBackgroundcolor="16777215" displaytype="5">
+  <window number="1" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="128x128">
+    <list number="1" Xpos="0" Ypos="16" focusable="0" rectangle="-1" Xsize="128" Ysize="112" font="4" fontfocus="6" text="IR" storagemethod="1" checkname="list1" action="" screen="" upkey="0" downkey="0" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <label number="2" Xpos="2" Ypos="1" font="4" storagemethod="0" text="IR received" multilang="0" transparency="0"/>
+    <shortcut number="3" shortcutkey="101" action="" screen="window 2"/>
+    <shortcut number="4" shortcutkey="102" action="" screen="window 3"/>
+    <button number="5" Xpos="93" Ypos="2" focusable="1" rectangle="1" Xsize="30" Ysize="12" font="0" fontfocus="0" text="Clear" storagemethod="0" action="CLEAR" screen="" multilang="0" transparency="0"/>
+  </window>
+  <window number="2" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="160x128">
+    <list number="1" Xpos="0" Ypos="16" focusable="0" rectangle="-1" Xsize="160" Ysize="112" font="4" fontfocus="6" text="IR" storagemethod="1" checkname="list1" action="" screen="" upkey="0" downkey="0" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <label number="2" Xpos="2" Ypos="1" font="4" storagemethod="0" text="IR received codes" multilang="0" transparency="0"/>
+    <button number="3" Xpos="120" Ypos="2" focusable="-1" rectangle="1" Xsize="30" Ysize="12" font="0" fontfocus="0" text="Clear" storagemethod="0" action="CLEAR" screen="" multilang="0" transparency="0"/>
+  </window>
+  <window number="3" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="320x240">
+    <list number="1" Xpos="0" Ypos="16" focusable="0" rectangle="-1" Xsize="320" Ysize="224" font="4" fontfocus="6" text="IR" storagemethod="1" checkname="list1" action="" screen="" upkey="0" downkey="0" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <label number="2" Xpos="2" Ypos="1" font="4" storagemethod="0" text="IR received codes" multilang="0" transparency="0"/>
+    <button number="3" Xpos="284" Ypos="2" focusable="-1" rectangle="1" Xsize="30" Ysize="12" font="0" fontfocus="0" text="Clear" storagemethod="0" action="CLEAR" screen="" multilang="0" transparency="0"/>
+  </window>
+</MenuConfig>

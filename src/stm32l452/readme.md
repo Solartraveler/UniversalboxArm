@@ -72,7 +72,11 @@ Tetris, Snake, Four winns, Reversi can also be played over the RS232 input, usin
 The sourcecode is pretty old and still commented in german.
 Running the gamebox on the AVR can be watched on [Youtube](https://www.youtube.com/watch?v=83r08iD9ZAA)
 The connection of the analogue joystick to the STM32 is as follow:
-<img align="right" src="/09-gamebox/arm/image128x128.ppm" alt="Schematic for d-sub connection">
+<img align="right" src="09-gamebox/arm/image128x128.ppm" alt="Schematic for d-sub connection">
 
+## 10-infrared-decoder
+
+Prints the protocol, address, command and flags of many infrared remote controls on the LCD and
+serial port.
 
 
