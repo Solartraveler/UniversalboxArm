@@ -1,0 +1,39 @@
+(Created with emc2b post processor 2023/10/31 17:49)
+(tool change to 2 mm Taschen Fraeser)
+T1 M06 G43
+G17 G90 G21
+(Zeichnung 4)
+G00 X0 Y0 S7000 M03
+Z2
+G01 Z-0.84 F50
+G02 X0 Y-0.6 I0 J-0.3 
+X-0.6 Y0 I0 J0.6 
+X0.6 Y0 I0.6 J0 
+X0 Y-0.6 I-0.6 J0 
+X0 Y0 I0 J0.3 
+G01 Z-1.68 
+G02 X0 Y-0.6 I0 J-0.3 
+X-0.6 Y0 I0 J0.6 
+X0.6 Y0 I0.6 J0 
+X0 Y-0.6 I-0.6 J0 
+X0 Y0 I0 J0.3 
+G01 Z-2.52 
+G02 X0 Y-0.6 I0 J-0.3 
+X-0.6 Y0 I0 J0.6 
+X0.6 Y0 I0.6 J0 
+X0 Y-0.6 I-0.6 J0 
+X0 Y0 I0 J0.3 
+G01 Z-3.36 
+G02 X0 Y-0.6 I0 J-0.3 
+X-0.6 Y0 I0 J0.6 
+X0.6 Y0 I0.6 J0 
+X0 Y-0.6 I-0.6 J0 
+X0 Y0 I0 J0.3 
+G01 Z-4.2 
+G02 X0 Y-0.6 I0 J-0.3 
+X-0.6 Y0 I0 J0.6 
+X0.6 Y0 I0.6 J0 
+X0 Y-0.6 I-0.6 J0 
+X0 Y0 I0 J0.3 
+G00 Z5
+T0 M06 M02

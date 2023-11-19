@@ -107,6 +107,9 @@ There is a implementation for using the 8MiB flash as USB pen drive.
 
 One application implements an NTP client and uses the display as digital clock.
 
+See [readme.md](src/stm32l452/readme.md)
+
+
 ### Hardware
 
 The PCB version 1 is working, but a lot of patching is required at several peripherals to use them.
@@ -114,5 +117,5 @@ With 380µA, the power down consumption is too high, as this would discharge a f
 The required changes are documented. Recreating a PCB version 1 is discouraged.
 Instead the required changes need to be integrated into a version 2.
 
-Milling the case is not started yet.
-
+Milling the case is done.
+See [readme.md](case/readme.md)
