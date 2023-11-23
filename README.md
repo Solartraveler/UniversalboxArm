@@ -6,6 +6,8 @@ Have a box for experiments and easy testing with a CPU which is more powerful th
 and uses less energy than a Raspberry Pi.
 Then add some common peripherals and fit this into a case.
 
+![alt text](img/box-v1-complete.jpg "PCB version 1 running, showing a clock")
+
 ![alt text](img/production-version-rendered.jpg "Kicad rendering")
 
 ![alt text](img/pcb-v1-running-dfu-loader.jpg "PCB running with 2.2\" LCD")
@@ -20,7 +22,7 @@ The following hardware has been added. Not everything is required to be populate
 
 - Runs from USB power
 
-- Can run from a LiFePo battery and charge it
+- Can run from a LiFePO battery and charge it
 
 - 2x red-green duo LEDs
 
@@ -118,4 +120,6 @@ The required changes are documented. Recreating a PCB version 1 is discouraged.
 Instead the required changes need to be integrated into a version 2.
 
 Milling the case is done.
+![alt text](img/box-v1-complete-backside.jpg "PCB version 1 running, backside")
+
 See [readme.md](case/readme.md)
