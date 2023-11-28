@@ -365,6 +365,9 @@ void GlutWindowClosed(void) {
 	Rs232Stop(); //needs to reset the terminal
 }
 
+void GlutDisplay(void) {
+	redraw(0);
+}
 
 void * GlutGui(void * parameter) {
 	(void)parameter;
@@ -384,6 +387,7 @@ void * GlutGui(void * parameter) {
 	snprintf(title, sizeof(title), "LCD simulation %ux%u", (unsigned int)g_lcdWidth, (unsigned int)g_lcdHeight);
 	glutCreateWindow(title);
 	glutReshapeFunc(update_window_size);
+	glutDisplayFunc(GlutDisplay); //required since GLUT 3.0
 	glutSpecialFunc(InputKeySpecial);
 	glutSpecialUpFunc(InputKeySpecialRelased);
 	glutCloseFunc(&GlutWindowClosed);
