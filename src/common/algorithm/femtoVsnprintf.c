@@ -26,6 +26,8 @@ Changelog:
 2021-02-14: Version 1.0.0
 2021-11-24: Version 1.1.0
 2022-11-13: Version 1.2.1
+2023-12-29: Version 1.2.2
+  Fix double call of va_end()
 
 */
 
@@ -244,7 +246,6 @@ void femtoVsnprintf(char * output, size_t outLen, const char * format, va_list a
 	{
 		*output = '\0';
 	}
-	va_end(args);
 }
 
 #ifdef FEMTO_SUPPORT_SNPRINTF
