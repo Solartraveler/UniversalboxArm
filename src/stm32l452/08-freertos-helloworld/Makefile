@@ -209,10 +209,10 @@ LDSCRIPTRAM = $(SHARED_INIT)/STM32L452RETx_RAM.ld
 # libraries
 LIBS = -lc -lm -lnosys
 LIBDIR =
-LDFLAGS = $(MCU) -specs=nano.specs $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
+LDFLAGS = $(MCU) -specs=nano.specs $(LIBDIR) $(LIBS) -Wl,--gc-sections
 
-LDFLAGSRAM =   $(LDFLAGS) -T$(LDSCRIPTRAM)
-LDFLAGSFLASH = $(LDFLAGS) -T$(LDSCRIPTFLASH)
+LDFLAGSRAM =   $(LDFLAGS) -T$(LDSCRIPTRAM) -Wl,-Map=$(BUILD_DIR)/$(TARGETRAM).map,--cref
+LDFLAGSFLASH = $(LDFLAGS) -T$(LDSCRIPTFLASH) -Wl,-Map=$(BUILD_DIR)/$(TARGETFLASH).map,--cref
 
 # default action: build all
 all: $(BUILD_DIR)/$(TARGETFLASH).elf $(BUILD_DIR)/$(TARGETFLASH).hex $(BUILD_DIR)/$(TARGETFLASH).bin $(BUILD_DIR)/$(TARGETRAM).tar
