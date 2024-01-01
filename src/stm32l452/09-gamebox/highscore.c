@@ -1,6 +1,6 @@
 /*
    Gamebox
-    Copyright (C) 2004-2006  by Malte Marwedel
+    Copyright (C) 2004-2006, 2024  by Malte Marwedel
     m.talk AT marwedels dot de
 
     This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,14 @@
 
 #include "main.h"
 
+
+static u08 gamepoints_select_next(void) {
+const u08 usekeys = userin_usekeys();
+if (((usekeys == 0) && (userin_press())) || ((usekeys) && (userin_right()))) {
+  return 1;
+}
+return 0;
+}
 
 #if modul_highscore
 
@@ -88,6 +96,7 @@ if (points > 9999) { //mehr als 4 Stellen lassen sich nicht anzeigen
 draw_tinynumber(points, 0, 9, 0x30);
 //nun der erweiterte Teil
 //warte bis Taster irgendwie bewegt wird
+waitms(250);
 userin_flush();
 while ((leftpress == 0) && (userin_right() == 0) && (userin_up() == 0) &&
        (userin_down() == 0) && (userin_press() == 0)) {
@@ -119,7 +128,7 @@ if (leftpress == 0) { //wenn erweiterte Highscore angezeigt werden soll
   draw_tinynumber(points, 0, 10, 0x03);
   if (points > sessionscores[game_id]) { //neue Highscore
     userin_flush();
-    while (userin_press() == 0); //Warten auf Tastendruck
+    while (gamepoints_select_next() == 0); //Warten auf Tastendruck
     if (points > globalbestscore) {
       load_text(highscore_points_newglobal);
     } else {
@@ -130,7 +139,7 @@ if (leftpress == 0) { //wenn erweiterte Highscore angezeigt werden soll
     scrolltext(1,0x30,0x02,110);
   }
   userin_flush();
-  while (userin_press() == 0); //Warten auf Tastendruck
+  while (gamepoints_select_next() == 0); //Warten auf Tastendruck
 }
 //das aktualisieren der Session Highscore
 if (points > sessionscores[game_id]) {
@@ -156,7 +165,7 @@ if (points > 9999) { //mehr als 4 Stellen lassen sich nicht anzeigen
 }
 draw_tinynumber(points, 0, 9, 0x30);
 userin_flush();
-while (userin_press() == 0); //Warten auf Tastendruck
+while (gamepoints_select_next() == 0); //Warten auf Tastendruck
 }
 
 #endif

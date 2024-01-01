@@ -60,6 +60,7 @@ const char input_calib_text2[] PROGMEM = "Cali:";
 SemaphoreHandle_t g_inputSemaphore;
 StaticSemaphore_t g_inputSemaphoreState;
 
+uint8_t g_userinputtype; //0 = Keys + joystick key for detection, 1 Joystick + keys, 2 = Keys only
 
 void InputLock(void) {
 	while (!xSemaphoreTake(g_inputSemaphore, 1000));
@@ -223,7 +224,33 @@ void input_calib(void) {
 }
 
 void input_select(void) {
-
+	/* If key on joystick is pressed: userinputtype = 1;
+	   If key up or down is pressed: userinputtype = 2;
+	   If userin_right() -> go to main menu
+	*/
+	g_userinputtype = 0;
+	userin_flush();
+	load_text("Input?");
+	scrolltext(0, 0x03, 0, 80);
+	load_text("In?");
+	draw_box(0, 0, 16, 8, 0x00, 0x00);
+	draw_string(0, 0, 0x03, 0, 1);
+	while (userin_right() == 0) {
+		if (userin_press()) {
+			g_userinputtype = 1;
+			load_text("Joy");
+			draw_box(0, 8, 16, 7, 0x00, 0x00);
+			draw_string(0, 8, 0x13, 0, 1);
+			waitms(100);
+		}
+		if ((KeyUpPressed()) || KeyDownPressed() || KeyLeftPressed()) {
+			g_userinputtype = 2;
+			load_text("Key");
+			draw_box(0,8,16,7,0x00,0x00);
+			draw_string(0,8,0x13,0,1);
+			waitms(100);
+		}
+	}
 }
 
 void JoystickInit(void) {
@@ -258,102 +285,151 @@ void JoystickInit(void) {
 void InputThread(void * param) {
 	(void)param;
 	uint8_t snapKey = 0, snapX = 0, snapY = 0;
-	bool doublePress = false;
+	uint32_t timestampPressL = 0, timestampPressR = 0;
+	uint32_t timestampPressU = 0, timestampPressD = 0;
 	while(1) {
 		InputLock();
-		if (HAL_GPIO_ReadPin(INPUT_PORT, INPUT_KEY_PIN) == GPIO_PIN_RESET) {
-			if (snapKey == 0) {
-				userin.press = 1;
-				snapKey = 1;
+		if ((g_userinputtype == 0) || (g_userinputtype == 1)) {
+			if (HAL_GPIO_ReadPin(INPUT_PORT, INPUT_KEY_PIN) == GPIO_PIN_RESET) {
+				if (snapKey == 0) {
+					userin.press = 1;
+					snapKey = 1;
+				}
+			} else {
+				snapKey = 0;
 			}
-		} else {
-			snapKey = 0;
 		}
-		uint16_t x = AdcGet(INPUT_X_ADC);
-		int16_t xLin = 0;
-		if (x) {
-			xLin = (INP_LINEARIZE / x); //make linear
-			xLin -= calib_x.zero;
-			if (xLin < 0) {
-				xLin = xLin * INP_SCALE / calib_x.min;
-			} else if (xLin > 0) {
-				xLin = xLin * INP_SCALE / calib_x.max;
+		if (g_userinputtype == 1) { //joystick input
+			uint16_t x = AdcGet(INPUT_X_ADC);
+			int16_t xLin = 0;
+			if (x) {
+				xLin = (INP_LINEARIZE / x); //make linear
+				xLin -= calib_x.zero;
+				if (xLin < 0) {
+					xLin = xLin * INP_SCALE / calib_x.min;
+				} else if (xLin > 0) {
+					xLin = xLin * INP_SCALE / calib_x.max;
+				}
+				xLin = MAX(-INP_LIM, MIN(INP_LIM, xLin));
+				userin.x = xLin;
 			}
-			xLin = MAX(-INP_LIM, MIN(INP_LIM, xLin));
-			userin.x = xLin;
-		}
-		if ((xLin > INP_SNAP_IN) && (snapX == 0)) {
-			snapX = 1;
-			userin.right = 1;
-		}
-		if ((xLin < -INP_SNAP_IN) && (snapX == 0)) {
-			snapX = 1;
-			userin.left = 1;
-		}
-		if ((xLin < INP_SNAP_OUT) && (xLin > -INP_SNAP_OUT)) {
-			snapX = 0;
-		}
+			if ((xLin > INP_SNAP_IN) && (snapX == 0)) {
+				snapX = 1;
+				userin.right = 1;
+			}
+			if ((xLin < -INP_SNAP_IN) && (snapX == 0)) {
+				snapX = 1;
+				userin.left = 1;
+			}
+			if ((xLin < INP_SNAP_OUT) && (xLin > -INP_SNAP_OUT)) {
+				snapX = 0;
+			}
 
-		uint16_t y = AdcGet(INPUT_Y_ADC);
-		int16_t yLin = 0;
-		if (y) {
-			yLin = (INP_LINEARIZE / y); //make linear
-			yLin -= calib_y.zero;
-			if (xLin < 0) {
-				yLin = yLin * INP_SCALE / calib_y.min;
-			} else if (xLin > 0) {
-				yLin = yLin * INP_SCALE / calib_y.max;
+			uint16_t y = AdcGet(INPUT_Y_ADC);
+			int16_t yLin = 0;
+			if (y) {
+				yLin = (INP_LINEARIZE / y); //make linear
+				yLin -= calib_y.zero;
+				if (xLin < 0) {
+					yLin = yLin * INP_SCALE / calib_y.min;
+				} else if (xLin > 0) {
+					yLin = yLin * INP_SCALE / calib_y.max;
+				}
+				yLin = MAX(-INP_LIM, MIN(INP_LIM, yLin));
 			}
-			yLin = MAX(-INP_LIM, MIN(INP_LIM, yLin));
-		}
-		userin.y = yLin;
-		if ((yLin > INP_SNAP_IN) && (snapY == 0)) {
-			snapY = 1;
-			userin.down = 1;
-		}
-		if ((yLin < -INP_SNAP_IN) && (snapY == 0)) {
-			snapY = 1;
-			userin.up = 1;
-		}
-		if ((yLin < INP_SNAP_OUT) && (yLin > -INP_SNAP_OUT)) {
-			snapY = 0;
+			userin.y = yLin;
+			if ((yLin > INP_SNAP_IN) && (snapY == 0)) {
+				snapY = 1;
+				userin.down = 1;
+			}
+			if ((yLin < -INP_SNAP_IN) && (snapY == 0)) {
+				snapY = 1;
+				userin.up = 1;
+			}
+			if ((yLin < INP_SNAP_OUT) && (yLin > -INP_SNAP_OUT)) {
+				snapY = 0;
+			}
 		}
 		InputUnlock();
 		//printf("X: %u -> %i, Y: %u -> %i\r\n", x,userin.x, y, userin.y);
 		//If the keypad instead of the joystick is used
+		/* The problem: There is a 5th key as joystick button replacement missing.
+		   So up + down is used instead and all games try to avoid the need for the
+		   joystick button if possible, if the keypad is used.
+		*/
 		if ((KeyUpPressed()) && (KeyDownPressed())) {
-			doublePress = true;
-		}
-		if (doublePress == false) {
-			if (KeyRightReleased()) {
-				userin.right = 1;
-				userin.x = 100;
-				vTaskDelay(100);
-				userin.x = 0;
-			}
-			if (KeyLeftReleased()) {
-				userin.left = 1;
-				userin.x = -100;
-				vTaskDelay(100);
-				userin.x = 0;
-			}
-			if (KeyUpReleased()) {
-				userin.up = 1;
-				userin.y = -100;
-				vTaskDelay(100);
-				userin.y = 0;
-			}
-			if (KeyDownReleased()) {
-				userin.down = 1;
-				userin.y = 100;
-				vTaskDelay(100);
-				userin.y = 0;
-			}
+			userin.press = 1;
+			timestampPressL = 0;
+			timestampPressR = 0;
+			timestampPressU = 0;
+			timestampPressD = 0;
+			userin.x = 0;
+			userin.y = 0;
 		} else {
-			if ((KeyRightPressed() == false) && (KeyLeftPressed() == false) &&
-			    (KeyUpPressed() == false) && (KeyDownPressed() == false)) {
-				doublePress = false;
-				userin.press = 1;
+			uint32_t timestamp = HAL_GetTick();
+			const uint32_t minTime = 100; //time where the user has to hold the key without pressing a second one
+			const uint32_t addTime = 200; //time until a second press is registered
+			if (KeyLeftPressed()) {
+				userin.right = 0;
+				userin.up = 0;
+				userin.down = 0;
+				if (timestampPressL == 0) {
+					timestampPressL = timestamp + minTime;
+				} else if (timestampPressL < timestamp) {
+					userin.left = 1;
+					userin.x = -INP_LIM;
+					timestampPressL += addTime; //wait until a second press
+				}
+			} else {
+				timestampPressL = 0;
+			}
+			if (KeyRightPressed()) {
+				userin.left = 0;
+				userin.up = 0;
+				userin.down = 0;
+				if (timestampPressR == 0) {
+					timestampPressR = timestamp + minTime;
+				} else if (timestampPressR < timestamp) {
+					userin.right = 1;
+					userin.x = INP_LIM;
+					timestampPressR += addTime; //wait until a second press
+				}
+			} else {
+				timestampPressR = 0;
+			}
+			if ((g_userinputtype == 2) && (KeyLeftPressed() == 0) && (KeyRightPressed() == 0)) {
+				userin.x = 0;
+			}
+			if (KeyUpPressed()) {
+				userin.left = 0;
+				userin.right = 0;
+				userin.down = 0;
+				if (timestampPressU == 0) {
+					timestampPressU = timestamp + minTime;
+				} else if (timestampPressU < timestamp) {
+					userin.up = 1;
+					userin.y = -INP_LIM;
+					timestampPressU += addTime; //wait until a second press
+				}
+			} else {
+				timestampPressU = 0;
+			}
+			if (KeyDownPressed()) {
+				userin.left = 0;
+				userin.right = 0;
+				userin.up = 0;
+				if (timestampPressD == 0) {
+					timestampPressD = timestamp + minTime;
+				} else if (timestampPressD < timestamp) {
+					userin.down = 1;
+					userin.y = INP_LIM;
+					timestampPressD += addTime; //wait until a second press
+				}
+			} else {
+				timestampPressD = 0;
+			}
+			if ((g_userinputtype == 2) && (KeyUpPressed() == 0) && (KeyDownPressed() == 0)) {
+				userin.y = 0;
 			}
 		}
 		vTaskDelay(1);
@@ -367,25 +443,25 @@ void InputDebug(char c) {
 	InputLock();
 	if (c == 'w') {
 		userin.up = 1;
-		userin.y = -100;
+		userin.y = -INP_LIM;
 		vTaskDelay(100);
 		userin.y = 0;
 	}
 	if (c == 'a') {
 		userin.left = 1;
-		userin.x = -100;
+		userin.x = -INP_LIM;
 		vTaskDelay(100);
 		userin.x = 0;
 	}
 	if (c == 's') {
 		userin.down = 1;
-		userin.y = 100;
+		userin.y = INP_LIM;
 		vTaskDelay(100);
 		userin.y = 0;
 	}
 	if (c == 'd') {
 		userin.right = 1;
-		userin.x = 100;
+		userin.x = INP_LIM;
 		vTaskDelay(100);
 		userin.x = 0;
 	}
@@ -397,6 +473,13 @@ void InputDebug(char c) {
 
 void reduceCPU(void) {
 	vTaskDelay(1);
+}
+
+u08 userin_usekeys(void) {
+	if (g_userinputtype == 2) {
+		return 1;
+	}
+	return 0;
 }
 
 u08 userin_left(void) {

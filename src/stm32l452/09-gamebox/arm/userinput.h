@@ -56,6 +56,9 @@ void InputDebug(char c);
 
 void InputThread(void *);
 
+//returns 1 if the input is a keyboard, and not a joystick
+u08 userin_usekeys(void);
+
 u08 userin_left(void);
 u08 userin_right(void);
 u08 userin_up(void);

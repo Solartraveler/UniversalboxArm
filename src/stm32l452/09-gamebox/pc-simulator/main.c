@@ -100,7 +100,7 @@ return(NULL);
 
 int main(int argc, char **argv) {
 //Ein paar Meldungen
-printf("Gamebox Version 'Final 1.03' (c) 2004-2013, 2023 by Malte Marwedel\n\n");
+printf("Gamebox Version 'Final 1.11' (c) 2004-2013, 2023, 2024 by Malte Marwedel\n\n");
 printf("This program is free software; you can redistribute it and/or modify\n");
 printf("it under the terms of the GNU General Public License as published by\n");
 printf("the Free Software Foundation; either version 2 of the License, or\n");

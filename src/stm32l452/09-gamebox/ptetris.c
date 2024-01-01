@@ -1,6 +1,6 @@
 /*
    Gamebox
-    Copyright (C) 2004-2006  by Malte Marwedel
+    Copyright (C) 2004-2006, 2024  by Malte Marwedel
     m.talk AT marwedels dot de
 
     This program is free software; you can redistribute it and/or modify
@@ -267,6 +267,7 @@ u16 points = 0;
 u08 life = 1;
 u08 timings[tetris_virtual_timers] = {0,0};
 u08 tempabs;
+const u08 usekeys = userin_usekeys();
 struct tetris_blockstruct theblock;
 clear_screen(); //Nur zur Vorsicht
 //Zeichnen der Begrenzungslinien
@@ -282,7 +283,7 @@ tetris_moveblock(&theblock,0,0);
 timer_start(1<<CS12); //Prescaler: 256
 userin_flush();
 while (life) {
-  if (userin_press())  {
+  if (((usekeys == 0) && (userin_press())) || ((usekeys) && (userin_up())))  {
     tetris_rotateblock(&theblock);
   }
   if (timer_get() > (F_CPU/25641)) { //100 Durchläufe pro Sekunde; 8MHZ/25641 = 312
@@ -293,11 +294,11 @@ while (life) {
     }
     tempabs = abs(userin.x);
     if (timings[1] > (52-tempabs/3)) { //Links-Rechts schieben Eingabe
-      if (userin.x < -40) {
+      if (((usekeys == 0) && (userin.x < -40)) || ((usekeys) && (userin_left()))) {
         tetris_moveblock(&theblock,-1,0);
         timings[1] = 0;
       }
-      if (userin.x > 40) {
+      if (((usekeys == 0) && (userin.x > 40)) || ((usekeys) && (userin_right()))) {
         tetris_moveblock(&theblock,1,0);
         timings[1] = 0;
       }
@@ -313,7 +314,7 @@ while (life) {
       if (tetris_moveblock(&theblock,0,1) == 0) { //Wenn bewegen nicht möglich
         //Entferne volle Zeilen
         linesremoved = tetris_checkline();
-        //Addiere Pumkte basierend auf der Anzahl der entfernten Zeilen
+        //Addiere Punkte basierend auf der Anzahl der entfernten Zeilen
         if (linesremoved == 1) {
           points += 1;
         }

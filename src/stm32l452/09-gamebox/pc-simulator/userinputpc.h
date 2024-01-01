@@ -55,6 +55,9 @@ void input_key_key (unsigned char key, int x, int y);
 void input_key_cursor (int key, int x, int y);
 void input_mouse_key(int button, int state, int x, int y);
 void input_mouse_move(int x, int y);
+static inline u08 userin_usekeys(void) {
+  return 1;
+}
 u08 userin_left(void);
 u08 userin_right(void);
 u08 userin_up(void);

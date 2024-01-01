@@ -1,6 +1,6 @@
 /*
    Gamebox
-    Copyright (C) 2004-2006  by Malte Marwedel
+    Copyright (C) 2004-2006, 2024  by Malte Marwedel
     m.talk AT marwedels dot de
 
     This program is free software; you can redistribute it and/or modify
@@ -383,6 +383,14 @@ draw_char('3', 1, 9, 0x13,1,0);
 draw_char('4', 9, 9, 0x03,1,0);
 }
 
+static u08 pong_select_next(void) {
+const u08 usekeys = userin_usekeys();
+if (((usekeys == 0) && (userin_press())) || ((usekeys) && userin_right())) {
+  return 1;
+}
+return 0;
+}
+
 static u08 pong_selectmode(void) {
 u08 mode = 1;
 /*1. Modi: Einfaches hin und her spielen
@@ -391,23 +399,35 @@ u08 mode = 1;
   4. Modi: wie 2.Modi jedoch optimaler Gegner
 */
 pong_drawselectmenu(mode);
-while (userin_press() == 0)  { //Warte auf Tastendruck
-  if (userin_left() && ((mode & 1) == 0)) {
-     mode--;
-     pong_drawselectmenu(mode);
-   }
-  if (userin_right() && ((mode & 1) == 1)) {
-     mode++;
-     pong_drawselectmenu(mode);
-   }
-   if (userin_up() && (mode > 2)) {
-     mode -= 2;
-     pong_drawselectmenu(mode);
-   }
-   if (userin_down() && (mode < 3)) {
-     mode += 2;
-     pong_drawselectmenu(mode);
-   }
+const u08 usekeys = userin_usekeys();
+while (pong_select_next() == 0)  { //Warte auf Tastendruck
+  if (usekeys == 0) {
+    if (userin_left() && ((mode & 1) == 0)) {
+      mode--;
+      pong_drawselectmenu(mode);
+    }
+    if (userin_right() && ((mode & 1) == 1)) {
+      mode++;
+      pong_drawselectmenu(mode);
+    }
+    if (userin_up() && (mode > 2)) {
+      mode -= 2;
+      pong_drawselectmenu(mode);
+    }
+    if (userin_down() && (mode < 3)) {
+      mode += 2;
+      pong_drawselectmenu(mode);
+    }
+  } else {
+    if ((userin_up()) && (mode > 1)) {
+      mode--;
+      pong_drawselectmenu(mode);
+    }
+    if ((userin_down()) && (mode < 4)) {
+      mode++;
+      pong_drawselectmenu(mode);
+    }
+  }
 }
 while (userin_press()); //Warte auf loslassen der Taste
 waitms(200);
@@ -425,6 +445,7 @@ u08 play2pos = 8, play2pos_o = 0;
 u08 timings[pong_virtual_timers] = {0,0,0,0,0};
 u08 nun;
 u16 points = 0;
+const u08 usekeys = userin_usekeys();
 struct pong_ballstruct ball = {1,1,0,7};
 struct pong_shotstruct shot1 = {0,0,0}, shot2 = {0,0,0};
 //Menu zur Auswahl des Spielmodis
@@ -435,7 +456,16 @@ init_random();
 timer_start(1<<CS12); //Prescaler: 256
 while (gameend == 0) {
   //Setzen der Spieler 1 Position
-  play1pos = 7 + userin.x/18;
+  if (usekeys == 0) {
+    play1pos = 7 + userin.x/18;
+  } else {
+    if (userin_right()) {
+      play1pos++;
+    }
+    if (userin_left()) {
+      play1pos--;
+    }
+  }
   play1pos = min(play1pos,14);
   play1pos = max(play1pos,1);
   //Timings erzeugen
@@ -473,7 +503,7 @@ while (gameend == 0) {
     points++;
   }
   //Schuss starten
-  if ((mode > 1) && userin_press()) {
+  if ((mode > 1) && (((usekeys == 0) && (userin_press()) ) || ((usekeys) && (userin_up())))) {
     pong_shotstart(&shot1,play1pos,1);
     timings[2] = 0;
   }
@@ -496,7 +526,7 @@ if (mode == 1) {
   draw_gamepoints(points, PONG_ID);
 } else {
   pong_endabs(gameend);
-  while(userin_press() == 0); //Warte auf Tastendruck
+  while(pong_select_next() == 0); //Warte auf Tastendruck
 }
 }
 

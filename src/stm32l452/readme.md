@@ -67,7 +67,7 @@ Starts four threads, one for reading the serial port, one for resetting the watc
 Port of an old project, originally written for an AVR with a red/green LED matrix.
 Play Tetris, Snake, Four winns, Reversi, Race or Pong with just 16x16 pixels and 4 bit colors.
 Also contains a demo.
-Needs an analogue joystick connected to play all games. The input keys only works in the menu.
+Best used with an analogue joystick. But the input keys work too.
 Tetris, Snake, Four winns, Reversi can also be played over the RS232 input, using w-a-s-d as cursor and space for enter.
 The sourcecode is pretty old and still commented in german.
 Running the gamebox on the AVR can be watched on [Youtube](https://www.youtube.com/watch?v=83r08iD9ZAA)

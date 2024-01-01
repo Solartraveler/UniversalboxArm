@@ -69,6 +69,11 @@ void input_calib(void);
 void input_select(void);
 void input_init(void);
 ISR(TIMER0_OVF_vect);
+
+static inline u08 userin_usekeys(void) {
+  return 0;
+}
+
 u08 userin_left(void);
 u08 userin_right(void);
 u08 userin_up(void);

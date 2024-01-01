@@ -1,6 +1,6 @@
 /*
    Gamebox
-    Copyright (C) 2004-2006  by Malte Marwedel
+    Copyright (C) 2004-2006, 2024  by Malte Marwedel
     m.talk AT marwedels dot de
 
     This program is free software; you can redistribute it and/or modify
@@ -21,6 +21,10 @@
 /* Tests haben gezeigt, dass bei 1KB RAM rund 458 Byte frei sind. Diese können
   für Stack und malloc() verwendet werden. Bei 2KB steht entsprechend mehr zur
   Verfgung.
+
+Changelog:
+2024-01-01
+  Allow easy control by keys instead of joystick only
 */
 #include "main.h"
 
@@ -132,6 +136,14 @@ if (wahl > 4) {
 }
 }
 
+static u08 xxo_select_next(void) {
+const u08 usekeys = userin_usekeys();
+if (((usekeys == 0) && (userin_press())) || ((usekeys) && userin_right())) {
+  return 1;
+}
+return 0;
+}
+
 static u08 xxo_selectmode(struct xxo_spielfeldstruct *spielfeld, u08 *aipower) {
 u08 players, nunx,nuny;
 //Spielfeldgröße auswählen: 7x6, 10x10
@@ -139,7 +151,7 @@ u08 players, nunx,nuny;
 xxo_drawmenu1(1);
 spielfeld->sizex = 7;
 spielfeld->sizey = 6;
-while (userin_press() == 0) {
+while (xxo_select_next() == 0) {
   if (userin_up()) {
     xxo_drawmenu1(1);
     spielfeld->sizex = 7;
@@ -162,12 +174,13 @@ for (nunx = 1; nunx <= spielfeld->sizex; nunx++) {
     xxo_field_set(spielfeld,nunx,nuny, 0);
   }
 }
-while (userin_press()); //Warte bis Taster losgelassen
+waitms(250);
+while (xxo_select_next()); //Warte bis Taster losgelassen
 userin_flush();
 //Spielerzahl auswählen
 players = 1;
 xxo_drawmenu2(players);
-while (userin_press() == 0) {
+while (xxo_select_next() == 0) {
   if (userin_down()) {
     players = 2;
     xxo_drawmenu2(players);
@@ -180,10 +193,11 @@ while (userin_press() == 0) {
 //AI Stärke auswählen
 if (players == 1) { //AI Spielt mit
   *aipower = 3;
-  while (userin_press()); //Warte bis Taster losgelassen
+  waitms(250);
+  while (xxo_select_next()); //Warte bis Taster losgelassen
   userin_flush();
   xxo_drawmenu3(*aipower);
-  while (userin_press() == 0) {
+  while (xxo_select_next() == 0) {
     if (userin_down()) { //Schwächer
       if (*aipower > 0) {
         (*aipower)--;
@@ -201,6 +215,7 @@ if (players == 1) { //AI Spielt mit
   }
   //*aipower = 7; //Nur für PC benutzen, ein AVR wäre zu langsam
 }
+waitms(250);
 clear_screen();
 return players;
 }
@@ -278,8 +293,9 @@ posy = 8-spielfeld->sizey/2-2;
 posx = playeroldpos;
 startx = 8-spielfeld->sizex/2;
 userin_flush();
+const u08 usekeys = userin_usekeys();
 while (1) {
-  if (userin_press()) { //Wenn Tastendruck
+  if (((usekeys == 0) && (userin_press())) || ((usekeys) && userin_down())) { //Wenn Tastendruck
     if (xxo_placestone_visual(spielfeld, playerturn, posx)) {
       break; //Platzierung erfolgreich
     }
@@ -859,7 +875,7 @@ if (players) {
   scrolltext(4,0x03,0x00,100);
 }
 userin_flush();
-while (userin_press() == 0); //Warten auf Tastendruck
+while (xxo_select_next() == 0); //Warten auf Tastendruck
 }
 
 #endif

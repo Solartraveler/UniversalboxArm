@@ -1,6 +1,6 @@
 /*
    Gamebox
-    Copyright (C) 2004-2006  by Malte Marwedel
+    Copyright (C) 2004-2006, 2024  by Malte Marwedel
     m.talk AT marwedels dot de
 
     This program is free software; you can redistribute it and/or modify
@@ -88,6 +88,14 @@ load_text(rev_player2);
 draw_string(3,9,0x31,0,0);
 }
 
+static u08 rev_select_next(void) {
+const u08 usekeys = userin_usekeys();
+if (((usekeys == 0) && (userin_press())) || ((usekeys) && userin_right())) {
+  return 1;
+}
+return 0;
+}
+
 static u08 rev_selectmode(struct rev_spielfeldstruct *spielfeld) {
 //Returns: Anzahl der Spieler
 u08 players, nunx,nuny;
@@ -112,7 +120,7 @@ userin_flush();
 //Spielerzahl auswälen
 players = 1;
 rev_drawmenu(players);
-while (userin_press() == 0) {
+while (rev_select_next() == 0) {
   if (userin_down()) {
     players = 2;
     rev_drawmenu(players);
@@ -420,7 +428,7 @@ while (nun < 6) {
   rev_drawgame(spielfeld);
   nun++;
   if (stones1 == stones2) {
-    winner = 3-winner;		//Unentschieden, beide blinken
+    winner = 3-winner; //Unentschieden, beide blinken
   } else {
     waitms(500);
     nun++;
@@ -586,7 +594,7 @@ if (players) {
   scrolltext(4,0x03,0x00,100);
 }
 userin_flush();
-while (userin_press() == 0); //Warten auf Tastendruck
+while (rev_select_next() == 0); //Warten auf Tastendruck
 }
 
 #endif

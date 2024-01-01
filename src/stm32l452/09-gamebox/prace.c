@@ -1,6 +1,6 @@
 /*
    Gamebox
-    Copyright (C) 2004-2006  by Malte Marwedel
+    Copyright (C) 2004-2006, 2024  by Malte Marwedel
     m.talk AT marwedels dot de
 
     This program is free software; you can redistribute it and/or modify
@@ -50,10 +50,11 @@ if ((value & 0x03) == 0x03) { //25% wahrscheinlich einen grünen Punkt
 }
 
 void race_start(void) {
-u08 lifes, carpos, carpos_old, level, moved;
+u08 lifes, carpos = 7, carpos_old, level, moved;
 u08 steps;
 u08 nun;
 s16 glsteps;
+const u08 usekeys = userin_usekeys();
 if (race_showintro) {
   load_text(race_text1);
   scrolltext(0,0x32,0,120);
@@ -84,7 +85,16 @@ while (lifes > 0) { //Solange noch Leben vorhanden
   draw_line(15,15,0,-lifes,0x13,0); //Rot-oranger Balken
   draw_line(15,0,0,16-lifes,0x00,0); //Dunkler Balken
   //Auto Position berechnen
-  carpos = 7+userin.x/21;
+  if (usekeys == 0) {
+    carpos = 7+userin.x/21;
+  } else {
+   if (userin_left()) {
+    carpos--;
+   }
+   if (userin_right()) {
+    carpos++;
+   }
+  }
   if (carpos < 2) {
     carpos = 2;
   }

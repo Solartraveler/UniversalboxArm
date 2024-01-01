@@ -292,6 +292,7 @@ static void MainThread(void * arg) {
 	xTaskCreateStatic(&GuiThread, "gui", TASK_STACK_ELEMENTS, NULL, 1, g_guiStack, &g_guiTask);
 	xTaskCreateStatic(&InputThread, "input", TASK_STACK_ELEMENTS, NULL, 1, g_inputStack, &g_inputTask);
 	printf("Starting game menu...\r\n");
+	input_select();
 	menu_start();
 	printf("Error: main_thread stopped\r\n");
 }
@@ -309,7 +310,7 @@ void AppInit(void) {
 	HAL_Delay(100);
 	PeripheralPowerOn();
 	Rs232Init();
-	printf("Gamebox Version 'Final 1.10' (c) 2004-2013, 2023 by Malte Marwedel\r\n\r\n");
+	printf("Gamebox Version 'Final 1.11' (c) 2004-2013, 2023, 2024 by Malte Marwedel\r\n\r\n");
 	printf("This program is free software; you can redistribute it and/or modify\r\n");
 	printf("it under the terms of the GNU General Public License as published by\r\n");
 	printf("the Free Software Foundation; either version 3 of the License, or\r\n");
