@@ -259,7 +259,14 @@ void menu_screen_frontlevel(uint16_t level) {
 }
 
 void menu_screen_clear(void) {
-	memset(g_fbPixel, 0xFF, (FB_ELEMENTS_X * FB_SIZE_Y) * sizeof(FB_BITMAP_TYPE));
+	FB_BITMAP_TYPE backgroundColor = 0;
+	for (uint8_t i = 0; i < FB_PIXELS_IN_DATATYPE; i++) {
+		backgroundColor <<= FB_COLOR_IN_BITS_USED;
+		backgroundColor |= FB_COLOR_BACKGROUND;
+	}
+	for (uint32_t i = 0; i < (FB_ELEMENTS_X * FB_SIZE_Y); i++) {
+		g_fbPixel[i] = backgroundColor;
+	}
 	if (g_fbWritten == 0) {
 		//0x55 -> write each block 1x
 		memset(g_fbWrittenBlock, 0x55, (FB_WRITTENBLOCKS_X * FB_WRITTENBLOCKS_Y) * sizeof(FB_BITMAP_TYPE));

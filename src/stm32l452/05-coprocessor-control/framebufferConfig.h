@@ -20,6 +20,8 @@
 
 #define FB_COLOR_OUT_WHITE 0xFFFF
 
+#define FB_COLOR_BACKGROUND MENU_COLOR_BACKGROUND
+
 //define the datatype of which the coordinates are delivered
 #define FB_SCREENPOS_TYPE SCREENPOS
 
