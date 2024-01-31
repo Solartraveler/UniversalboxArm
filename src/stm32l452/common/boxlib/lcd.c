@@ -18,12 +18,13 @@ SPDX-License-Identifier: BSD-3-Clause
 #include "ili9341/ili9341.h"
 
 bool g_lcdEnabled;
-bool g_lcdPrescaler;
 
 /*This variable makes sure multiple threads can share the same SPI, but it
 is not enough to allow multiple threads to use the Lcd* functions.
 */
 bool g_lcdTransferStarted;
+
+uint16_t g_lcdPrescaler;
 
 
 eDisplay_t g_lcdType;
