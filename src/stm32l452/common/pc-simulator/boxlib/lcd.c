@@ -426,10 +426,11 @@ void LcdInit(eDisplay_t lcdType) {
 	}
 }
 
-void LcdWritePixel(uint16_t x, uint16_t y, uint16_t color) {
-		//the physical LCD needs the colors in msb first, so we have to convert back here
-		color = (color << 8) | (color >> 8);
-		if ((x < LCD_SCREEN_MAX_X) && (y < LCD_SCREEN_MAX_Y)) {
+//pthread_mutex_lock is really slow, so do not take and release it for every pixel
+static void LcdWritePixelNolock(uint16_t x, uint16_t y, uint16_t color) {
+	//the physical LCD needs the colors in msb first, so we have to convert back here
+	color = (color << 8) | (color >> 8);
+	if ((x < LCD_SCREEN_MAX_X) && (y < LCD_SCREEN_MAX_Y)) {
 		float r = 0.0, g = 0.0, b = 0.0;
 		uint32_t ri = (color & LCD_COLOR_OUT_RED_MASK) >> LCD_COLOR_OUT_RED_LSB_POS;
 		uint32_t gi = (color & LCD_COLOR_OUT_GREEN_MASK) >> LCD_COLOR_OUT_GREEN_LSB_POS;
@@ -447,38 +448,48 @@ void LcdWritePixel(uint16_t x, uint16_t y, uint16_t color) {
 		if (bmax) {
 			b = 1.0/bmax*(float)bi;
 		}
-		pthread_mutex_lock(&g_guiMutex);
 		g_screen[y][x][0] = r;
 		g_screen[y][x][1] = g;
 		g_screen[y][x][2] = b;
 		g_dataChanged = true;
-		pthread_mutex_unlock(&g_guiMutex);
 	}
+}
+
+void LcdWritePixel(uint16_t x, uint16_t y, uint16_t color) {
+	pthread_mutex_lock(&g_guiMutex);
+	LcdWritePixelNolock(x, y, color);
+	pthread_mutex_unlock(&g_guiMutex);
 }
 
 void LcdDrawHLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {
+	pthread_mutex_lock(&g_guiMutex);
 	for (uint32_t i = 0; i < length; i++) {
-		LcdWritePixel(x + i, y, color);
+		LcdWritePixelNolock(x + i, y, color);
 	}
+	pthread_mutex_unlock(&g_guiMutex);
 }
 
 void LcdDrawVLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {
+	pthread_mutex_lock(&g_guiMutex);
 	for (uint32_t i = 0; i < length; i++) {
-		LcdWritePixel(x, y + i, color);
+		LcdWritePixelNolock(x, y + i, color);
 	}
+	pthread_mutex_unlock(&g_guiMutex);
 }
 
 void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint8_t * data, size_t len) {
+	pthread_mutex_lock(&g_guiMutex);
 	for (uint32_t yi = y; yi < (y + height); yi++) {
 		for (uint32_t xi = x; xi < (x + width); xi++) {
 			uint16_t color = (*data) + ((*(data + 1)) << 8);
-			LcdWritePixel(xi, yi, color);
+			LcdWritePixelNolock(xi, yi, color);
 			if (len >= 2) {
 				data += 2;
 				len -= 2;
 			}
 		}
 	}
+	pthread_mutex_unlock(&g_guiMutex);
 }
 
 void LcdWaitBackgroundDone(void) {
