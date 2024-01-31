@@ -79,4 +79,53 @@ The connection of the analogue joystick to the STM32 is as follow:
 Prints the protocol, address, command and flags of many infrared remote controls on the LCD and
 serial port.
 
+## 11-adc-scope
 
+<img align="right" src="../../img/screenshot-scope.png" alt="Screenshot of the scope">
+
+Shows the analogue inputs on the display. Only supports 320x240 LCD.
+
+Features:
+
+- 200kHz sample rate (limit is the CPU checking the trigger condition, the ADC could be 20x faster)
+
+- Select 3 Inputs out of all available ADC inputs
+
+- Selectable X (time) and Y (voltage) scaling
+
+- Selectable Y offset
+
+- Trigger: Level, rising or falling edge. Normal or single shot.
+
+- Max, min and average voltage analysis per channel
+
+- Save screenshors and save/restore selected settings
+
+Note: This is __not__ a fully featured oscilloscope.
+It is intended to easy see what the AD values on the inputs are.
+For example you can analyze the input signals if a joystick for 09-gamebox is connected and does not work as expected.
+Actually the screenshot shows the signal while moving the two axis of the joystick.
+
+Features __missing__ to be a real oscilloscope replacement:
+
+- Selctable X offset - the trigger is always in the middle of the screen
+
+- Y scaling and offset separated per channel
+
+- X-Y mode
+
+- Reasonable samplerate for signals above ~20kHz
+
+- Defined input impendance
+
+- Selectable input gain
+
+- Support of negative input voltages
+
+- Proper capture of every trigger event and displaying this as greyscale value
+
+- Reasonable calibration. The internal oscillator might have +-2% error on the X axis
+
+- Rotary encoders for a fast-to-use user interface. Four buttons are really limited.
+
+- Proper analogue/digital separation on PCB

@@ -16,6 +16,7 @@ all:
 	$(MAKE) -j -C 09-gamebox/avr
 	$(MAKE) -j -C 09-gamebox/arm
 	$(MAKE) -j -C 10-infrared-decoder
+	$(MAKE) -j -C 11-adc-scope
 
 clean:
 	$(MAKE) clean -C 01-blinky-hal
@@ -35,3 +36,4 @@ clean:
 	$(MAKE) clean -C 09-gamebox/avr
 	$(MAKE) clean -C 09-gamebox/arm
 	$(MAKE) clean -C 10-infrared-decoder
+	$(MAKE) clean -C 11-adc-scope

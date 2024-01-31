@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MenuConfig Xsize="320" Ysize="240" compact="-1" multilang="0" languages="1" utf8="1" mousesupport="0" fileformat="2" colorFormatRed1="1" colorFormatRed2="5" colorFormatRed3="8" colorFormatGreen1="1" colorFormatGreen2="6" colorFormatGreen3="8" colorFormatBlue1="1" colorFormatBlue2="5" colorFormatBlue3="8" backgroundcolor="0" bordercolor="16777215" textcolor="16777215" subwindowBordercolor="16777215" subwindowBackgroundcolor="0" displaytype="4" projectinfo="ADC scope">
+  <window number="3" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="320x240">
+    <shortcut number="19" shortcutkey="100" action="" screen="subwindow 8"/>
+    <gfx number="1" Xpos="0" Ypos="0" focusable="0" rectangle="0" Xsize="320" Ysize="160" text="SCOPE" storagemethod="1" action="" screen="" compressed="0" multiimage="0" exportformat="2"/>
+    <label number="8" Xpos="1" Ypos="183" font="4" storagemethod="1" text="XAXIS" multilang="0" transparency="0"/>
+    <button number="2" Xpos="3" Ypos="200" focusable="-1" rectangle="-1" Xsize="38" Ysize="18" font="4" fontfocus="6" text="   X+" storagemethod="0" action="XINC" screen="" multilang="0" transparency="0"/>
+    <button number="3" Xpos="3" Ypos="220" focusable="1" rectangle="1" Xsize="38" Ysize="18" font="4" fontfocus="6" text="   X-" storagemethod="0" action="XDEC" screen="" multilang="0" transparency="0"/>
+    <label number="9" Xpos="62" Ypos="183" font="4" storagemethod="1" text="YAXIS" multilang="0" transparency="0"/>
+    <button number="4" Xpos="45" Ypos="200" focusable="1" rectangle="1" Xsize="38" Ysize="18" font="4" fontfocus="6" text="   Y+" storagemethod="0" action="YINC" screen="" multilang="0" transparency="0"/>
+    <button number="5" Xpos="45" Ypos="220" focusable="-1" rectangle="-1" Xsize="38" Ysize="18" font="4" fontfocus="6" text="   Y-" storagemethod="0" action="YDEC" screen="" multilang="0" transparency="0"/>
+    <label number="10" Xpos="122" Ypos="183" font="4" storagemethod="1" text="YOFF" multilang="0" transparency="0"/>
+    <button number="6" Xpos="87" Ypos="200" focusable="1" rectangle="1" Xsize="38" Ysize="18" font="4" fontfocus="6" text="YOff+" storagemethod="0" action="YOFFINC" screen="" multilang="0" transparency="0"/>
+    <button number="7" Xpos="87" Ypos="220" focusable="-1" rectangle="-1" Xsize="38" Ysize="18" font="4" fontfocus="6" text="YOff-" storagemethod="0" action="YOFFDEC" screen="" multilang="0" transparency="0"/>
+    <label number="18" Xpos="175" Ypos="183" font="4" storagemethod="1" text="TRIGGER" multilang="0" transparency="0"/>
+    <button number="25" Xpos="129" Ypos="200" focusable="1" rectangle="1" Xsize="38" Ysize="18" font="4" fontfocus="6" text="   T+" storagemethod="0" action="TRIGGERINC50" screen="" multilang="0" transparency="0"/>
+    <button number="26" Xpos="129" Ypos="220" focusable="1" rectangle="1" Xsize="38" Ysize="18" font="4" fontfocus="6" text="   T-" storagemethod="0" action="TRIGGERDEC50" screen="" multilang="0" transparency="0"/>
+    <button number="14" Xpos="171" Ypos="200" focusable="1" rectangle="1" Xsize="49" Ysize="18" font="4" fontfocus="6" text="Trigger" storagemethod="0" action="" screen="subwindow 7" multilang="0" transparency="0"/>
+    <button number="15" Xpos="171" Ypos="220" focusable="1" rectangle="1" Xsize="49" Ysize="18" font="4" fontfocus="6" text="Tr start" storagemethod="0" action="TRIGGERSTART" screen="" multilang="0" transparency="0"/>
+    <button number="16" Xpos="224" Ypos="200" focusable="-1" rectangle="-1" Xsize="49" Ysize="18" font="4" fontfocus="6" text="Scrshot" storagemethod="0" action="SCREENSHOT" screen="" multilang="0" transparency="0"/>
+    <button number="24" Xpos="224" Ypos="220" focusable="-1" rectangle="-1" Xsize="49" Ysize="18" font="4" fontfocus="6" text="Options" storagemethod="0" action="" screen="subwindow 9" multilang="0" transparency="0"/>
+    <button number="11" Xpos="277" Ypos="180" focusable="1" rectangle="1" Xsize="40" Ysize="18" font="4" fontfocus="6" text="Red" storagemethod="0" action="" screen="subwindow 4" multilang="0" transparency="0"/>
+    <button number="12" Xpos="277" Ypos="200" focusable="1" rectangle="1" Xsize="40" Ysize="18" font="4" fontfocus="6" text="Geen" storagemethod="0" action="" screen="subwindow 5" multilang="0" transparency="0"/>
+    <button number="13" Xpos="277" Ypos="220" focusable="-1" rectangle="1" Xsize="40" Ysize="18" font="4" fontfocus="6" text="Blue" storagemethod="0" action="" screen="subwindow 6" multilang="0" transparency="0"/>
+    <label number="20" Xpos="0" Ypos="162" font="4" storagemethod="1" text="VANALYZE" multilang="0" transparency="0"/>
+    <box number="23" Xpos="0" Ypos="178" focusable="0" Xsize="320" Ysize="1" color="16777215" action="" screen=""/>
+  </window>
+  <subwindow number="4" Xpos="110" Ypos="50" Xsize="100" Ysize="140" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="Red input">
+    <label number="1" Xpos="135" Ypos="52" font="4" storagemethod="0" text="Red input" multilang="0" transparency="0"/>
+    <list number="2" Xpos="115" Ypos="70" focusable="-1" rectangle="-1" Xsize="90" Ysize="115" font="5" fontfocus="7" text="None&#xA;ADC0-Vref&#xA;ADC1-PC0&#xA;ADC2-PC1&#xA;ADC3-PC2&#xA;ADC4-PC3&#xA;ADC5-PA0&#xA;ADC6-PA1&#xA;ADC7-PA2&#xA;ADC8-PA3&#xA;ADC9-PA4" storagemethod="0" checkname="ADCRED" action="UPDATEINPUT" screen="" upkey="3" downkey="4" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <shortcut number="3" shortcutkey="1" action="" screen="RET"/>
+    <shortcut number="4" shortcutkey="2" action="" screen="RET"/>
+  </subwindow>
+  <subwindow number="5" Xpos="110" Ypos="50" Xsize="100" Ysize="140" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="Green input">
+    <label number="1" Xpos="135" Ypos="52" font="4" storagemethod="0" text="Green input" multilang="0" transparency="0"/>
+    <list number="2" Xpos="115" Ypos="70" focusable="-1" rectangle="-1" Xsize="90" Ysize="115" font="5" fontfocus="7" text="None&#xA;ADC0-Vref&#xA;ADC1-PC0&#xA;ADC2-PC1&#xA;ADC3-PC2&#xA;ADC4-PC3&#xA;ADC5-PA0&#xA;ADC6-PA1&#xA;ADC7-PA2&#xA;ADC8-PA3&#xA;ADC9-PA4" storagemethod="0" checkname="ADCGREEN" action="UPDATEINPUT" screen="" upkey="3" downkey="4" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <shortcut number="3" shortcutkey="1" action="" screen="RET"/>
+    <shortcut number="4" shortcutkey="2" action="" screen="RET"/>
+  </subwindow>
+  <subwindow number="6" Xpos="110" Ypos="50" Xsize="100" Ysize="140" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="Blue input">
+    <label number="1" Xpos="135" Ypos="52" font="4" storagemethod="0" text="Blue input" multilang="0" transparency="0"/>
+    <list number="2" Xpos="115" Ypos="70" focusable="-1" rectangle="-1" Xsize="90" Ysize="115" font="5" fontfocus="7" text="None&#xA;ADC0-Vref&#xA;ADC1-PC0&#xA;ADC2-PC1&#xA;ADC3-PC2&#xA;ADC4-PC3&#xA;ADC5-PA0&#xA;ADC6-PA1&#xA;ADC7-PA2&#xA;ADC8-PA3&#xA;ADC9-PA4" storagemethod="0" checkname="ADCBLUE" action="UPDATEINPUT" screen="" upkey="3" downkey="4" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <shortcut number="3" shortcutkey="1" action="" screen="RET"/>
+    <shortcut number="4" shortcutkey="2" action="" screen="RET"/>
+  </subwindow>
+  <subwindow number="7" Xpos="50" Ypos="20" Xsize="220" Ysize="175" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Trigger">
+    <label number="13" Xpos="120" Ypos="22" font="4" storagemethod="0" text="Trigger level" multilang="0" transparency="0"/>
+    <label number="18" Xpos="200" Ypos="22" font="4" storagemethod="1" text="TRIGGER" multilang="0" transparency="0"/>
+    <button number="14" Xpos="54" Ypos="40" focusable="-1" rectangle="-1" Xsize="50" Ysize="18" font="4" fontfocus="6" text="+500mV" storagemethod="0" action="TRIGGERINC500" screen="" multilang="0" transparency="0"/>
+    <button number="15" Xpos="108" Ypos="40" focusable="1" rectangle="1" Xsize="50" Ysize="18" font="4" fontfocus="6" text="+50mV" storagemethod="0" action="TRIGGERINC50" screen="" multilang="0" transparency="0"/>
+    <button number="16" Xpos="162" Ypos="40" focusable="1" rectangle="1" Xsize="50" Ysize="18" font="4" fontfocus="6" text="-50mV" storagemethod="0" action="TRIGGERDEC50" screen="" multilang="0" transparency="0"/>
+    <button number="17" Xpos="216" Ypos="40" focusable="1" rectangle="1" Xsize="50" Ysize="18" font="4" fontfocus="6" text="-500mV" storagemethod="0" action="TRIGGERDEC500" screen="" multilang="0" transparency="0"/>
+    <label number="1" Xpos="120" Ypos="60" font="4" storagemethod="0" text="Trigger source" multilang="0" transparency="0"/>
+    <radiobutton number="2" Xpos="70" Ypos="78" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Red" storagemethod="0" checkname="TRIGGERSOURCE" selectnum="0" action="TRIGGERUPDATE" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="3" Xpos="130" Ypos="78" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Green" storagemethod="0" checkname="TRIGGERSOURCE" selectnum="1" action="TRIGGERUPDATE" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="4" Xpos="190" Ypos="78" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Blue" storagemethod="0" checkname="TRIGGERSOURCE" selectnum="2" action="TRIGGERUPDATE" screen="" multilang="0" transparency="0"/>
+    <label number="5" Xpos="120" Ypos="98" font="4" storagemethod="0" text="Trigger mode" multilang="0" transparency="0"/>
+    <radiobutton number="6" Xpos="70" Ypos="116" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Single shot" storagemethod="0" checkname="TRIGGERMODE" selectnum="0" action="TRIGGERUPDATE" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="7" Xpos="190" Ypos="116" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Automatic" storagemethod="0" checkname="TRIGGERMODE" selectnum="1" action="TRIGGERUPDATE" screen="" multilang="0" transparency="0"/>
+    <label number="8" Xpos="120" Ypos="136" font="4" storagemethod="0" text="Trigger type" multilang="0" transparency="0"/>
+    <radiobutton number="9" Xpos="70" Ypos="154" focusable="-1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Level low" storagemethod="0" checkname="TRIGGERTYPE" selectnum="0" action="TRIGGERUPDATE" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="10" Xpos="190" Ypos="154" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Level high" storagemethod="0" checkname="TRIGGERTYPE" selectnum="1" action="TRIGGERUPDATE" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="11" Xpos="70" Ypos="172" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Falling edge" storagemethod="0" checkname="TRIGGERTYPE" selectnum="2" action="TRIGGERUPDATE" screen="" multilang="0" transparency="0"/>
+    <radiobutton number="12" Xpos="190" Ypos="172" focusable="-1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Rising edge" storagemethod="0" checkname="TRIGGERTYPE" selectnum="3" action="TRIGGERUPDATE" screen="" multilang="0" transparency="0"/>
+    <shortcut number="19" shortcutkey="2" action="" screen="RET"/>
+  </subwindow>
+  <subwindow number="8" Xpos="135" Ypos="105" Xsize="50" Ysize="30" focusNextKey="0" focusPrevKey="0" focusEnterKey="0" comment="Saved">
+    <label number="1" Xpos="144" Ypos="110" font="4" storagemethod="0" text="Saved" multilang="0" transparency="0"/>
+    <shortcut number="2" shortcutkey="1" action="" screen="RET"/>
+    <shortcut number="3" shortcutkey="2" action="" screen="RET"/>
+    <shortcut number="4" shortcutkey="3" action="" screen="RET"/>
+    <shortcut number="5" shortcutkey="4" action="" screen="RET"/>
+  </subwindow>
+  <subwindow number="9" Xpos="50" Ypos="20" Xsize="220" Ysize="175" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Options">
+    <label number="13" Xpos="140" Ypos="22" font="4" storagemethod="0" text="Options" multilang="0" transparency="0"/>
+    <button number="14" Xpos="60" Ypos="40" focusable="-1" rectangle="-1" Xsize="95" Ysize="18" font="4" fontfocus="6" text="Save config" storagemethod="0" action="CONFIGSAVE" screen="" multilang="0" transparency="0"/>
+    <button number="15" Xpos="160" Ypos="40" focusable="1" rectangle="-1" Xsize="95" Ysize="18" font="4" fontfocus="6" text="Restore default" storagemethod="0" action="CONFIGDEFAULT" screen="" multilang="0" transparency="0"/>
+    <label number="1" Xpos="120" Ypos="60" font="4" storagemethod="0" text="Analyze red" multilang="0" transparency="0"/>
+    <checkbox number="20" Xpos="70" Ypos="78" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Vmax" storagemethod="0" checkname="REDMAX" action="" screen="" multilang="0" transparency="0"/>
+    <checkbox number="21" Xpos="130" Ypos="78" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Vmin" storagemethod="0" checkname="REDMIN" action="" screen="" multilang="0" transparency="0"/>
+    <checkbox number="22" Xpos="190" Ypos="78" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Vavg" storagemethod="0" checkname="REDAVG" action="" screen="" multilang="0" transparency="0"/>
+    <label number="5" Xpos="120" Ypos="98" font="4" storagemethod="0" text="Analyze green" multilang="0" transparency="0"/>
+    <checkbox number="23" Xpos="70" Ypos="116" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Vmax" storagemethod="0" checkname="GREENMAX" action="" screen="" multilang="0" transparency="0"/>
+    <checkbox number="24" Xpos="130" Ypos="116" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Vmin" storagemethod="0" checkname="GREENMIN" action="" screen="" multilang="0" transparency="0"/>
+    <checkbox number="25" Xpos="190" Ypos="116" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Vavg" storagemethod="0" checkname="GREENAVG" action="" screen="" multilang="0" transparency="0"/>
+    <label number="8" Xpos="120" Ypos="136" font="4" storagemethod="0" text="Analyze blue" multilang="0" transparency="0"/>
+    <checkbox number="26" Xpos="70" Ypos="154" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Vmax" storagemethod="0" checkname="BLUEMAX" action="" screen="" multilang="0" transparency="0"/>
+    <checkbox number="27" Xpos="130" Ypos="154" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Vmin" storagemethod="0" checkname="BLUEMIN" action="" screen="" multilang="0" transparency="0"/>
+    <checkbox number="28" Xpos="190" Ypos="154" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Vavg" storagemethod="0" checkname="BLUEAVG" action="" screen="" multilang="0" transparency="0"/>
+    <shortcut number="19" shortcutkey="2" action="" screen="RET"/>
+    <shortcut number="29" shortcutkey="100" action="" screen="subwindow 8"/>
+  </subwindow>
+</MenuConfig>
