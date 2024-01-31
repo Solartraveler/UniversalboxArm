@@ -35,7 +35,7 @@ void PeripheralInit(void) {
 	//Copied from the STM cube generator output:
 	__HAL_RCC_DMA1_CLK_ENABLE();
 
-	HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 8, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 	g_hdma_spi2_tx.Instance = DMA1_Channel5;
 	g_hdma_spi2_tx.Init.Request = DMA_REQUEST_1;
@@ -50,7 +50,7 @@ void PeripheralInit(void) {
 		printf("Error, failed to init DMA\r\n");
 	}
 
-	HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 8, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 	g_hdma_spi2_rx.Instance = DMA1_Channel4;
 	g_hdma_spi2_rx.Init.Request = DMA_REQUEST_1;

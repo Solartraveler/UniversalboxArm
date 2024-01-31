@@ -57,7 +57,7 @@ void Rs232Init(void) {
 	USART1->BRR = pclk / baudrate;
 	USART1->CR1 = USART_CR1_TE | USART_CR1_RE;
 	USART1->CR1 |= USART_CR1_UE;
-
+	HAL_NVIC_SetPriority(USART1_IRQn, 8, 0);
 	NVIC_EnableIRQ(USART1_IRQn);
 }
 
