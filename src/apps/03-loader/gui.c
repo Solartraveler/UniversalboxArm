@@ -135,8 +135,7 @@ void GuiInit(void) {
 	g_gui.type = FilesystemReadLcd();
 	if (g_gui.type != NONE) {
 		LcdBacklightOn();
-		//HAL_Delay(1000);
-		LcdEnable(4); //8MHz
+		LcdEnable(2); //8MHz
 		LcdInit(g_gui.type);
 	}
 	menu_screen_frontlevel(FRONTLEVEL_BG_DARK);

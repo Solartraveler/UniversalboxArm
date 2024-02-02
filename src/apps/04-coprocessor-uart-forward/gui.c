@@ -52,7 +52,7 @@ void GuiInit(void) {
 	uint16_t action = 0;
 	if (g_gui.type != NONE) {
 		LcdBacklightOn();
-		LcdEnable(4); //8MHz
+		LcdEnable(2); //8MHz
 		LcdInit(g_gui.type);
 	}
 	menu_redraw();
