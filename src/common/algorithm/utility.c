@@ -49,7 +49,7 @@ uint32_t AsciiScanDec(const char * string) {
 			string++;
 			continue;
 		}
-		if (isdigit(*string)) {
+		if ((*string >= '0') && (*string <= '9')) {
 			out *= 10;
 			out += *string - '0';
 			parsed++;
