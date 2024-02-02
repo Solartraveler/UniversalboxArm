@@ -109,7 +109,7 @@ There is a implementation for using the 8MiB flash as USB pen drive.
 
 One application implements an NTP client and uses the display as digital clock.
 
-See [readme.md](src/stm32l452/readme.md)
+See [readme.md](src/apps/readme.md)
 
 
 ### Hardware
