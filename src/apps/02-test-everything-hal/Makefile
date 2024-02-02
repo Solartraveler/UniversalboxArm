@@ -58,17 +58,21 @@ DEBUG = 1
 # optimization
 OPT = -Og
 
+#stm32l452 -> stm32l4xx
+CHIPFAMILY = $(shell echo $(CHIP) | sed 's/..$$/xx/')
+#stm32l452 -> STM32L452
+CHIPUPPERCASE = $(shell echo $(CHIP) | tr a-z A-Z)
 
 #######################################
 # paths
 #######################################
 # Build path
-BUILD_DIR = build
+BUILD_DIR = build/$(CHIP)
 
 COMMON=../common
 VERYCOMMON=../../common
 
-STM_HAL=$(COMMON)/STM32L4xx_HAL_Driver
+STM_HAL=$(COMMON)/$(CHIPFAMILY)_HAL_Driver
 SHARED_INIT=$(COMMON)/shared-init
 CMSIS=$(COMMON)/CMSIS
 BOXLIB=$(COMMON)/boxlib
@@ -84,25 +88,25 @@ ALGORITHM=$(VERYCOMMON)/algorithm
 C_SOURCES =  \
 Core/Src/main.c \
 Core/Src/rtc.c \
-Core/Src/stm32l4xx_hal_msp.c \
-$(STM_HAL)/Src/stm32l4xx_hal.c \
-$(STM_HAL)/Src/stm32l4xx_hal_rcc.c \
-$(STM_HAL)/Src/stm32l4xx_hal_rcc_ex.c \
-$(STM_HAL)/Src/stm32l4xx_hal_flash.c \
-$(STM_HAL)/Src/stm32l4xx_hal_flash_ex.c \
-$(STM_HAL)/Src/stm32l4xx_hal_flash_ramfunc.c \
-$(STM_HAL)/Src/stm32l4xx_hal_gpio.c \
-$(STM_HAL)/Src/stm32l4xx_hal_pwr.c \
-$(STM_HAL)/Src/stm32l4xx_hal_pwr_ex.c \
-$(STM_HAL)/Src/stm32l4xx_hal_cortex.c \
-$(STM_HAL)/Src/stm32l4xx_hal_exti.c \
-$(STM_HAL)/Src/stm32l4xx_hal_rtc.c \
-$(STM_HAL)/Src/stm32l4xx_hal_rtc_ex.c \
-$(STM_HAL)/Src/stm32l4xx_hal_spi.c \
-$(STM_HAL)/Src/stm32l4xx_hal_spi_ex.c \
-$(STM_HAL)/Src/stm32l4xx_hal_tim.c \
-$(STM_HAL)/Src/stm32l4xx_hal_tim_ex.c \
-Core/Src/system_stm32l4xx.c \
+Core/Src/$(CHIPFAMILY)_hal_msp.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc_ex.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_flash.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_flash_ex.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_flash_ramfunc.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_gpio.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_pwr.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_pwr_ex.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_cortex.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_exti.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_rtc.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_rtc_ex.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_spi.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_spi_ex.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_tim.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_tim_ex.c \
+Core/Src/system_$(CHIPFAMILY).c \
 $(BOXLIB)/keys.c \
 $(BOXLIB)/leds.c \
 $(BOXLIB)/relays.c \
@@ -129,7 +133,7 @@ testEverything.c
 
 # ASM sources
 ASM_SOURCES =  \
-$(SHARED_INIT)/startup_stm32l452xx.s
+$(SHARED_INIT)/startup_$(CHIP)xx.s
 
 
 #######################################
@@ -174,7 +178,7 @@ AS_DEFS =
 # C defines
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
--DSTM32L452xx \
+-D$(CHIPUPPERCASE)xx \
 -DAPPVERSION=\"$(VERSION)\"
 
 
@@ -186,7 +190,7 @@ C_INCLUDES =  \
 -ICore/Inc \
 -I$(STM_HAL)/Inc \
 -I$(STM_HAL)/Inc/Legacy \
--I$(CMSIS)/Device/ST/STM32L4xx/Include \
+-I$(CMSIS)/Device/ST/$(CHIPFAMILY)/Include \
 -I$(CMSIS)/Include \
 -I$(COMMON) \
 -I$(VERYCOMMON) \
@@ -213,8 +217,8 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPTFLASH = $(SHARED_INIT)/STM32L452RETx_FLASH.ld
-LDSCRIPTRAM = $(SHARED_INIT)/STM32L452RETx_RAM.ld
+LDSCRIPTFLASH = $(SHARED_INIT)/$(CHIPUPPERCASE)RETx_FLASH.ld
+LDSCRIPTRAM = $(SHARED_INIT)/$(CHIPUPPERCASE)RETx_RAM.ld
 
 # libraries
 LIBS = -lc -lm -lnosys
@@ -264,7 +268,7 @@ $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(BIN) $< $@
 
 $(BUILD_DIR):
-	mkdir $@
+	mkdir -p $@
 
 #######################################
 # clean up

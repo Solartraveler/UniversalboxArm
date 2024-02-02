@@ -56,17 +56,21 @@ DEBUG = 1
 # optimization
 OPT = -Og
 
+#stm32l452 -> stm32l4xx
+CHIPFAMILY = $(shell echo $(CHIP) | sed 's/..$$/xx/')
+#stm32l452 -> STM32L452
+CHIPUPPERCASE = $(shell echo $(CHIP) | tr a-z A-Z)
 
 #######################################
 # paths
 #######################################
 # Build path
-BUILD_DIR = build
+BUILD_DIR = build/$(CHIP)
 
 COMMON=../common
 UTILITIES=../../utilities
 
-STM_HAL=$(COMMON)/STM32L4xx_HAL_Driver
+STM_HAL=$(COMMON)/$(CHIPFAMILY)_HAL_Driver
 CMSIS=$(COMMON)/CMSIS
 
 ######################################
@@ -75,19 +79,19 @@ CMSIS=$(COMMON)/CMSIS
 # C sources
 C_SOURCES =  \
 Core/Src/main.c \
-Core/Src/stm32l4xx_it.c \
-Core/Src/stm32l4xx_hal_msp.c \
-$(STM_HAL)/Src/stm32l4xx_hal.c \
-$(STM_HAL)/Src/stm32l4xx_hal_rcc.c \
-$(STM_HAL)/Src/stm32l4xx_hal_gpio.c \
-$(STM_HAL)/Src/stm32l4xx_hal_pwr.c \
-$(STM_HAL)/stm32l4xx_hal_pwr_ex.c \
-$(STM_HAL)/stm32l4xx_hal_cortex.c \
-Core/Src/system_stm32l4xx.c
+Core/Src/$(CHIPFAMILY)_it.c \
+Core/Src/$(CHIPFAMILY)_hal_msp.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_gpio.c \
+$(STM_HAL)/Src/$(CHIPFAMILY)_hal_pwr.c \
+$(STM_HAL)/$(CHIPFAMILY)_hal_pwr_ex.c \
+$(STM_HAL)/$(CHIPFAMILY)_hal_cortex.c \
+Core/Src/system_$(CHIPFAMILY).c
 
 # ASM sources
 ASM_SOURCES =  \
-startup_stm32l452xx.s
+startup_$(CHIP)xx.s
 
 
 #######################################
@@ -134,7 +138,7 @@ AS_DEFS =
 # C defines
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
--DSTM32L452xx
+-D$(CHIPUPPERCASE)xx
 
 
 # AS includes
@@ -145,7 +149,7 @@ C_INCLUDES =  \
 -ICore/Inc \
 -I$(STM_HAL)/Inc \
 -I$(STM_HAL)/Inc/Legacy \
--I$(CMSIS)/Device/ST/STM32L4xx/Include \
+-I$(CMSIS)/Device/ST/$(CHIPFAMILY)/Include \
 -I$(CMSIS)/Include \
 -I$(CMSIS)/Include
 
@@ -168,8 +172,8 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPTFLASH = STM32L452RETx_FLASH.ld
-LDSCRIPTRAM = STM32L452RETx_RAM.ld
+LDSCRIPTFLASH = $(CHIPUPPERCASE)RETx_FLASH.ld
+LDSCRIPTRAM = $(CHIPUPPERCASE)RETx_RAM.ld
 
 # libraries
 LIBS = -lc -lm -lnosys
@@ -224,7 +228,7 @@ $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(BIN) $< $@
 
 $(BUILD_DIR):
-	mkdir $@
+	mkdir -p $@
 
 #######################################
 # clean up

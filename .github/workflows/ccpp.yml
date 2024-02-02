@@ -28,8 +28,8 @@ jobs:
         path: |
           src/avr-coprocessor/*/main.hex
           src/avr-coprocessor/*/pc-simulator/pcSimulate
-          src/apps/*/build/*.bin
-          src/apps/*/build/*.elf
-          src/apps/*/build/*.tar
+          src/apps/*/build/*/*.bin
+          src/apps/*/build/*/*.elf
+          src/apps/*/build/*/*.tar
           src/apps/*/pc-simulator/pcSimulate
           src/utilities/ppm2menuimage/build/ppm2menuimage
