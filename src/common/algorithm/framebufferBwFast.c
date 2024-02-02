@@ -82,12 +82,12 @@ void menu_screen_set(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y, FB_COLOR_IN_TYPE 
 static void FbBlockFlush(const uint16_t startX, const uint16_t startY, FB_COLOR_OUT_TYPE * block) {
 	uint32_t wptr = 0;
 	FB_COLOR_OUT_TYPE colorOut = 0;
-	for (uint32_t y = startY; y < (startY + FB_OUTPUTBLOCK_Y); y++) {
+	for (uint32_t y = startY; y < (uint32_t)(startY + FB_OUTPUTBLOCK_Y); y++) {
 		uint32_t bitmapIdxBase = y * FB_ELEMENTS_X + (startX / FB_BITMAP_BITS);
 		FB_BITMAP_TYPE bitmapMask = 1;
 		uint32_t bitmapIdxOffset = 0;
 		FB_BITMAP_TYPE pixelData = g_fbPixel[bitmapIdxBase + bitmapIdxOffset];
-		for (uint32_t x = startX; x < (startX + FB_OUTPUTBLOCK_X); x++) {
+		for (uint32_t x = startX; x < (uint32_t)(startX + FB_OUTPUTBLOCK_X); x++) {
 			if (pixelData & bitmapMask) {
 				colorOut = FB_COLOR_OUT_WHITE;
 			} else {
@@ -100,7 +100,7 @@ static void FbBlockFlush(const uint16_t startX, const uint16_t startY, FB_COLOR_
 				bitmapMask = 1;
 				bitmapIdxOffset++;
 				//we do not need data when its the last loop. Otherwise we would get a read-bufferoverflow
-				if ((x + 1) < (startX + FB_OUTPUTBLOCK_X)) {
+				if ((x + 1) < ((uint32_t)startX + FB_OUTPUTBLOCK_X)) {
 					pixelData = g_fbPixel[bitmapIdxBase + bitmapIdxOffset];
 				}
 			}
@@ -112,7 +112,7 @@ static void FbBlockFlush(const uint16_t startX, const uint16_t startY, FB_COLOR_
 static bool FbBlockCopyChanged(uint16_t startX, uint16_t startY) {
 	bool changed = false;
 	const size_t len = FB_OUTPUTBLOCK_X / FB_BITMAP_BITS * sizeof(FB_BITMAP_TYPE);
-	for (uint32_t y = startY; y < (startY + FB_OUTPUTBLOCK_Y); y++) {
+	for (uint32_t y = startY; y < (uint32_t)(startY + FB_OUTPUTBLOCK_Y); y++) {
 		uint32_t bitmapIdxBase = y * FB_ELEMENTS_X + (startX / FB_BITMAP_BITS);
 		if (memcmp(g_fbPixel + bitmapIdxBase, g_fbPixelPrevious + bitmapIdxBase, len)) {
 			memcpy(g_fbPixelPrevious + bitmapIdxBase, g_fbPixel + bitmapIdxBase, len);
