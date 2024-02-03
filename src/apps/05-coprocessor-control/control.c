@@ -52,7 +52,7 @@ void ControlHelp(void) {
 	printf("w-a-s-d: Send key code to GUI\r\n");
 }
 
-void ControlInit(void) {
+void AppInit(void) {
 	LedsInit();
 	Led1Yellow();
 	PeripheralPowerOff();
@@ -279,7 +279,7 @@ void ExecMode(void) {
 	}
 }
 
-void ControlCycle(void) {
+void AppCycle(void) {
 	static uint32_t ledCycle = 0;
 	static uint8_t guiUpdate = 1;
 	//led flash

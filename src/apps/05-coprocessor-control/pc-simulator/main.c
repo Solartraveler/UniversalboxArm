@@ -20,8 +20,8 @@ int main(int argc, char ** argv) {
 	if (argc > 1) {
 		CreateFilesystem(argv[1]);
 	}
-	ControlInit();
+	AppInit();
 	while(1) {
-		ControlCycle();
+		AppCycle();
 	}
 }

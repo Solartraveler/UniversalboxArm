@@ -88,7 +88,7 @@ IRMP=$(VERYCOMMON)/irmp
 ######################################
 # C sources
 C_SOURCES =  \
-Core/Src/main.c \
+$(SHARED_INIT)/main.c \
 Core/Src/$(CHIPFAMILY)_hal_msp.c \
 Core/Src/system_$(CHIPFAMILY).c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal.c \

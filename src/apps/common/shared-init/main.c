@@ -23,7 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include "mass-storage.h"
+#include "appInterface.h"
 #include "boxlib/rs232debug.h"
 
 /* USER CODE END Includes */
@@ -56,6 +56,13 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+__attribute__((weak)) void AppCycle(void)
+{
+
+
+}
+
 
 /* USER CODE END 0 */
 
@@ -111,7 +118,6 @@ int main(void)
   */
 void SystemClock_Config(void)
 {
-
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};

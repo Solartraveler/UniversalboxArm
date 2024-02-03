@@ -11,9 +11,9 @@ extern const char * g_chargerState[STATES_MAX];
 
 extern const char * g_chargerError[ERRORS_MAX];
 
-void ControlInit(void);
+void AppInit(void);
 
-void ControlCycle(void);
+void AppCycle(void);
 
 void TemperatureToString(char * output, size_t len, int16_t temperature);
 
