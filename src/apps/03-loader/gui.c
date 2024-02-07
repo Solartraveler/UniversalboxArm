@@ -5,17 +5,19 @@
 
 #include "gui.h"
 
-#include "ff.h"
 #include "boxlib/lcd.h"
 #include "boxlib/keys.h"
-#include "tarextract.h"
+#include "framebufferLowmem.h"
+#include "filesystem.h"
+#include "ff.h"
 #include "json.h"
+#include "loader.h"
+#include "main.h"
 #include "menu-interpreter.h"
 #include "menu-text.h"
-#include "loader.h"
-#include "framebufferLowmem.h"
+#include "tarextract.h"
 #include "utility.h"
-#include "filesystem.h"
+
 
 #include "menudata.c"
 
@@ -34,6 +36,12 @@
 
 #define FRONTLEVEL_BG_DARK 100
 #define FRONTLEVEL_BG_BRIGHT 257
+
+//time in [ms]
+#define SCREENSAVER_TIME (5 * 60 * 1000)
+//#define SCREENSAVER_TIME (3 * 1000) //for fast testing only
+
+#define SCREENSAVERFILENAME "/etc/scrsave.json"
 
 void GuiLoadBinary(void);
 
@@ -59,6 +67,25 @@ typedef struct {
 	bool rightPressed;
 	bool upPressed;
 	bool downPressed;
+
+	/*screensaver state
+	  The screensaver has been added because at least the ILI9341 tends to burn in
+	  when its showing the same screen for several hours. So when connecting it
+	  to a computer and then the loader shows the available programs but nothing
+	  is done with the box, then filenames are a little bit visible on a dark
+	  screen. This screensaver should avoid this problem in the future.
+	  The scrensaver slowly draws the screen black (less light in the room) and
+	  has a tiny color chaning dot going slowly from the left to the right of the
+	  screen. The first keypress disables the screensave and is not used as menu
+	  input.
+	*/
+	uint32_t timeLastInput; // [ms]
+	bool screensaverActive;
+	uint32_t saverLastUpdated; // [ms]
+	uint16_t saverX;
+	uint16_t saverY;
+	uint8_t saverColor;
+
 } guiState_t;
 
 guiState_t g_gui;
@@ -68,6 +95,15 @@ uint8_t menu_byte_get(MENUADDR addr) {
 		return menudata[addr];
 	}
 	return 0;
+}
+
+static void GuiScreensaverSave(void) {
+	char buffer[64];
+	const char * bText = menu_checkboxstate[MENU_CHECKBOX_SCREENSAVER] ? "true" : "false";
+	snprintf(buffer, sizeof(buffer), "{\n  \"screensaver\" : \"%s\"\n}\n", bText);
+	if (FilesystemWriteEtcFile(SCREENSAVERFILENAME, buffer, strlen(buffer))) {
+		printf("Updated screensaver configuration\r\n");
+	}
 }
 
 uint8_t menu_action(MENUACTION action) {
@@ -110,6 +146,9 @@ uint8_t menu_action(MENUACTION action) {
 	if (action == MENU_ACTION_IMAGELEAVE) {
 		menu_screen_frontlevel(FRONTLEVEL_BG_DARK); //a single color should be a front color
 	}
+	if (action == MENU_ACTION_SCREENSAVERCHANGE) {
+		GuiScreensaverSave();
+	}
 	return 0;
 }
 
@@ -132,6 +171,19 @@ void GuiInit(void) {
 	menu_gfxdata[MENU_GFX_BINDRAWING] = g_gui.drawing;
 	//we must provide data which prevent a buffer overflow
 	memset(g_gui.drawing, 0xFF, DRAWINGSIZE);
+	//get information if the screensaver should be enabled
+	uint8_t fileContent[64];
+	size_t fileLen = 0;
+	if (FilesystemReadFile(SCREENSAVERFILENAME, fileContent, sizeof(fileContent), &fileLen)) {
+		char textBool[8];
+		if (JsonValueGet(fileContent, fileLen, "screensaver", textBool, sizeof(textBool))) {
+			if (strcmp(textBool, "true") == 0) {
+				menu_checkboxstate[MENU_CHECKBOX_SCREENSAVER] = 1;
+			}
+		}
+	}
+	g_gui.saverColor = 1; //do not start with black
+	//detect which LCD is connected
 	g_gui.type = FilesystemReadLcd();
 	if (g_gui.type != NONE) {
 		LcdBacklightOn();
@@ -208,15 +260,35 @@ void GuiLoadBinary(void) {
 	}
 }
 
+static void GuiDeactivateScreensaver(void) {
+	g_gui.screensaverActive = false;
+	g_gui.timeLastInput = HAL_GetTick();
+	/*As the screensaver does not call menu_screen_clear() for every
+	  menu_screen_flush, framebuffer(), the screen is wronfully assumed to be
+	  white and therefore dark blocks with no screen elements to show, would stay
+	  dark.
+	*/
+	uint16_t pixelX = g_gui.pixelX;
+	uint16_t pixelY = g_gui.pixelY;
+	for (uint16_t x = 0; x < pixelX; x += FB_OUTPUTBLOCK_X) {
+		for (uint32_t y = 0; y < pixelY; y += FB_OUTPUTBLOCK_Y) {
+			menu_screen_set(x, y, MENU_COLOR_BACKGROUND);
+		}
+	}
+}
+
 void GuiTransferStart(void) {
+	GuiDeactivateScreensaver();
 	menu_keypress(103); //show subwindow
 }
 
 void GuiTransferDone(void) {
+	GuiDeactivateScreensaver();
 	menu_keypress(50); //close subwindow
 }
 
 void GuiJumpBinScreen(void) {
+	GuiDeactivateScreensaver();
 	menu_keypress(104); //go to app window
 }
 
@@ -400,6 +472,57 @@ void GuiShowFsData(uint32_t totalBytes, uint32_t freeBytes, uint32_t sectors, ui
 	snprintf(g_gui.fsClustersize, FILETEXT, "%uByte", (unsigned int)clustersize);
 }
 
+static void GuiForwardKey(char key) {
+	g_gui.timeLastInput = HAL_GetTick();
+	if (g_gui.screensaverActive == false) {
+		menu_keypress(key);
+	} else {
+		GuiDeactivateScreensaver();
+		menu_redraw();
+	}
+}
+
+static void GuiDrawBlock(uint16_t x, uint16_t y, uint16_t dimension, uint8_t color) {
+	for (uint16_t i = 0; i < dimension; i++) {
+		for (uint32_t j = 0; j < dimension; j++) {
+			menu_screen_set(x + i, y + j, color);
+		}
+	}
+}
+
+#define BLOCKSIZE 32
+static void GuiDrawScreensaver(bool alreadyActive) {
+	uint32_t timestamp = HAL_GetTick();
+	if (alreadyActive == false) {
+		GuiDrawBlock(0, 0, MAX(g_gui.pixelX, g_gui.pixelY), 0);
+	}
+	//so a 320x240 LCD has done one color iteration within one hour
+	if ((timestamp - g_gui.saverLastUpdated) > 48000) {
+		g_gui.saverLastUpdated = timestamp;
+		uint16_t x = g_gui.saverX;
+		uint16_t y = g_gui.saverY;
+		uint8_t color = g_gui.saverColor;
+		GuiDrawBlock(x, y, BLOCKSIZE, 0);
+		x += BLOCKSIZE;
+		if (x >= g_gui.pixelX) {
+			x = 0;
+			y += BLOCKSIZE;
+		}
+		if (y >= g_gui.pixelY) {
+			y = 0;
+			color = (color + 1) & 7;
+			if (color == 0) {
+				color = 1;
+			}
+		}
+		g_gui.saverX = x;
+		g_gui.saverY = y;
+		g_gui.saverColor = color;
+		GuiDrawBlock(x, y, BLOCKSIZE, color);
+		menu_screen_flush();
+	}
+}
+
 /*
 Normally, the menu can be controlled with the 4 hardware keys and w-a-s-d over
 the serial port.
@@ -411,7 +534,7 @@ void GuiCycle(char key) {
 	bool state = KeyLeftPressed();
 	if (((g_gui.leftPressed == false) && (state)) || (key == 'a')) {
 		if (g_gui.type != NONE) {
-			menu_keypress(2);
+			GuiForwardKey(2);
 		}
 	}
 	g_gui.leftPressed = state;
@@ -419,7 +542,7 @@ void GuiCycle(char key) {
 	state = KeyRightPressed();
 	if (((g_gui.rightPressed == false) && (state)) || (key == 'd')) {
 		if (g_gui.type != NONE) {
-			menu_keypress(1);
+			GuiForwardKey(1);
 		} else {
 			GuiLcdSet(ST7735_160);
 			guiEnabled = true;
@@ -430,7 +553,7 @@ void GuiCycle(char key) {
 	state = KeyUpPressed();
 	if (((g_gui.upPressed == false) && (state)) || (key == 'w')) {
 		if (g_gui.type != NONE) {
-			menu_keypress(3);
+			GuiForwardKey(3);
 		} else {
 			GuiLcdSet(ILI9341);
 			guiEnabled = true;
@@ -441,7 +564,7 @@ void GuiCycle(char key) {
 	state = KeyDownPressed();
 	if (((g_gui.downPressed == false) && (state)) || (key == 's')) {
 		if (g_gui.type != NONE) {
-			menu_keypress(4);
+			GuiForwardKey(4);
 		} else {
 			GuiLcdSet(ST7735_128);
 			guiEnabled = true;
@@ -452,5 +575,14 @@ void GuiCycle(char key) {
 	if (guiEnabled) {
 		GuiInit(); //safe to call a 2. time
 	}
+
+	//handle screensaver
+	if ((g_gui.type != NONE) && (menu_checkboxstate[MENU_CHECKBOX_SCREENSAVER])) {
+		if ((HAL_GetTick() - g_gui.timeLastInput) >= SCREENSAVER_TIME) {
+			GuiDrawScreensaver(g_gui.screensaverActive);
+			g_gui.screensaverActive = true;
+		}
+	}
+
 }
 

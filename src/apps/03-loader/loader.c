@@ -1,5 +1,5 @@
 /* Loader
-(c) 2022 by Malte Marwedel
+(c) 2022-2024 by Malte Marwedel
 
 SPDX-License-Identifier: GPL-3.0-or-later
 */

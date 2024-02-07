@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Loader
 #Version of this application, to be used in the metadata
-VERSION  = 0.17.1
+VERSION  = 0.18.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
