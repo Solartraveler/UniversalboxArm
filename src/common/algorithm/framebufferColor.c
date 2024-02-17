@@ -92,9 +92,16 @@ FB_SCREENPOS_TYPE g_fbUseY = FB_SIZE_Y;
 
 /*This array is only used as performance booster.
   When no menu_screen_set is done between two menu_screen_clear, a write to the LCD
-  can be skipped. Since we need to write on the So each pixel write sets the counter to 2. A flush must write
-  the block if the counter is non 0 and dercreases the counter by 1. But on the very first
-  flush, we have to write everything
+  can be skipped. So each pixel write sets the counter to 2. A flush must write
+  the block if the counter is non 0 and decreases the counter by 1. But on the very first
+  flush, we have to write everything.
+  This works right as long as menu_screen_clear() and menu_screen_flush() are always called in turns.
+  If this is not observed, and menu_screen_flush() is called twice, it is assumed the screen is now clear
+  and therefore a following menu_screen_clear() -> menu_screen_flush() does clear the internal buffer,
+  but the information are not transmitted to the LCD and therefore blocks not written menu_screen_set are
+  not visible as clear on the LCD.
+  Calling menu_screen_clear() more than once is no problem.
+  The array must contain two bits for every block.
 */
 #define FB_WRITTENBLOCKS_PER_DATATYPE (FB_BITMAP_BITS / 2)
 

@@ -114,17 +114,27 @@ uint16_t g_fbFrontLevel = FB_FRONT_LEVEL;
 
 /*This array is only used as performance booster.
   When no menu_screen_set is done between two menu_screen_clear, a write to the LCD
-  can be skipped. Since we need to write on the So each pixel write sets the counter to 2. A flush must write
-  the block if the counter is non 0 and dercreases the counter by 1. But on the very first
-  flush, we have to write everything
+  can be skipped. So each pixel write sets the counter to 2. A flush must write
+  the block if the counter is non 0 and decreases the counter by 1. But on the very first
+  flush, we have to write everything.
+  This works right as long as menu_screen_clear() and menu_screen_flush() are always called in turns.
+  If this is not observed, and menu_screen_flush() is called twice, it is assumed the screen is now clear
+  and therefore a following menu_screen_clear() -> menu_screen_flush() does clear the internal buffer,
+  but the information are not transmitted to the LCD and therefore blocks not written menu_screen_set are
+  not visible as clear on the LCD.
+  Calling menu_screen_clear() more than once is no problem.
+  The array must contain two bits for every block.
 */
+
+_Static_assert((FB_SIZE_X % FB_OUTPUTBLOCK_X) == 0, "FB_SIZE_X must be multiple of FB_OUTPUTBLOCK_X");
+_Static_assert((FB_SIZE_Y % FB_OUTPUTBLOCK_Y) == 0, "FB_SIZE_Y must be multiple of FB_OUTPUTBLOCK_Y");
+
 #define FB_OUTPUTBLOCKS_X (FB_SIZE_X / FB_OUTPUTBLOCK_X)
 #define FB_OUTPUTBLOCKS_Y (FB_SIZE_Y / FB_OUTPUTBLOCK_Y)
 
-#define FB_WRITTENBLOCKS_X ((FB_SIZE_X + FB_BITMAP_BITS - 1) / FB_BITMAP_BITS)
-#define FB_WRITTENBLOCKS_Y ((FB_SIZE_Y + FB_BITMAP_BITS - 1) / FB_BITMAP_BITS)
-FB_BITMAP_TYPE g_fbWrittenBlock[FB_WRITTENBLOCKS_X * FB_WRITTENBLOCKS_Y];
-uint8_t g_fbWritten;
+#define FB_WRITTENELEMS ((FB_OUTPUTBLOCKS_X * FB_OUTPUTBLOCKS_Y * 2 + FB_BITMAP_BITS - 1) / FB_BITMAP_BITS)
+FB_BITMAP_TYPE g_fbWrittenBlock[FB_WRITTENELEMS];
+uint8_t g_fbWritten; //to detect the first call
 
 
 void menu_screen_set(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y, FB_COLOR_IN_TYPE color) {
@@ -144,7 +154,7 @@ void menu_screen_set(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y, FB_COLOR_IN_TYPE 
 			g_fbColor[indexBlock] = color | (g_fbColor[indexBlock] & FB_DOUBLECOLOR_FRONT_MASK);
 		}
 		//speed improvement
-		uint32_t blockWritten = (x / FB_OUTPUTBLOCK_X) + (y / FB_OUTPUTBLOCK_Y) * FB_WRITTENBLOCKS_X;
+		uint32_t blockWritten = (x / FB_OUTPUTBLOCK_X) + (y / FB_OUTPUTBLOCK_Y) * FB_OUTPUTBLOCKS_X;
 		uint32_t indexWritten = blockWritten / (FB_BITMAP_BITS / 2);
 		uint32_t offsetWritten = blockWritten % (FB_BITMAP_BITS / 2);
 		FB_BITMAP_TYPE maskWrittenHigh = 2 << (offsetWritten * 2);
@@ -290,7 +300,7 @@ void menu_screen_clear(void) {
 	memset(g_fbColor, 0xFF, (FB_COLORBLOCKS_X * FB_COLORBLOCKS_Y) * sizeof(fb_DoubleColor_t));
 	if (g_fbWritten == 0) {
 		//0x55 -> write each block 1x
-		memset(g_fbWrittenBlock, 0x55, (FB_WRITTENBLOCKS_X * FB_WRITTENBLOCKS_Y) * sizeof(FB_BITMAP_TYPE));
+		memset(g_fbWrittenBlock, 0x55, FB_WRITTENELEMS * sizeof(FB_BITMAP_TYPE));
 		g_fbWritten = 1; //first frame needs to be written completely
 	}
 }
