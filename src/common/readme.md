@@ -5,10 +5,25 @@ Useful platform independend algorithm by the author of this project.
 
 License: BSD 3-Clause
 
+# fatfs #
+Fat filesystem from (http://elm-chan.org/fsw/ff/00index_e.html) version 0.14b.
+
+License: BSD 1-Clause
+
 # FreeRTOS
 FreeRTOS from (https https://github.com/FreeRTOS/FreeRTOS-Kernel) version 10.5.1
 
 License: MIT
+
+## ili9341 ##
+Files for the 320x240 GLCD.
+
+License: BSD 3-Clause
+
+The header and the unused ili9341_st_not_working.c file are taken from STM32Cube_FW_F4_V1.25.2
+
+The actual working init sequence in ili9341.c is taken from
+[here](https://vivonomicon.com/2018/06/17/drawing-to-a-small-tft-display-the-ili9341-and-stm32/)
 
 # irmp
 IRMP, the [infrared multiprotocol decoder library](https://www.mikrocontroller.net/articles/IRMP).
@@ -33,3 +48,10 @@ GUI toolkit from the author of this project. Version 2.1.
 The full project can be found at [Sourceforge](https://sourceforge.net/projects/menudesigner/)
 
 License: MPL-2.0
+
+## st7735 ##
+Files for the 128x128 GLCD
+
+License: BSD 3-Clause
+
+Taken from STM32Cube_FW_L4_V1.16.0
