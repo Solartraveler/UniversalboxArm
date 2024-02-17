@@ -89,7 +89,8 @@ MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
 # C sources
 C_SOURCES =  \
 $(SHARED_INIT)/main.c \
-Core/Src/$(CHIPFAMILY)_hal_msp.c \
+$(SHARED_INIT)/$(CHIPFAMILY)_hal_msp.c \
+$(SHARED_INIT)/system_$(CHIPFAMILY).c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc_ex.c \
@@ -102,7 +103,6 @@ $(STM_HAL)/Src/$(CHIPFAMILY)_hal_spi_ex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_tim.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_tim_ex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_dma.c \
-Core/Src/system_$(CHIPFAMILY).c \
 $(BOXLIB)/keys.c \
 $(BOXLIB)/leds.c \
 $(BOXLIB)/rs232debug.c \

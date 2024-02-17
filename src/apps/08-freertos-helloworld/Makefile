@@ -90,8 +90,8 @@ FREERTOSPORT=$(FREERTOS)/portable/GCC/ARM_CM4F
 # C sources
 C_SOURCES =  \
 $(SHARED_INIT)/main.c \
-Core/Src/$(CHIPFAMILY)_hal_msp.c \
-Core/Src/system_$(CHIPFAMILY).c \
+$(SHARED_INIT)/$(CHIPFAMILY)_hal_msp.c \
+$(SHARED_INIT)/system_$(CHIPFAMILY).c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc_ex.c \
