@@ -264,7 +264,7 @@ static uint8_t test4(void) {
 	TASSH(CheckErrorExpected(&cs, 0), 8);
 	TASSH(CheckStateExpected(&cs, 0), 9);
 	TASSH(ChargerGetCharged(&cs) == (600UL*60UL*60UL), 10);
-	TASSH(ChargerGetChargedTotal(&cs) == (600UL*60UL*60UL), 11);
+	TASSH(ChargerGetChargedTotal(&cs) == (1000ULL*600ULL*60ULL*60ULL), 11);
 	TASSH(ChargerGetCycles(&cs) == 1, 12);
 	TASSH(ChargerGetPreCycles(&cs) == 0, 13);
 	TicksAnalyze(&data);
@@ -855,6 +855,17 @@ static uint8_t test25(void) {
 	return 0;
 }
 
+//tests if the entered start values are the ones returned
+static uint8_t test26(void) {
+	chargerState_t cs;
+	const uint64_t mAms = 1000LLU * 60LLU * 60LLU * 1000LLU * 12345LLU; //12345Ah
+	ChargerInit(&cs, 4, 30, 1, mAms);
+	TASSH(CheckErrorExpected(&cs, 4), 1);
+	TASSH(ChargerGetCycles(&cs) == 30, 2);
+	TASSH(ChargerGetPreCycles(&cs) == 1, 3);
+	TASSH(ChargerGetChargedTotal(&cs) == mAms, 4);
+	return 0;
+}
 
 typedef uint8_t (*test_t)(void);
 
@@ -886,6 +897,7 @@ test_t g_tests[] = {
 &test23,
 &test24,
 &test25,
+&test26,
 #endif
 };
 
@@ -925,7 +937,7 @@ static int8_t RunTests(void) {
 #endif
 }
 
-const char EEMEM strStart[] = "Unit tests 0.10\r\n";
+const char EEMEM strStart[] = "Unit tests 0.11\r\n";
 
 int main(void) {
 	HardwareInit();

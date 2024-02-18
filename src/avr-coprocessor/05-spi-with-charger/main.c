@@ -1,5 +1,5 @@
 /*UniversalboxARM - AVR coprocessor
-  (c) 2021-2022 by Malte Marwedel
+  (c) 2021-2022, 2024 by Malte Marwedel
   www.marwedels.de/malte
 
   This program is free software; you can redistribute it and/or modify
@@ -115,7 +115,7 @@ typedef struct {
 	uint8_t chargerError;
 	uint32_t chargingCycles;
 	uint32_t prechargingCycles;
-	uint64_t chargingSumAllTimes;
+	uint64_t chargingSumAllTimes; //[mAms]
 	uint32_t opTotal; //time in [minutes]
 	uint16_t crc; //must be the last in the struct
 } persistent_t;
@@ -507,7 +507,7 @@ int main(void) {
 				SpiDataSet(CMD_BAT_CHARGE_ERR, ChargerGetError(&CS));
 				SpiDataSet(CMD_BAT_CHARGED, ChargerGetCharged(&CS) / (60ULL*60ULL)); //mAs -> mAh
 				settings.chargingSumAllTimes = ChargerGetChargedTotal(&CS);
-				SpiDataSet(CMD_BAT_CHARGED_TOT, settings.chargingSumAllTimes / (60ULL * 60ULL * 1000ULL)); //mAs ->Ah
+				SpiDataSet(CMD_BAT_CHARGED_TOT, settings.chargingSumAllTimes / (1000ULL * 60ULL * 60ULL * 1000ULL)); //mAms ->Ah
 				settings.chargingCycles = ChargerGetCycles(&CS);
 				SpiDataSet(CMD_BAT_CHARGE_CYC, settings.chargingCycles);
 				settings.prechargingCycles = ChargerGetPreCycles(&CS);

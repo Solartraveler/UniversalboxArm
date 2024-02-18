@@ -40,6 +40,10 @@ typedef struct {
 
 /* Initializes pCS. If some error has not been manually reset, it should be
 re-entered as errorState since the last power-fail.
+errorState: Previous recorded error state
+chargingCycles: Number of charging cycles done
+prechargingCycles: Number of precharging cycles done
+chargingSumAllTimes: Total charged in [mAms]
 */
 void ChargerInit(chargerState_t * pCS, uint8_t errorState, uint32_t chargingCycles,
                  uint32_t prechargingCycles, uint64_t chargingSumAllTime);
@@ -74,12 +78,12 @@ inline static uint8_t ChargerGetState(chargerState_t * pCS) {
 
 //returns mAs
 inline static uint32_t ChargerGetCharged(chargerState_t * pCS) {
-	return pCS->chargingSum / 1000UL;
+	return pCS->chargingSum / 1000ULL;
 }
 
 //returns mAs
-inline static uint32_t ChargerGetChargedTotal(chargerState_t * pCS) {
-	return pCS->chargingSumAllTime / 1000UL;
+inline static uint64_t ChargerGetChargedTotal(chargerState_t * pCS) {
+	return pCS->chargingSumAllTime;
 }
 
 inline static uint32_t ChargerGetCycles(chargerState_t * pCS) {
