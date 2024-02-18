@@ -282,6 +282,68 @@ void JoystickInit(void) {
 	InputUnlock();
 }
 
+/*This simply assumes the function is called every 1ms
+  (see sleep at end of InputThread + there is at least the game thread running
+  every other 1ms) so timing is not exact.
+  Scope analysis show the inputs are jittering within a
+  timeframe of 50ms.
+
+  This function only calculates the average value.
+  A median value might even be a better filter.
+*/
+#define AVERAGE_NUM 50
+#define AVERAGE_CHANNELS 2
+
+uint16_t g_adcData[AVERAGE_CHANNELS][AVERAGE_NUM];
+uint16_t g_adcIdx[AVERAGE_CHANNELS];
+uint32_t g_adcSum[AVERAGE_CHANNELS];
+
+uint16_t AdcAverager(uint8_t channel) {
+	uint16_t channelIdx;
+	if (channel == INPUT_X_ADC) {
+		channelIdx = 0;
+	} else if (channel == INPUT_Y_ADC) {
+		channelIdx = 1;
+	} else {
+		return 0; //should not happen
+	}
+	uint16_t * adcDataHistory = g_adcData[channelIdx];
+	uint16_t idx = g_adcIdx[channelIdx];
+	uint32_t sum = g_adcSum[channelIdx];
+
+	uint16_t adcData = AdcGet(channel);
+	if (adcDataHistory[idx] < sum) {
+		sum -= adcDataHistory[idx];
+	}
+	adcDataHistory[idx] = adcData;
+	sum += adcData;
+	idx++;
+	if (idx >= AVERAGE_NUM) {
+		idx = 0;
+	}
+	g_adcIdx[channelIdx] = idx;
+	g_adcSum[channelIdx] = sum;
+	//enable to get some statistics how often this function is called for one channel
+#if 0
+	static uint32_t cycle = 0;
+	static uint32_t tStart;
+	if ((idx == 0) && (channelIdx == 0)) {
+		if (cycle == 0) {
+			tStart = HAL_GetTick();
+		} else if (cycle == 1) {
+			uint32_t tStop = HAL_GetTick();
+			printf("%u calls take %u ticks\r\n", AVERAGE_NUM, (unsigned int)(tStop - tStart));
+		}
+		if (cycle == 39) { //approx 1 message per second
+			cycle = 0;
+		} else {
+			cycle++;
+		}
+	}
+#endif
+	return sum / AVERAGE_NUM;
+}
+
 void InputThread(void * param) {
 	(void)param;
 	uint8_t snapKey = 0, snapX = 0, snapY = 0;
@@ -300,7 +362,7 @@ void InputThread(void * param) {
 			}
 		}
 		if (g_userinputtype == 1) { //joystick input
-			uint16_t x = AdcGet(INPUT_X_ADC);
+			uint16_t x = AdcAverager(INPUT_X_ADC);
 			int16_t xLin = 0;
 			if (x) {
 				xLin = (INP_LINEARIZE / x); //make linear
@@ -325,7 +387,7 @@ void InputThread(void * param) {
 				snapX = 0;
 			}
 
-			uint16_t y = AdcGet(INPUT_Y_ADC);
+			uint16_t y = AdcAverager(INPUT_Y_ADC);
 			int16_t yLin = 0;
 			if (y) {
 				yLin = (INP_LINEARIZE / y); //make linear

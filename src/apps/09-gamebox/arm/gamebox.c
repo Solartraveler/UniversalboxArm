@@ -266,7 +266,9 @@ static void GuiThread(void * arg) {
 		LcdInit(type);
 		menu_screen_size(pixelX, pixelY);
 		menu_screen_clear();
-		menu_screen_colorize_border(0x0, pixelX, pixelY);
+		//black makes trouble with snake, because the end of the game field can not be seen
+		uint16_t color = (4<<11) | (8<<5) | (2<<0); //looks dark silver (5:6:5 color bits)
+		menu_screen_colorize_border(color, pixelX, pixelY);
 		while (1) {
 			if (!GraphicUpdate()) {
 				vTaskDelay(5);
@@ -310,7 +312,7 @@ void AppInit(void) {
 	HAL_Delay(100);
 	PeripheralPowerOn();
 	Rs232Init();
-	printf("Gamebox Version 'Final 1.11' (c) 2004-2013, 2023, 2024 by Malte Marwedel\r\n\r\n");
+	printf("Gamebox Version 'Final " APPVERSION " (c) 2004-2013, 2023, 2024 by Malte Marwedel\r\n\r\n");
 	printf("This program is free software; you can redistribute it and/or modify\r\n");
 	printf("it under the terms of the GNU General Public License as published by\r\n");
 	printf("the Free Software Foundation; either version 3 of the License, or\r\n");
