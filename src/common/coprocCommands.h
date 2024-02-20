@@ -41,6 +41,10 @@
                                                if yy = 1: leaves the ARM on)
   Wakeup alarm        0x85 yy yy     00 00 00 (Sets a time when the ARM is powered on by battery. [s]. 0 = no wakeup)
   Power down          0x86 11 22     00 00 00 (If on battery power, the ARM is powered off. Otherwise the request is ignored)
+  Button press time   0x87 yy yy     00 00 00 (Sets the time in [ms] until a left or right button press is processed.
+                                               When the app is reset, this is set back to the default. Useful for games where
+                                               a long left press may happen and should not result in a app reset.
+                                               min: 1000ms (also the default), max: 60000ms)
   New battery         0x90 12 91     00 00 00 (Resets the non volatile error state of the battery charger logic)
   Reset battery stat  0x91 33 44     00 00 00 (Resets the non volatile battery statistics)
   Force charge        0x92 00 00     00 00 00 (Charges the battery to 100%)
@@ -92,6 +96,7 @@ of 200ms until a new transfer is started.
 #define CMD_POWERMODE         0x84
 #define CMD_ALARM             0x85
 #define CMD_POWERDOWN         0x86
+#define CMD_KEYPRESSTIME      0x87
 
 #define CMD_BAT_NEW           0x90
 #define CMD_BAT_STAT_RESET    0x91

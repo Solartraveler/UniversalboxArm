@@ -268,6 +268,9 @@ static uint8_t PowerDownLoop(uint16_t alarm) {
 	return wakeupReason;
 }
 
+//value in [10ms]
+#define KEY_PRESS_TIME_DEFAULT 100
+
 int main(void) {
 	HardwareInit(); //this sets the ARM to the reset state
 	LedOn();
@@ -282,7 +285,7 @@ int main(void) {
 	SensorsOn();
 	SpiInit();
 	SpiDataSet(CMD_VERSION, 0x0506); //05 for the program (folder name), 06 for the version
-	uint8_t pressedLeft = 0, pressedRight = 0; //Time the left or right button is hold down [10ms]
+	uint16_t pressedLeft = 0, pressedRight = 0; //Time the left or right button is hold down [10ms]
 	uint8_t resetHold = 0; //count down until the reset of the ARM CPU is released [10ms]
 	uint8_t armNormal = 1; //startup mode of the ARM cpu 0: DFU bootloader, 1: normal program start
 	uint8_t ledFlashCycle = 0; //controls the speed of the LED flashing, counts up. [10ms]
@@ -310,6 +313,7 @@ int main(void) {
 	uint8_t timeLoadLast = 0; //timestamp the last time the Load was updated [10ms]
 	uint32_t ticksIdle = 0; //accumulated ticks of noting to do since timeLoadLast was updated
 	uint8_t percentIdlePrevious = 0; //previous value of being idle in [%]
+	uint16_t keyPressTime = KEY_PRESS_TIME_DEFAULT; //duration of the left or right key being pressed in [10ms]
 
 	chargerState_t CS;
 	persistent_t settings;
@@ -321,10 +325,10 @@ int main(void) {
 	uint8_t timestampChargeprocessLast = TimerGetValue(); //time in [10ms]
 	for (;;) { //Main loop, we run every 10ms
 		if (KeyPressedLeft()) {
-			if (pressedLeft < 255) {
+			if (pressedLeft < 0xFFFF) {
 				pressedLeft++;
 			}
-			if (pressedLeft == 100) { //1s press
+			if (pressedLeft == keyPressTime) { //1s press (if default value)
 				if (KeyPressedRight() == 0) {
 					resetHold = 20; //200ms reset signal
 					if (armNormal) {
@@ -339,7 +343,7 @@ int main(void) {
 					requestPowerDown = 1;
 				}
 			}
-			if (pressedLeft >= 100) {
+			if (pressedLeft >= keyPressTime) {
 				ledFlashRemaining = 1;
 			}
 		} else {
@@ -347,16 +351,17 @@ int main(void) {
 			if (resetHold) {
 				resetHold--;
 				if (resetHold == 0) {
+					keyPressTime = KEY_PRESS_TIME_DEFAULT;
 					ArmRun();
 					LedOff();
 				}
 			}
 		}
 		if ((KeyPressedRight()) && (KeyPressedLeft() == 0)) {
-			if (pressedRight < 255) {
+			if (pressedRight < 0xFFFF) {
 				pressedRight++;
 			}
-			if (pressedRight == 100) { //1s press
+			if (pressedRight == keyPressTime) { //1s press (if default value)
 				armNormal = 1 - armNormal;
 				if (armNormal) {
 					ArmUserprog();
@@ -432,6 +437,8 @@ int main(void) {
 				SpiDataSet(CMD_ALARM_READ, batteryWakeupTime);
 			} else if (command == CMD_POWERDOWN) {
 				requestPowerDown = 1;
+			} else if ((command == CMD_KEYPRESSTIME) && (parameter >= 1000) && (parameter <= 60000)) {
+				keyPressTime = parameter / 10; //[ms] -> [10ms]
 			}
 		}
 		if (watchdogCurrent) {
@@ -536,6 +543,7 @@ int main(void) {
 		if (requestPowerDown) {
 			requestPowerDown = 0;
 			if (onUsbPower == 0) {
+				keyPressTime = KEY_PRESS_TIME_DEFAULT;
 				uint8_t wakeupReason = PowerDownLoop(batteryWakeupTime);
 				timestampChargeprocessLast = TimerGetValue();
 				reinitSpiDelay = 100;
