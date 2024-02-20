@@ -129,6 +129,12 @@ void CoprocWriteAlarm(uint16_t alarm);
 //If running on battery, this will switch off the ARM processor
 void CoprocWritePowerdown(void);
 
+//Sets the time in [ms] until a left or right keypress by the coprocessor is
+//accepted. Allowed range is 1000 to 60000. The value is rounded down to the
+//next 10ms. The value is reset to the default 1000ms if the coprocessor does a
+//reset of the ARM CPU.
+void CoprocWriteKeyPressTime(uint16_t time);
+
 //resets the error state. Statistics are not reset.
 void CoprocBatteryNew(void);
 

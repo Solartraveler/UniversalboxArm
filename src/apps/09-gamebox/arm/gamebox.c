@@ -291,6 +291,8 @@ static void MainThread(void * arg) {
 	CoprocInit();
 	JoystickInit();
 	EepromLoadFromFile();
+	vTaskDelay(300); //we waited already 100ms in AppInit
+	CoprocWriteKeyPressTime(8000); //wait for 300ms before the first command (better 400 to be safe)
 	xTaskCreateStatic(&GuiThread, "gui", TASK_STACK_ELEMENTS, NULL, 1, g_guiStack, &g_guiTask);
 	xTaskCreateStatic(&InputThread, "input", TASK_STACK_ELEMENTS, NULL, 1, g_inputStack, &g_inputTask);
 	printf("Starting game menu...\r\n");

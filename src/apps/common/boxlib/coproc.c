@@ -209,6 +209,10 @@ void CoprocWritePowerdown(void) {
 	CoprocSendCommand(CMD_POWERDOWN, 0x1122);
 }
 
+void CoprocWriteKeyPressTime(uint16_t time) {
+	CoprocSendCommand(CMD_KEYPRESSTIME, time);
+}
+
 void CoprocBatteryNew(void) {
 	CoprocSendCommand(CMD_BAT_NEW, 0x1291);
 }
