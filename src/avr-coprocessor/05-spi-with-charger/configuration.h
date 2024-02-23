@@ -18,4 +18,4 @@ Note the differences in the datasheet between the ATtiny261A, ATtiny461A and ATi
 
 #define USE_WATCHDOG
 
-#define CMD_READ_MAX 0x22
+#define CMD_READ_MAX 0x23

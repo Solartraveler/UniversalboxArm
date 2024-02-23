@@ -130,6 +130,10 @@ void simulateReadExtendedStates(void) {
 	dataIn = simulateSpiCommand(dataOut, false);
 	printf("Battery voltage: %umV\n", dataIn);
 
+	dataOut = CMD_BAT_MIN_VOLTAGE << 16;
+	dataIn = simulateSpiCommand(dataOut, false);
+	printf("Battery min voltage: %umV\n", dataIn);
+
 	dataOut = CMD_BAT_CURRENT << 16;
 	dataIn = simulateSpiCommand(dataOut, false);
 	printf("Battery current: %umA\n", dataIn);

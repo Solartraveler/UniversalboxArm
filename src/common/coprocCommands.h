@@ -30,6 +30,7 @@
   Read current PWM    0x19 xx xx     00 00 yy (current PWM value)
   Read current max    0x20 xx xx     00 yy yy (maximum current value, value set by charge current max command, [mA])
   Read charge time    0x21 xx xx     00 yy yy (time since charging started, [s])
+  Read batt min volt  0x22 xx xx     00 yy yy (minimum voltage ever measured for the battery, [mV])
   Reboot              0x80 A6 00     00 00 00 (resets with user selected bootmode)
   Reboot              0x80 A6 01     00 00 00 (resets with program bootmode)
   Reboot              0x80 A6 02     00 00 00 (resets with bootloader bootmode)
@@ -46,7 +47,7 @@
                                                a long left press may happen and should not result in a app reset.
                                                min: 1000ms (also the default), max: 60000ms)
   New battery         0x90 12 91     00 00 00 (Resets the non volatile error state of the battery charger logic)
-  Reset battery stat  0x91 33 44     00 00 00 (Resets the non volatile battery statistics)
+  Reset battery stat  0x91 33 44     00 00 00 (Resets the non volatile (and volatile) battery statistics)
   Force charge        0x92 00 00     00 00 00 (Charges the battery to 100%)
   Charge current max  0x93 yy yy     00 00 00 (Sets the maximum charger current [mA]. 0 Stops an ongoing charge)
 
@@ -87,6 +88,7 @@ of 200ms until a new transfer is started.
 #define CMD_BAT_PWM           0x19
 #define CMD_BAT_CURRENT_MAX_READ 0x20
 #define CMD_BAT_TIME          0x21
+#define CMD_BAT_MIN_VOLTAGE   0x22
 
 //write commands
 #define CMD_REBOOT            0x80

@@ -298,6 +298,7 @@ int main(void) {
 	uint16_t watchdogCurrent = 0; //count down value of the ARM CPU watchdog. On a 0, a reset is issured. [1ms]
 	uint16_t inU = 0; //measured input voltage [mV]
 	uint16_t battU = 0; //measured battery voltage [mV]
+	uint16_t battUmin = 0xFFFF; //minimum measured battery voltage [mV]
 	uint16_t battI = 0; //measured battery current [mA]
 	int16_t battTemp = 0; //measured battery temperature [0.1°C]
 	uint16_t inMax = 70; //maximum allowed charging current [mA]
@@ -480,6 +481,10 @@ int main(void) {
 		if (adcCycleFast == 3) {
 			battU = SensorsBatteryvoltageGet();
 			SpiDataSet(CMD_BAT_VOLTAGE, battU);
+			if (battU < battUmin) {
+				battUmin = battU;
+				SpiDataSet(CMD_BAT_MIN_VOLTAGE, battUmin);
+			}
 		}
 		if (adcCycleFast == 5) {
 			battI = SensorsBatterycurrentGet();
