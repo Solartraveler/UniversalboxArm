@@ -170,17 +170,19 @@ $(BUILD_DIR)/$(TARGET): $(OBJECTS) Makefile
 $(BUILD_DIR):
 	mkdir $@
 
+MCUTESTAPP=stm32l452
+
 test: $(BUILD_DIR)/$(TARGET)
-	./$(BUILD_DIR)/$(TARGET) --UploadRun ../../02-test-everything-hal/build/*-ram.tar
+	./$(BUILD_DIR)/$(TARGET) --UploadRun ../../02-test-everything-hal/build/$(MCUTESTAPP)/*-ram.tar
 
 test2: $(BUILD_DIR)/$(TARGET)
-	./$(BUILD_DIR)/$(TARGET) --UploadWrite ../../02-test-everything-hal/build/*-ram.tar
+	./$(BUILD_DIR)/$(TARGET) --UploadWrite ../../02-test-everything-hal/build/$(MCUTESTAPP)/*-ram.tar
 
 test3: $(BUILD_DIR)/$(TARGET)
-	./$(BUILD_DIR)/$(TARGET) --Upload ../../01-blinky-hal/build/*-ram.tar --Sleep 2 --UploadWrite ../../02-test-everything-hal/build/*-ram.tar
+	./$(BUILD_DIR)/$(TARGET) --Upload ../../01-blinky-hal/build/$(MCUTESTAPP)/*-ram.tar --Sleep 2 --UploadWrite ../../02-test-everything-hal/build/$(MCUTESTAPP)/*-ram.tar
 
 test4: $(BUILD_DIR)/$(TARGET)
-	./$(BUILD_DIR)/$(TARGET) --Upload ../../02-test-everything-hal/build/*-ram.tar
+	./$(BUILD_DIR)/$(TARGET) --Upload ../../02-test-everything-hal/build/$(MCUTESTAPP)/*-ram.tar
 
 
 #######################################
