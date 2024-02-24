@@ -6,7 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include <stdbool.h>
 
-#include "relays.h"
+#include "boxlib/relays.h"
 
 #include "main.h"
 

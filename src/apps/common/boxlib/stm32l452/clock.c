@@ -8,7 +8,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "clock.h"
+#include "boxlib/clock.h"
 
 #include "main.h"
 

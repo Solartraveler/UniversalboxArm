@@ -11,7 +11,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include <string.h>
 #include <stdio.h>
 
-#include "rs232debug.h"
+#include "boxlib/rs232debug.h"
 #include "main.h"
 
 //defined by hardware:

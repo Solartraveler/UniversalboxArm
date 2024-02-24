@@ -23,7 +23,9 @@ AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
 LICENSE  = BSD-3-Clause
 #The MCU, this binary is compiled for, to be used in the metadata
-CHIP     = stm32l452
+CHIP     ?= stm32l452
+#Hardware, if there are platforms with the same chip, but different layout, some hardware variable might make the difference
+HARDWARE ?=
 #Watchdog in [ms]. 0 disables, maximum is 65535
 WATCHDOG = 12000
 
@@ -73,7 +75,8 @@ VERYCOMMON=../../common
 STM_HAL=$(COMMON)/$(CHIPFAMILY)_HAL_Driver
 SHARED_INIT=$(COMMON)/shared-init
 CMSIS=$(COMMON)/CMSIS
-BOXLIB=$(COMMON)/boxlib
+BOXLIB=$(COMMON)/boxlib/$(CHIP)$(HARDWARE)
+BOXLIBCORE=$(COMMON)/boxlib/cortexm
 LWIPLIB=$(VERYCOMMON)/lwip
 ALGORITHM=$(VERYCOMMON)/algorithm
 JSMN=$(VERYCOMMON)/jsmn
@@ -107,8 +110,8 @@ $(BOXLIB)/readLine.c \
 $(BOXLIB)/peripheral.c \
 $(BOXLIB)/lcd.c \
 $(BOXLIB)/flash.c \
-$(BOXLIB)/exceptions.c \
-$(BOXLIB)/systickWithFreertos.c \
+$(BOXLIBCORE)/exceptions.c \
+$(BOXLIBCORE)/systickWithFreertos.c \
 $(ALGORITHM)/utility.c \
 $(ALGORITHM)/libcMinsize.c \
 $(ALGORITHM)/femtoVsnprintf.c \

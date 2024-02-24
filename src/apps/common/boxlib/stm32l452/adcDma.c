@@ -8,7 +8,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "adcDma.h"
+#include "boxlib/adcDma.h"
 
 #include "main.h"
 

@@ -6,7 +6,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include <stdbool.h>
 
-#include "systickWithFreertos.h"
+#include "boxlib/systickWithFreertos.h"
 
 #include "main.h"
 

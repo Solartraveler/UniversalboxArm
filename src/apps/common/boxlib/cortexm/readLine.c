@@ -9,9 +9,9 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <string.h>
 #include <ctype.h>
 
-#include "readLine.h"
+#include "boxlib/readLine.h"
 
-#include "rs232debug.h"
+#include "boxlib/rs232debug.h"
 
 void ReadSerialLine(char * input, size_t len) {
 	memset(input, 0, len);

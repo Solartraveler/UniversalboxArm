@@ -6,7 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include <stdbool.h>
 
-#include "keys.h"
+#include "boxlib/keys.h"
 
 #include "main.h"
 

@@ -6,12 +6,12 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include <stdbool.h>
 
-#include "coproc.h"
+#include "boxlib/coproc.h"
 
 #include "main.h"
 
 #include "coprocCommands.h"
-#include "mcu.h"
+#include "boxlib/mcu.h"
 
 void CoprocInit(void) {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};

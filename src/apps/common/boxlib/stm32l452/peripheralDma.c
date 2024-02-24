@@ -3,9 +3,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "peripheralDma.h"
+#include "boxlib/peripheralDma.h"
 
-#include "peripheral.h"
+#include "boxlib/peripheral.h"
 #include "main.h"
 
 DMA_HandleTypeDef g_hdma_spi2_tx;

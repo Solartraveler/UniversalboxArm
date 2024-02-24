@@ -6,7 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include <stdint.h>
 
-#include "timer16Bit.h"
+#include "boxlib/timer16Bit.h"
 
 #include "main.h"
 

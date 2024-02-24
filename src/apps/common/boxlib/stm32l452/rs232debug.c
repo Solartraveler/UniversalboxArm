@@ -11,11 +11,11 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "rs232debug.h"
+#include "boxlib/rs232debug.h"
 
 #include "main.h"
 
-#include "peripheral.h"
+#include "boxlib/peripheral.h"
 
 //Minimum allowed value is 2
 #define UARTBUFFERLEN 256

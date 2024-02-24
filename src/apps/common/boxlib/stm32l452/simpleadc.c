@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 //The filename adc is already used by the HAL
-#include "simpleadc.h"
+#include "boxlib/simpleadc.h"
 
 #include "main.h"
 

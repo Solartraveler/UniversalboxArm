@@ -15,7 +15,7 @@ The implementation currently does not support other external interrupts on pins
 
 #include <stdbool.h>
 
-#include "keysIsr.h"
+#include "boxlib/keysIsr.h"
 
 #include "main.h"
 

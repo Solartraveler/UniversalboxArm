@@ -7,9 +7,9 @@ License: BSD-3-Clause
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "mcu.h"
+#include "boxlib/mcu.h"
 
-#include "leds.h"
+#include "boxlib/leds.h"
 #include "main.h"
 
 typedef void (ptrFunction_t)(void);

@@ -8,12 +8,12 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <stdint.h>
 #include <stddef.h>
 
-#include "peripheral.h"
+#include "boxlib/peripheral.h"
 
 #include "main.h"
 
-#include "lcd.h"
-#include "flash.h"
+#include "boxlib/lcd.h"
+#include "boxlib/flash.h"
 
 SPI_HandleTypeDef g_hspi2;
 

@@ -23,7 +23,9 @@ AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
 LICENSE  = GPL-3.0-or-later
 #The MCU, this binary is compiled for, to be used in the metadata
-CHIP     = stm32l452
+CHIP     ?= stm32l452
+#Hardware, if there are platforms with the same chip, but different layout, some hardware variable might make the difference
+HARDWARE ?=
 #Watchdog in [ms]. 0 disables, maximum is 65535
 WATCHDOG = 10000
 
@@ -73,7 +75,8 @@ VERYCOMMON=../../common
 STM_HAL=$(COMMON)/$(CHIPFAMILY)_HAL_Driver
 SHARED_INIT=$(COMMON)/shared-init
 CMSIS=$(COMMON)/CMSIS
-BOXLIB=$(COMMON)/boxlib
+BOXLIB=$(COMMON)/boxlib/$(CHIP)$(HARDWARE)
+BOXLIBCORE=$(COMMON)/boxlib/cortexm
 DISPLAYLIB1=$(VERYCOMMON)/st7735
 DISPLAYLIB2=$(VERYCOMMON)/ili9341
 LWIPLIB=$(VERYCOMMON)/lwip
@@ -103,7 +106,6 @@ $(STM_HAL)/Src/$(CHIPFAMILY)_hal_spi_ex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_dma.c \
 $(BOXLIB)/adcDma.c \
 $(BOXLIB)/coproc.c \
-$(BOXLIB)/exceptions.c \
 $(BOXLIB)/flash.c \
 $(BOXLIB)/leds.c \
 $(BOXLIB)/keys.c \
@@ -112,9 +114,10 @@ $(BOXLIB)/lcd.c \
 $(BOXLIB)/mcu.c \
 $(BOXLIB)/peripheral.c \
 $(BOXLIB)/peripheralDma.c \
-$(BOXLIB)/systickWithFreertos.c \
 $(BOXLIB)/rs232debug.c \
 $(BOXLIB)/timer16Bit.c \
+$(BOXLIBCORE)/exceptions.c \
+$(BOXLIBCORE)/systickWithFreertos.c \
 $(DISPLAYLIB1)/st7735.c \
 $(DISPLAYLIB2)/ili9341.c \
 $(FATFS)/ff.c \

@@ -2,11 +2,11 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "lcdBacklight.h"
+#include "boxlib/lcdBacklight.h"
 
 #include "main.h"
 #include "utility.h"
-#include "mcu.h"
+#include "boxlib/mcu.h"
 
 #define PWM_PERIOD 500
 
