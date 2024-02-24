@@ -96,6 +96,10 @@ uint16_t CoprocReadBatteryVoltage(void) {
 	return 3340 + noise;
 }
 
+uint16_t CoprocReadBatteryMinVoltage(void) {
+	return 3321;
+}
+
 uint16_t CoprocReadBatteryCurrent(void) {
 	static uint16_t noise = 0;
 	if (g_coprocChargeStart) {
@@ -182,6 +186,10 @@ void CoprocWriteAlarm(uint16_t alarm) {
 }
 
 void CoprocWritePowerdown(void) {
+}
+
+void CoprocWriteKeyPressTime(uint16_t time) {
+	(void)time;
 }
 
 void CoprocBatteryNew(void) {

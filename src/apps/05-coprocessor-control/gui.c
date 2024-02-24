@@ -275,6 +275,11 @@ static void GuiUpdateBat(uint32_t subcycle) {
 		uint16_t sec = batTime % 60;
 		femtoSnprintf(menu_strings[MENU_TEXT_BATTIME], TEXT_LEN_MAX, "%u:%02u", min, sec);
 	}
+	if (subcycle == 12) {
+		uint16_t batVccMin = CoprocReadBatteryMinVoltage();
+		femtoSnprintf(menu_strings[MENU_TEXT_BATMINVOLTAGE], TEXT_LEN_MAX, "%umV", batVccMin);
+	}
+
 }
 
 static void GuiUpdateMain(uint32_t subcycle) {

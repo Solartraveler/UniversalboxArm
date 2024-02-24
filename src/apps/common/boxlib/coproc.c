@@ -136,6 +136,10 @@ uint16_t CoprocReadBatteryVoltage(void) {
 	return CoprocSendCommand(CMD_BAT_VOLTAGE, 0);
 }
 
+uint16_t CoprocReadBatteryMinVoltage(void) {
+	return CoprocSendCommand(CMD_BAT_MIN_VOLTAGE, 0);
+}
+
 uint16_t CoprocReadBatteryCurrent(void) {
 	return CoprocSendCommand(CMD_BAT_CURRENT, 0);
 }

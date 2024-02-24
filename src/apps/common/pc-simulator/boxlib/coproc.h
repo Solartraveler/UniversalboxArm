@@ -52,6 +52,9 @@ int16_t CoprocReadBatteryTemperature(void);
 //battery voltage in [mV]
 uint16_t CoprocReadBatteryVoltage(void);
 
+//minimal battery voltage in [mV] since last battery insert
+uint16_t CoprocReadBatteryMinVoltage(void);
+
 //charging current in [mA]
 uint16_t CoprocReadBatteryCurrent(void);
 
@@ -120,6 +123,12 @@ void CoprocWatchdogReset(void);
 //mode 0: The ARM is switched off
 //mode 1: The ARM continues to run on battery
 void CoprocWritePowermode(uint8_t powermode);
+
+//Sets the time in [ms] until a left or right keypress by the coprocessor is
+//accepted. Allowed range is 1000 to 60000. The value is rounded down to the
+//next 10ms. The value is reset to the default 1000ms if the coprocessor does a
+//reset of the ARM CPU.
+void CoprocWriteKeyPressTime(uint16_t time);
 
 //Sets a time in [s] when the ARM processor should be waked up as soon as it is
 //powered down. Only works when on battery power.

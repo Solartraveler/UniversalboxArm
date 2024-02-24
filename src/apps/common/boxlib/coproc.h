@@ -52,6 +52,9 @@ int16_t CoprocReadBatteryTemperature(void);
 //battery voltage in [mV]
 uint16_t CoprocReadBatteryVoltage(void);
 
+//minimal battery voltage in [mV] since last battery insert
+uint16_t CoprocReadBatteryMinVoltage(void);
+
 //charging current in [mA]
 uint16_t CoprocReadBatteryCurrent(void);
 

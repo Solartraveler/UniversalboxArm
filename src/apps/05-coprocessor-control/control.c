@@ -162,6 +162,9 @@ void ExecPrintStats(void) {
 	uint16_t batVcc = CoprocReadBatteryVoltage();
 	printf("Battery: %umV\r\n", batVcc);
 
+	uint16_t batVccMin = CoprocReadBatteryMinVoltage();
+	printf("Battery min: %umV\r\n", batVccMin);
+
 	uint16_t batI = CoprocReadBatteryCurrent();
 	printf("Battery charging: %umA\r\n", batI);
 
