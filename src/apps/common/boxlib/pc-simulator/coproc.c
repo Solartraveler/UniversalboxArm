@@ -8,7 +8,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include <unistd.h>
 #include <stdint.h>
 
-#include "coproc.h"
+#include "boxlib/coproc.h"
 
 #include "simulated.h"
 

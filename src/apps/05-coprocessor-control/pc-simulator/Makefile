@@ -35,7 +35,7 @@ COMMON=../../common
 VERYCOMMON=../../../common
 SIMCOMMON=$(COMMON)/pc-simulator
 
-BOXLIB=$(SIMCOMMON)/boxlib
+BOXLIB=$(COMMON)/boxlib/pc-simulator
 LWIPLIB=$(VERYCOMMON)/lwip
 HALLIB=$(SIMCOMMON)/HAL
 FATFS=$(VERYCOMMON)/fatfs
@@ -122,6 +122,7 @@ AS_INCLUDES =
 # C includes
 C_INCLUDES =  \
 -I$(SIMCOMMON) \
+-I$(COMMON) \
 -I$(VERYCOMMON) \
 -I$(LWIPLIB) \
 -I$(HALLIB) \

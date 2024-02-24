@@ -13,6 +13,11 @@
 
 #include "simhelper.h"
 
+extern usbd_device * g_pUsbDev;
+extern usbd_cfg_callback g_usbCfgCallback;
+extern usbd_ctl_callback g_usbControlCallback;
+extern usbd_dsc_callback g_usbDescriptorCallback;
+
 uint8_t * g_DfuMem;
 size_t g_DfuMemSize;
 

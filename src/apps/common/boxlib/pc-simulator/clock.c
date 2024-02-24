@@ -9,7 +9,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include <time.h>
 #include <stdio.h>
 
-#include "clock.h"
+#include "boxlib/clock.h"
 
 uint8_t g_lastSetType;
 uint32_t g_lastSetTime;

@@ -13,6 +13,17 @@
 */
 void McuStartOtherProgram(void * startAddress, bool ledSignalling);
 
+/*For the PC simulation, the constants are not defined.
+  Might be true for other platforms in the future too.
+*/
+#ifdef PC_SIM
+#define RCC_HCLK_DIV1 1
+#define RCC_HCLK_DIV2 2
+#define RCC_HCLK_DIV4 4
+#define RCC_HCLK_DIV8 8
+#define RCC_HCLK_DIV16 16
+#endif
+
 /* Switches the CPU clock to MSI, the apbDivier is vor APB1 and APB2.
    Valid values for frequency are:
      100000

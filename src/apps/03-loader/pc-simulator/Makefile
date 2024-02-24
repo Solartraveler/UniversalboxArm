@@ -35,7 +35,7 @@ COMMON=../../common
 VERYCOMMON=../../../common
 SIMCOMMON=$(COMMON)/pc-simulator
 
-BOXLIB=$(SIMCOMMON)/boxlib
+BOXLIB=$(COMMON)/boxlib/pc-simulator
 USBLIB=$(COMMON)/libusb_stm32
 LWIPLIB=$(VERYCOMMON)/lwip
 HALLIB=$(SIMCOMMON)/HAL
@@ -122,6 +122,7 @@ AS_INCLUDES =
 # C includes
 C_INCLUDES =  \
 -I$(SIMCOMMON) \
+-I$(COMMON) \
 -I$(VERYCOMMON) \
 -I$(USBLIB) \
 -I$(LWIPLIB) \

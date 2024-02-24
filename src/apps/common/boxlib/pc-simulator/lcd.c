@@ -19,12 +19,12 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include <GL/glut.h>
 #include <GL/freeglut.h>
 
-#include "lcd.h"
+#include "boxlib/lcd.h"
 
-#include "rs232debug.h"
+#include "boxlib/rs232debug.h"
 
 
-#include "peripheral.h"
+#include "boxlib/peripheral.h"
 #include "main.h"
 
 #ifndef UNREFERENCED_PARAMETER

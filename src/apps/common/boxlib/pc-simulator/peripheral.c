@@ -8,10 +8,10 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include <stdint.h>
 #include <stddef.h>
 
-#include "peripheral.h"
+#include "boxlib/peripheral.h"
 
-#include "lcd.h"
-#include "flash.h"
+#include "boxlib/lcd.h"
+#include "boxlib/flash.h"
 
 void PeripheralInit(void) {
 }

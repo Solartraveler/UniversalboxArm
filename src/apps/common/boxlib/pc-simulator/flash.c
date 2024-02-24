@@ -10,7 +10,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include <string.h>
 #include <stdio.h>
 
-#include "flash.h"
+#include "boxlib/flash.h"
 
 #define FILENAME "emulatedFlash.bin"
 

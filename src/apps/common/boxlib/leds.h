@@ -2,6 +2,10 @@
 
 /*Call to configure GPIOs, otherwise all other functions may be called but have
   no effect. After init, all LEDs are off.
+
+For the PC simulation:
+The LEDs are simulated by the LCD on the PC, but leds.c provides a dummy
+implementation as weak functions.
 */
 void LedsInit(void);
 

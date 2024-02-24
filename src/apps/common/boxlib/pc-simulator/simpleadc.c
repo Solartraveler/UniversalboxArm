@@ -7,7 +7,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include <stdint.h>
 
-#include "simpleadc.h"
+#include "boxlib/simpleadc.h"
 
 
 void AdcInit(void) {

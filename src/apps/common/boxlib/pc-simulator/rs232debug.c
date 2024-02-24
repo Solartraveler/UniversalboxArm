@@ -14,9 +14,9 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include <pthread.h>
 #include <poll.h>
 
-#include "rs232debug.h"
+#include "boxlib/rs232debug.h"
 
-#include "peripheral.h"
+#include "boxlib/peripheral.h"
 
 pthread_t g_keyboardThread;
 volatile bool g_keyboardThreadTerminate;

@@ -26,6 +26,9 @@ another allows blinking the LEDs and one polls the buttons at the same time.
 #include "boxlib/readLine.h"
 #include "boxlib/peripheral.h"
 #include "boxlib/systickWithFreertos.h"
+#ifdef PC_SIM
+#include "boxlib/lcd.h"
+#endif
 
 #include "main.h"
 

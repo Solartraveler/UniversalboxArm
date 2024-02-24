@@ -6,7 +6,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include <stdbool.h>
 
-#include "keys.h"
+#include "boxlib/keys.h"
 
 /* Non weak function can be found in lcd.c
    so the keys will be only visualized if an LCD is initialized.

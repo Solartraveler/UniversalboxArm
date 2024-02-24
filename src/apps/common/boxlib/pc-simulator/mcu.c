@@ -11,7 +11,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include <stdlib.h>
 #include <time.h>
 
-#include "mcu.h"
+#include "boxlib/mcu.h"
 
 #include "simulated.h"
 

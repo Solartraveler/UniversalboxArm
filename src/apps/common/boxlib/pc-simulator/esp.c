@@ -14,7 +14,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 #include <netdb.h>
 #include <unistd.h>
 
-#include "esp.h"
+#include "boxlib/esp.h"
 
 void EspInit(void) {
 }
