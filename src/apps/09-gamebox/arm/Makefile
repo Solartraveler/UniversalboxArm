@@ -212,7 +212,8 @@ AS_DEFS =
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
 -D$(CHIPUPPERCASE)xx \
--DAPPVERSION=\"$(VERSION)\"
+-DAPPVERSION=\"$(VERSION)\" \
+-DMAIN_INC_EXTRA=\"mainExtra.h\" \
 
 
 # AS includes
@@ -220,7 +221,8 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
--ICore/Inc \
+-I$(SHARED_INIT)/$(CHIP)$(HARDWARE) \
+-I$(SHARED_INIT) \
 -I$(STM_HAL)/Inc \
 -I$(STM_HAL)/Inc/Legacy \
 -I$(CMSIS)/Device/ST/$(CHIPFAMILY)/Include \
@@ -234,7 +236,7 @@ C_INCLUDES =  \
 -I$(FREERTOS)/include\
 -I$(FREERTOSPORT)\
 -I.\
--I..
+-I.. \
 
 
 # compile gcc flags

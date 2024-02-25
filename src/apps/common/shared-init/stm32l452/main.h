@@ -33,6 +33,13 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+/*Define this in the makefile if software is ported, which only includes main.h
+  to get all the other functions or types its needs. */
+#ifdef MAIN_INC_EXTRA
+#include MAIN_INC_EXTRA
+#endif
+
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -42,15 +49,6 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
-/*
-Incrementing the buffer size to 3084 (and incrementing the USB descriptor
-accordingly, only increases the download speed by ~5%. So the benefit is
-negligible.
-*/
-#define USB_BUFFERSIZE_BYTES 2060
-
-#define ROM_BOOTLOADER_START_ADDRESS 0x1FFF0000
 
 /* USER CODE END EC */
 
@@ -158,9 +156,6 @@ void Error_Handler(void);
 #define KeyRight_Pin GPIO_PIN_9
 #define KeyRight_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
-
-extern uint8_t * g_DfuMem;
-extern size_t g_DfuMemSize;
 
 /* USER CODE END Private defines */
 

@@ -7,6 +7,12 @@
 #include "forwarder.h"
 #include "boxlib/leds.h"
 
+#define AvrTx_Pin AvrSpiSck_Pin
+#define AvrTx_GPIO_Port AvrSpiSck_GPIO_Port
+#define AvrRx_Pin AvrSpiMiso_Pin
+#define AvrRx_GPIO_Port AvrSpiMiso_GPIO_Port
+
+
 void UartCoprocInit(void) {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 

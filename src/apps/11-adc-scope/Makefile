@@ -193,7 +193,8 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
--ICore/Inc \
+-I$(SHARED_INIT)/$(CHIP)$(HARDWARE) \
+-I$(SHARED_INIT) \
 -I$(STM_HAL)/Inc \
 -I$(STM_HAL)/Inc/Legacy \
 -I$(CMSIS)/Device/ST/$(CHIPFAMILY)/Include \
@@ -207,7 +208,6 @@ C_INCLUDES =  \
 -I$(MENUINTERPRETER)\
 -I$(IRMP)\
 -I.\
-
 
 
 # compile gcc flags
