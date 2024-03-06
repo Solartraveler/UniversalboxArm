@@ -61,22 +61,30 @@ static void blinky(void)
 	color++;
 	uint32_t speed = 250;
 	//read in the buttons
+#ifdef KeyUp_Pin
 	if (HAL_GPIO_ReadPin(KeyUp_GPIO_Port, KeyUp_Pin) == GPIO_PIN_RESET)
 	{
 		color = 0x5; //all red
 	}
+#endif
+#ifdef KeyDown_Pin
 	if (HAL_GPIO_ReadPin(KeyDown_GPIO_Port, KeyDown_Pin) == GPIO_PIN_RESET)
 	{
 		color = 0xA; //all green
 	}
+#endif
+#ifdef KeyRight_Pin
 	if (HAL_GPIO_ReadPin(KeyRight_GPIO_Port, KeyRight_Pin) == GPIO_PIN_RESET)
 	{
 		color = 0xF; //all on
 	}
+#endif
+#ifdef KeyLeft_Pin
 	if (HAL_GPIO_ReadPin(KeyLeft_GPIO_Port, KeyLeft_Pin) == GPIO_PIN_RESET)
 	{
 		speed = 125; //faster speed
 	}
+#endif
 
 	//set the LEDs
 	GPIO_PinState led1Red = GPIO_PIN_RESET;
@@ -99,10 +107,30 @@ static void blinky(void)
 	{
 		led2Green = GPIO_PIN_SET;
 	}
+
+#ifdef Led1Red_Pin
 	HAL_GPIO_WritePin(Led1Red_GPIO_Port,   Led1Red_Pin,   led1Red);
+#else
+	(void)led1Red;
+#endif
+
+#ifdef Led1Green_Pin
 	HAL_GPIO_WritePin(Led1Green_GPIO_Port, Led1Green_Pin, led1Green);
+#else
+	(void)led1Green;
+#endif
+
+#ifdef Led2Red_Pin
 	HAL_GPIO_WritePin(Led2Red_GPIO_Port,   Led2Red_Pin,   led2Red);
+#else
+	(void)led2Red;
+#endif
+
+#ifdef Led2Green_Pin
 	HAL_GPIO_WritePin(Led2Green_GPIO_Port, Led2Green_Pin, led2Green);
+#else
+	(void)led2Green;
+#endif
 
 	HAL_Delay(speed);
 }
@@ -165,6 +193,7 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
+#ifdef RCC_OSCILLATORTYPE_MSI
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
   RCC_OscInitStruct.MSIState = RCC_MSI_ON;
   RCC_OscInitStruct.MSICalibrationValue = 0;
@@ -174,11 +203,16 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+#endif
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+#ifdef RCC_OSCILLATORTYPE_MSI
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
+#else
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+#endif
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
@@ -210,53 +244,82 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, Led1Red_Pin|Led1Green_Pin, GPIO_PIN_RESET);
+  /*Configure GPIO pin Output Levels */
+#ifdef Led1Red_Pin
+  HAL_GPIO_WritePin(Led1Red_GPIO_Port, Led1Red_Pin, GPIO_PIN_RESET);
+#endif
 
-  /*Configure GPIO pin Output Level */
+#ifdef Led1Green_Pin
+  HAL_GPIO_WritePin(Led1Green_GPIO_Port, Led1Green_Pin, GPIO_PIN_RESET);
+#endif
+
+#ifdef Led2Green_Pin
   HAL_GPIO_WritePin(Led2Green_GPIO_Port, Led2Green_Pin, GPIO_PIN_RESET);
+#endif
 
-  /*Configure GPIO pin Output Level */
+#ifdef Led2Red_Pin
   HAL_GPIO_WritePin(Led2Red_GPIO_Port, Led2Red_Pin, GPIO_PIN_RESET);
+#endif
 
-  /*Configure GPIO pins : KeyUp_Pin KeyDown_Pin */
-  GPIO_InitStruct.Pin = KeyUp_Pin|KeyDown_Pin;
+#ifdef KeyUp_Pin
+  GPIO_InitStruct.Pin = KeyUp_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(KeyUp_GPIO_Port, &GPIO_InitStruct);
+#endif
 
-  /*Configure GPIO pins : Led1Red_Pin Led1Green_Pin */
-  GPIO_InitStruct.Pin = Led1Red_Pin|Led1Green_Pin;
+#ifdef KeyDown_Pin
+  GPIO_InitStruct.Pin = KeyDown_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(KeyDown_GPIO_Port, &GPIO_InitStruct);
+#endif
+
+#ifdef Led1Red_Pin
+  GPIO_InitStruct.Pin = Led1Red_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(Led1Red_GPIO_Port, &GPIO_InitStruct);
+#endif
 
-  /*Configure GPIO pin : KeyLeft_Pin */
+#ifdef Led1Green_Pin
+  GPIO_InitStruct.Pin = Led1Green_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(Led1Green_GPIO_Port, &GPIO_InitStruct);
+#endif
+
+#ifdef KeyLeft_Pin
   GPIO_InitStruct.Pin = KeyLeft_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(KeyLeft_GPIO_Port, &GPIO_InitStruct);
+#endif
 
-  /*Configure GPIO pin : Led2Green_Pin */
+#ifdef Led2Green_Pin
   GPIO_InitStruct.Pin = Led2Green_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(Led2Green_GPIO_Port, &GPIO_InitStruct);
+#endif
 
-  /*Configure GPIO pin : KeyRight_Pin */
+#ifdef KeyRight_Pin
   GPIO_InitStruct.Pin = KeyRight_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(KeyRight_GPIO_Port, &GPIO_InitStruct);
+#endif
 
-  /*Configure GPIO pin : Led2Red_Pin */
+#ifdef Led2Red_Pin
   GPIO_InitStruct.Pin = Led2Red_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(Led2Red_GPIO_Port, &GPIO_InitStruct);
+#endif
 
 }
 
