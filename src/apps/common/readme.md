@@ -12,6 +12,10 @@ License: Apache 2.0
 
 Taken from STM32Cube_FW_L4_V1.16.0
 
+and
+
+STM32Cube_FW_F4_V1.25.2
+
 ## libusb_stm32 ##
 Usb communication library
 
