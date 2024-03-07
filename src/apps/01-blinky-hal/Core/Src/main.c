@@ -187,7 +187,9 @@ int main(void)
   */
 void SystemClock_Config(void)
 {
+#ifdef RCC_OSCILLATORTYPE_MSI
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+#endif
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters

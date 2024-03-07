@@ -1,5 +1,6 @@
 all:
 	$(MAKE) -j -C 01-blinky-hal
+	$(MAKE) -C 01-blinky-hal/stm32f411-nucleo
 	$(MAKE) -j -C 02-test-everything-hal
 	$(MAKE) -j -C 03-loader
 	$(MAKE) -j -C 03-loader/pc-simulator
