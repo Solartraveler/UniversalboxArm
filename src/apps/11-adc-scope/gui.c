@@ -9,6 +9,7 @@
 #include "menudata.c"
 
 #include "adcSample.h"
+#include "boxlib/flash.h"
 #include "boxlib/keys.h"
 #include "boxlib/keysIsr.h"
 #include "boxlib/lcd.h"
@@ -657,7 +658,12 @@ void GuiInit(void) {
 	menu_strings[MENU_TEXT_TRIGGER] = g_gui.textTrigger;
 	menu_strings[MENU_TEXT_VANALYZE] = g_gui.textVanalyze;
 	menu_gfxdata[MENU_GFX_SCOPE] = g_gui.scope;
-	g_gui.type = FilesystemReadLcd();
+	if (FlashReady()) {
+		g_gui.type = FilesystemReadLcd();
+	} else {
+		printf("No filesystem, assuming ILI9341 LCD!\r\n");
+		g_gui.type = ILI9341;
+	}
 	if (g_gui.type != NONE) {
 		LcdBacklightOn();
 		//At 40MHz: The SPI transfer takes 73ms, at 20MHz: 103ms

@@ -99,3 +99,15 @@ bool AdcIsDone(void) {
 	return false;
 }
 
+float AdcAvrefGet(void) {
+	uint8_t input = 0;
+	uint16_t result = 0;
+	AdcInputsSet(&input, 1);
+	AdcStartTransfer(&result);
+	while (AdcIsDone() == false);
+	if (result) {
+		uint16_t cal = AdcCalibGet();
+		return 3.0f * (float)cal/(float)result;
+	}
+	return 0.0;
+}

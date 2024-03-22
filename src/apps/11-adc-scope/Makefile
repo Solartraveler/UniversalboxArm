@@ -17,15 +17,17 @@
 #Name of this application
 NAME     = ADC-Scope
 #Version of this application, to be used in the metadata
-VERSION  = 0.9.0
+VERSION  = 0.10.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
 LICENSE  = GPL-3.0-or-later
-#The MCU, this binary is compiled for, to be used in the metadata
-CHIP     ?= stm32l452
+#The MCU, this binary is compiled for, to be used in the metadata (without the last two chars)
+CHIP    ?= stm32l452xx
+#The MCU variant (flash size and layout)
+VARIANT ?= RETx
 #Hardware, if there are platforms with the same chip, but different layout, some hardware variable might make the difference
-HARDWARE ?=
+BOARD   ?= PcbV1
 #Watchdog in [ms]. 0 disables, maximum is 65535
 WATCHDOG = 10000
 
@@ -58,16 +60,24 @@ DEBUG = 1
 # optimization
 OPT = -O3
 
-#stm32l452 -> stm32l4xx
-CHIPFAMILY = $(shell echo $(CHIP) | sed 's/..$$/xx/')
-#stm32l452 -> STM32L452
-CHIPUPPERCASE = $(shell echo $(CHIP) | tr a-z A-Z)
+#All uppercase, but the x as placeholder should stay lower case
+#Eg stm32l452xx -> STM32L452xx, stm32f411xe -> STM32F411xE
+CHIPDEFINE := $(shell echo $(CHIP) | tr a-w A-W | tr y-z Y-Z)
+#stm32l452xx -> stm32l452
+CHIPSUBFAMILY := $(shell echo $(CHIP) | sed 's/..$$//')
+#stm32l452xx -> stm32l4xx
+CHIPFAMILY := $(shell echo $(CHIP) | sed 's/....$$/xx/')
+#stm32l452xx -> STM32L452RETx
+CHIPLINKER := $(shell echo $(CHIP) | sed 's/..$$//' | tr a-z A-Z)$(VARIANT)
+#All uppercase
+BOARDDEFINE := $(shell echo $(BOARD) | tr a-z A-Z)
 
 #######################################
 # paths
 #######################################
 # Build path
-BUILD_DIR = build/$(CHIP)
+BUILD_ALL = build
+BUILD_DIR = $(BUILD_ALL)/$(CHIP)-$(BOARD)
 
 COMMON=../common
 VERYCOMMON=../../common
@@ -75,7 +85,7 @@ VERYCOMMON=../../common
 STM_HAL=$(COMMON)/$(CHIPFAMILY)_HAL_Driver
 SHARED_INIT=$(COMMON)/shared-init
 CMSIS=$(COMMON)/CMSIS
-BOXLIB=$(COMMON)/boxlib/$(CHIP)$(HARDWARE)
+BOXLIB=$(COMMON)/boxlib/$(CHIPSUBFAMILY)
 BOXLIBCORE=$(COMMON)/boxlib/cortexm
 DISPLAYLIB1=$(VERYCOMMON)/st7735
 DISPLAYLIB2=$(VERYCOMMON)/ili9341
@@ -102,7 +112,6 @@ $(STM_HAL)/Src/$(CHIPFAMILY)_hal_pwr.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_pwr_ex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_cortex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_spi.c \
-$(STM_HAL)/Src/$(CHIPFAMILY)_hal_spi_ex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_dma.c \
 $(BOXLIB)/adcDma.c \
 $(BOXLIB)/coproc.c \
@@ -110,7 +119,7 @@ $(BOXLIB)/flash.c \
 $(BOXLIB)/leds.c \
 $(BOXLIB)/keys.c \
 $(BOXLIB)/keysIsr.c \
-$(BOXLIB)/lcd.c \
+$(BOXLIBCORE)/lcd.c \
 $(BOXLIB)/mcu.c \
 $(BOXLIB)/peripheral.c \
 $(BOXLIB)/peripheralDma.c \
@@ -139,7 +148,7 @@ gui.c
 
 # ASM sources
 ASM_SOURCES =  \
-$(SHARED_INIT)/startup_$(CHIP)xx.s
+$(SHARED_INIT)/startup_$(CHIP).s
 
 
 #######################################
@@ -184,8 +193,9 @@ AS_DEFS =
 # C defines
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
--D$(CHIPUPPERCASE)xx \
--DAPPVERSION=\"$(VERSION)\"
+-DAPPVERSION=\"$(VERSION)\" \
+-D$(CHIPDEFINE) \
+-DBOARD_$(BOARDDEFINE)
 
 
 # AS includes
@@ -193,8 +203,10 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
--I$(SHARED_INIT)/$(CHIP)$(HARDWARE) \
+-I$(SHARED_INIT)/$(CHIPSUBFAMILY)-$(BOARD) \
+-I$(SHARED_INIT)/$(CHIPSUBFAMILY) \
 -I$(SHARED_INIT) \
+-I$(BOXLIB) \
 -I$(STM_HAL)/Inc \
 -I$(STM_HAL)/Inc/Legacy \
 -I$(CMSIS)/Device/ST/$(CHIPFAMILY)/Include \
@@ -228,8 +240,8 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPTFLASH = $(SHARED_INIT)/STM32L452RETx_FLASH.ld
-LDSCRIPTRAM = $(SHARED_INIT)/STM32L452RETx_RAM.ld
+LDSCRIPTFLASH = $(SHARED_INIT)/$(CHIPLINKER)_FLASH.ld
+LDSCRIPTRAM = $(SHARED_INIT)/$(CHIPLINKER)_RAM.ld
 
 # libraries
 LIBS = -lc -lm -lnosys
@@ -240,10 +252,13 @@ LDFLAGSRAM =   $(LDFLAGS) -T$(LDSCRIPTRAM) -Wl,-Map=$(BUILD_DIR)/$(TARGETRAM).ma
 LDFLAGSFLASH = $(LDFLAGS) -T$(LDSCRIPTFLASH) -Wl,-Map=$(BUILD_DIR)/$(TARGETFLASH).map,--cref
 
 # default action: build all
-all: $(BUILD_DIR)/$(TARGETFLASH).elf $(BUILD_DIR)/$(TARGETFLASH).hex $(BUILD_DIR)/$(TARGETFLASH).bin $(BUILD_DIR)/$(TARGETRAM).tar
+all: build-flash build-ram
 
 disassembly: $(BUILD_DIR)/$(TARGETFLASH).disass  $(BUILD_DIR)/$(TARGETRAM).disass
 
+build-flash: $(BUILD_DIR)/$(TARGETFLASH).elf $(BUILD_DIR)/$(TARGETFLASH).hex $(BUILD_DIR)/$(TARGETFLASH).bin
+
+build-ram: $(BUILD_DIR)/$(TARGETRAM).tar
 
 
 #######################################
@@ -270,7 +285,7 @@ $(BUILD_DIR)/$(TARGETRAM).elf: $(OBJECTS) Makefile | $(BUILD_DIR)
 	$(CC) $(OBJECTS) $(LDFLAGSRAM) -o $@
 
 $(BUILD_DIR)/metadata.json: $(BUILD_DIR)/$(TARGETRAM).bin Makefile
-	jq -n --arg date $(DATE) --arg checksum $(MD5SUM) --arg startaddr $(STARTADDR) '{"name":"$(NAME)", "compiled":$$date, "version": "$(VERSION)", "author": "$(AUTHOR)", "license": "$(LICENSE)", "mcu":"$(CHIP)", "md5sum":$$checksum, "watchdog":"$(WATCHDOG)", "appaddr":$$startaddr}' > $@
+	jq -n --arg date $(DATE) --arg checksum $(MD5SUM) --arg startaddr $(STARTADDR) '{"name":"$(NAME)", "compiled":$$date, "version": "$(VERSION)", "author": "$(AUTHOR)", "license": "$(LICENSE)", "mcu":"$(CHIPSUBFAMILY)", "md5sum":$$checksum, "watchdog":"$(WATCHDOG)", "appaddr":$$startaddr}' > $@
 
 $(BUILD_DIR)/$(TARGETRAM).tar: $(BUILD_DIR)/$(TARGETRAM).bin $(BUILD_DIR)/metadata.json Makefile | $(BUILD_DIR)
 	tar --create -f $@ --blocking-factor=1 --owner=0 --group=0 $(TARREADME) $(TARIMAGE) $(TARBINARY) $(TARMETA)
@@ -291,7 +306,7 @@ $(BUILD_DIR):
 # clean up
 #######################################
 clean:
-	-rm -fR $(BUILD_DIR)
+	-rm -fR $(BUILD_ALL)
 
 #######################################
 # uploading

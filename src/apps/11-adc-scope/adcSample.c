@@ -63,28 +63,22 @@ static void SampleInputsRestore(void) {
 }
 
 void SampleAvccCalib(void) {
-	uint8_t input = 0;
-	uint16_t result = 0;
-	AdcInputsSet(&input, 1);
-	AdcStartTransfer(&result);
-	while (AdcIsDone() == false);
-	if (result) {
-		uint16_t cal = AdcCalibGet();
-		g_adcState.avcc = 3.0f * (float)cal/(float)result;
-		//printf("Avcc: %umV\r\n", (unsigned int)(g_adcState.avcc * 1000.0f));
-	}
+	//printf("Start avc calib\r\n");
+	g_adcState.avcc = AdcAvrefGet();
+	//printf("Avcc: %umV\r\n", (unsigned int)(g_adcState.avcc * 1000.0f));
 	SampleInputsRestore();
 }
 
 void SampleInit(void) {
-
 	HAL_NVIC_DisableIRQ(TIM2_IRQn);
 	AdcInit(false, 0);
 	SampleAvccCalib();
+
 	__HAL_RCC_TIM2_CLK_ENABLE();
 	TIM2->CR1 = 0; //all stopped
 	TIM2->CR2 = 0;
 	TIM2->CNT = 0;
+	TIM2->PSC = 1024;
 	TIM2->SR = 0;
 	TIM2->DIER = TIM_DIER_UIE;
 	HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
