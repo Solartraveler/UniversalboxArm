@@ -108,9 +108,9 @@ $(BOXLIB)/coproc.c \
 $(BOXLIB)/mcu.c \
 $(BOXLIB)/readLine.c \
 $(BOXLIB)/peripheral.c \
-$(BOXLIB)/lcd.c \
 $(BOXLIB)/flash.c \
 $(BOXLIBCORE)/exceptions.c \
+$(BOXLIBCORE)/lcd.c \
 $(BOXLIBCORE)/systickWithFreertos.c \
 $(ALGORITHM)/utility.c \
 $(ALGORITHM)/libcMinsize.c \

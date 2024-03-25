@@ -110,13 +110,13 @@ $(BOXLIB)/flash.c \
 $(BOXLIB)/leds.c \
 $(BOXLIB)/keys.c \
 $(BOXLIB)/keysIsr.c \
-$(BOXLIB)/lcd.c \
 $(BOXLIB)/mcu.c \
 $(BOXLIB)/peripheral.c \
 $(BOXLIB)/peripheralDma.c \
 $(BOXLIB)/rs232debug.c \
 $(BOXLIB)/timer16Bit.c \
 $(BOXLIBCORE)/exceptions.c \
+$(BOXLIBCORE)/lcd.c \
 $(BOXLIBCORE)/systickWithFreertos.c \
 $(DISPLAYLIB1)/st7735.c \
 $(DISPLAYLIB2)/ili9341.c \

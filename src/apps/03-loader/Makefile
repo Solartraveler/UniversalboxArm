@@ -116,12 +116,12 @@ $(BOXLIB)/rs232debug.c \
 $(BOXLIB)/peripheral.c \
 $(BOXLIB)/peripheralDma.c \
 $(BOXLIB)/flash.c \
-$(BOXLIB)/lcd.c \
 $(BOXLIB)/coproc.c \
 $(BOXLIB)/simpleadc.c \
 $(BOXLIB)/boxusb.c \
 $(BOXLIBCORE)/mcu.c \
 $(BOXLIBCORE)/exceptions.c \
+$(BOXLIBCORE)/lcd.c \
 $(BOXLIBCORE)/systickWithFreertos.c \
 $(DISPLAYLIB1)/st7735.c \
 $(DISPLAYLIB2)/ili9341.c \

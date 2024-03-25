@@ -113,8 +113,8 @@ $(BOXLIB)/flash.c \
 $(BOXLIB)/coproc.c \
 $(BOXLIB)/boxusb.c \
 $(BOXLIB)/mcu.c \
-$(BOXLIB)/lcd.c \
 $(BOXLIBCORE)/exceptions.c \
+$(BOXLIBCORE)/lcd.c \
 $(BOXLIBCORE)/systickWithFreertos.c \
 $(USBLIB)/usbd_core.c \
 $(USBLIB)/usbd_stm32l433_devfs.c \
