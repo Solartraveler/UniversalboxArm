@@ -106,7 +106,6 @@ $(STM_HAL)/Src/$(CHIPFAMILY)_hal_exti.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rtc.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rtc_ex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_spi.c \
-$(STM_HAL)/Src/$(CHIPFAMILY)_hal_spi_ex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_tim.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_tim_ex.c \
 Core/Src/system_$(CHIPFAMILY).c \
