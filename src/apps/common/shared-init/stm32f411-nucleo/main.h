@@ -29,7 +29,6 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -58,27 +57,63 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+//USER button on nucleo
+/*Requirements: As each pin shares the same ISR event register,
+  the pin numbers for the four keys may not be the same, even if they are on
+  a different port
+*/
 #define KeyLeft_Pin GPIO_PIN_13
 #define KeyLeft_GPIO_Port GPIOC
-#define USART_TX_Pin GPIO_PIN_2
-#define USART_TX_GPIO_Port GPIOA
-#define USART_RX_Pin GPIO_PIN_3
-#define USART_RX_GPIO_Port GPIOA
+
+#define KeyUp_Pin GPIO_PIN_8
+#define KeyUp_GPIO_Port GPIOA
+
+#define KeyDown_Pin GPIO_PIN_1
+#define KeyDown_GPIO_Port GPIOC
+
+#define KeyRight_Pin GPIO_PIN_0
+#define KeyRight_GPIO_Port GPIOC
+
+
 //LD2 on the PCB
 #define Led1Green_Pin GPIO_PIN_5
 #define Led1Green_GPIO_Port GPIOA
-#define DISPLAY_CS_Pin GPIO_PIN_10
-#define DISPLAY_CS_GPIO_Port GPIOB
+
+/*The LCD pins and SPI pins are
+  all on a female connector of the nucleo board,
+  with the exception of the PerSpiMiso.
+  But PerSpiMiso is not needed for the LCD,
+  (the pin would only be needed for the flash).
+*/
+#define LcdCs_Pin GPIO_PIN_10
+#define LcdCs_GPIO_Port GPIOB
+#define LcdReset_Pin GPIO_PIN_4
+#define LcdReset_GPIO_Port GPIOB
+#define LcdA0_Pin GPIO_PIN_5
+#define LcdA0_GPIO_Port GPIOB
+#define LcdBacklight_Pin GPIO_PIN_5
+#define LcdBacklight_GPIO_Port GPIOA
+#define PerSpiSck_Pin GPIO_PIN_0
+#define PerSpiSck_GPIO_Port GPIOB
+#define PerSpiMiso_Pin GPIO_PIN_12
+#define PerSpiMiso_GPIO_Port GPIOA
+#define PerSpiMosi_Pin GPIO_PIN_10
+#define PerSpiMosi_GPIO_Port GPIOA
+
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
 #define SWO_Pin GPIO_PIN_3
 #define SWO_GPIO_Port GPIOB
-#define DISPLAY_RESET_Pin GPIO_PIN_4
-#define DISPLAY_RESET_GPIO_Port GPIOB
-#define DISPLAY_RS_Pin GPIO_PIN_5
-#define DISPLAY_RS_GPIO_Port GPIOB
+
+/*This pins allows the usage of the nucleo integrated
+  serial to usb converter.
+*/
+#define Rs232Tx_Pin GPIO_PIN_2
+#define USART_TX_GPIO_Port GPIOA
+#define Rs232Rx_Pin GPIO_PIN_3
+#define USART_RX_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
