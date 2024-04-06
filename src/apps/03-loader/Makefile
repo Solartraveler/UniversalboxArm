@@ -200,6 +200,7 @@ AS_INCLUDES =
 # C includes
 C_INCLUDES =  \
 -ICore/Inc \
+-I$(BOXLIB) \
 -I$(STM_HAL)/Inc \
 -I$(STM_HAL)/Inc/Legacy \
 -I$(CMSIS)/Device/ST/$(CHIPFAMILY)/Include \

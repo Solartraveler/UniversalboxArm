@@ -239,6 +239,7 @@ AS_INCLUDES =
 C_INCLUDES =  \
 -I$(SHARED_INIT)/$(CHIP)$(HARDWARE) \
 -I$(SHARED_INIT) \
+-I$(BOXLIB) \
 -I$(STM_HAL)/Inc \
 -I$(STM_HAL)/Inc/Legacy \
 -I$(CMSIS)/Device/ST/$(CHIPFAMILY)/Include \
