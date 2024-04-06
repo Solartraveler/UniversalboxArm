@@ -63,16 +63,9 @@ static void SampleInputsRestore(void) {
 }
 
 void SampleAvccCalib(void) {
-	uint8_t input = 0;
-	uint16_t result = 0;
-	AdcInputsSet(&input, 1);
-	AdcStartTransfer(&result);
-	while (AdcIsDone() == false);
-	if (result) {
-		uint16_t cal = AdcCalibGet();
-		g_adcState.avcc = 3.0f * (float)cal/(float)result;
-		//printf("Avcc: %umV\r\n", (unsigned int)(g_adcState.avcc * 1000.0f));
-	}
+	//printf("Start avc calib\r\n");
+	g_adcState.avcc = AdcAvrefGet();
+	//printf("Avcc: %umV\r\n", (unsigned int)(g_adcState.avcc * 1000.0f));
 	SampleInputsRestore();
 }
 

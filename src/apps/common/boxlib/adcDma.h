@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "stm32l4xx_ll_adc.h"
+#include "adcPlatform.h"
 
 /*Set div2 if the ADC is not clocked by a div1 from the base clock.
   Resulting divider: (div2 + 1)* 2 ^ prescaler.
@@ -38,8 +38,9 @@ bool AdcIsBusy(void);
 */
 bool AdcIsDone(void);
 
-//returns the calibration value, written by the vendor for every chip
-static inline uint16_t AdcCalibGet(void) {
-	uint16_t cal = *VREFINT_CAL_ADDR;
-	return cal;
-}
+/*Measures the reference voltage. AdcInit needs to be called before.
+  This function should only be called if no conversion is ongoing or could
+  start while the function is called.
+  returns [V]
+*/
+float AdcAvrefGet(void);
