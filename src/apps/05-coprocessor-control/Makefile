@@ -209,7 +209,6 @@ C_INCLUDES =  \
 -I$(JSMN)\
 -I$(MENUINTERPRETER)\
 -I.\
--I./arm
 
 
 # compile gcc flags

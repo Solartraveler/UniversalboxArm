@@ -254,7 +254,6 @@ C_INCLUDES =  \
 -I$(FREERTOS)/include\
 -I$(FREERTOSPORT)\
 -I.\
--I./arm\
 -I$(BUILD_DIR)\
 
 
