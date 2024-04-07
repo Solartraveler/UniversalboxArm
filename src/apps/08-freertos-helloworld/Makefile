@@ -22,10 +22,12 @@ VERSION  = 1.0.0
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
 LICENSE  = BSD-3-Clause
-#The MCU, this binary is compiled for, to be used in the metadata
-CHIP     ?= stm32l452
+#The MCU, this binary is compiled for, to be used in the metadata (without the last two chars)
+CHIP    ?= stm32l452xx
+#The MCU variant (flash size and layout)
+VARIANT ?= RETx
 #Hardware, if there are platforms with the same chip, but different layout, some hardware variable might make the difference
-HARDWARE ?=
+BOARD   ?= PcbV1
 #Watchdog in [ms]. 0 disables, maximum is 65535
 WATCHDOG = 12000
 
@@ -58,16 +60,24 @@ DEBUG = 1
 # optimization
 OPT = -Os
 
-#stm32l452 -> stm32l4xx
-CHIPFAMILY = $(shell echo $(CHIP) | sed 's/..$$/xx/')
-#stm32l452 -> STM32L452
-CHIPUPPERCASE = $(shell echo $(CHIP) | tr a-z A-Z)
+#All uppercase, but the x as placeholder should stay lower case
+#Eg stm32l452xx -> STM32L452xx, stm32f411xe -> STM32F411xE
+CHIPDEFINE := $(shell echo $(CHIP) | tr a-w A-W | tr y-z Y-Z)
+#stm32l452xx -> stm32l452
+CHIPSUBFAMILY := $(shell echo $(CHIP) | sed 's/..$$//')
+#stm32l452xx -> stm32l4xx
+CHIPFAMILY := $(shell echo $(CHIP) | sed 's/....$$/xx/')
+#stm32l452xx -> STM32L452RETx
+CHIPLINKER := $(shell echo $(CHIP) | sed 's/..$$//' | tr a-z A-Z)$(VARIANT)
+#All uppercase
+BOARDDEFINE := $(shell echo $(BOARD) | tr a-z A-Z)
 
 #######################################
 # paths
 #######################################
 # Build path
-BUILD_DIR = build/$(CHIP)
+BUILD_ALL = build
+BUILD_DIR = $(BUILD_ALL)/$(CHIP)-$(BOARD)
 
 COMMON=../common
 VERYCOMMON=../../common
@@ -75,7 +85,7 @@ VERYCOMMON=../../common
 STM_HAL=$(COMMON)/$(CHIPFAMILY)_HAL_Driver
 SHARED_INIT=$(COMMON)/shared-init
 CMSIS=$(COMMON)/CMSIS
-BOXLIB=$(COMMON)/boxlib/$(CHIP)$(HARDWARE)
+BOXLIB=$(COMMON)/boxlib/$(CHIPSUBFAMILY)
 BOXLIBCORE=$(COMMON)/boxlib/cortexm
 LWIPLIB=$(VERYCOMMON)/lwip
 ALGORITHM=$(VERYCOMMON)/algorithm
@@ -122,7 +132,7 @@ freertos-helloworld.c
 
 # ASM sources
 ASM_SOURCES =  \
-$(SHARED_INIT)/startup_$(CHIP)xx.s
+$(SHARED_INIT)/startup_$(CHIP).s
 
 
 #######################################
@@ -167,8 +177,9 @@ AS_DEFS =
 # C defines
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
--D$(CHIPUPPERCASE)xx \
--DAPPVERSION=\"$(VERSION)\"
+-DAPPVERSION=\"$(VERSION)\" \
+-D$(CHIPDEFINE) \
+-DBOARD_$(BOARDDEFINE)
 
 
 # AS includes
@@ -176,7 +187,8 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
--I$(SHARED_INIT)/$(CHIP)$(HARDWARE) \
+-I$(SHARED_INIT)/$(CHIPSUBFAMILY)-$(BOARD) \
+-I$(SHARED_INIT)/$(CHIPSUBFAMILY) \
 -I$(SHARED_INIT) \
 -I$(BOXLIB) \
 -I$(STM_HAL)/Inc \
@@ -209,8 +221,8 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPTFLASH = $(SHARED_INIT)/STM32L452RETx_FLASH.ld
-LDSCRIPTRAM = $(SHARED_INIT)/STM32L452RETx_RAM.ld
+LDSCRIPTFLASH = $(SHARED_INIT)/$(CHIPLINKER)_FLASH.ld
+LDSCRIPTRAM = $(SHARED_INIT)/$(CHIPLINKER)_RAM.ld
 
 # libraries
 LIBS = -lc -lm -lnosys
@@ -251,7 +263,7 @@ $(BUILD_DIR)/$(TARGETRAM).elf: $(OBJECTS) Makefile | $(BUILD_DIR)
 	$(CC) $(OBJECTS) $(LDFLAGSRAM) -o $@
 
 $(BUILD_DIR)/metadata.json: $(BUILD_DIR)/$(TARGETRAM).bin Makefile
-	jq -n --arg date $(DATE) --arg checksum $(MD5SUM) --arg startaddr $(STARTADDR) '{"name":"$(NAME)", "compiled":$$date, "version": "$(VERSION)", "author": "$(AUTHOR)", "license": "$(LICENSE)", "mcu":"$(CHIP)", "md5sum":$$checksum, "watchdog":"$(WATCHDOG)", "appaddr":$$startaddr}' > $@
+	jq -n --arg date $(DATE) --arg checksum $(MD5SUM) --arg startaddr $(STARTADDR) '{"name":"$(NAME)", "compiled":$$date, "version": "$(VERSION)", "author": "$(AUTHOR)", "license": "$(LICENSE)", "mcu":"$(CHIPSUBFAMILY)", "md5sum":$$checksum, "watchdog":"$(WATCHDOG)", "appaddr":$$startaddr}' > $@
 
 $(BUILD_DIR)/$(TARGETRAM).tar: $(BUILD_DIR)/$(TARGETRAM).bin $(BUILD_DIR)/metadata.json Makefile | $(BUILD_DIR)
 	tar --create -f $@ --blocking-factor=1 --owner=0 --group=0 $(TARREADME) $(TARIMAGE) $(TARBINARY) $(TARMETA)
@@ -272,7 +284,7 @@ $(BUILD_DIR):
 # clean up
 #######################################
 clean:
-	-rm -fR $(BUILD_DIR)
+	-rm -fR $(BUILD_ALL)
 
 #######################################
 # uploading
