@@ -93,6 +93,14 @@ bool AdcIsBusy(void) {
 }
 
 bool AdcIsDone(void) {
+	/* There is at least one nop needed, otherwise the flag seems to be set
+	   immediately. To be safe, we use two nops. Very similar to the behaviour
+	   observed with the STM32F411. When the AdcAvrefGet() function was in another
+	   compilation unit, no nop was needed. Looks like here it is inlined and
+	   then the timing problems start.
+	*/
+	asm volatile("nop");
+	asm volatile("nop");
 	if (DMA1->ISR & DMA_ISR_TCIF1) {
 		return true;
 	}
