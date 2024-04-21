@@ -27,7 +27,7 @@
 
 //At this point we restart the charging cycle
 //[mV]
-#define BATT_NOT_FULL 3250
+#define BATT_NOT_FULL 3270
 
 
 /*We never charge to more than 3600mV, to prevent damange on the ARM side
@@ -72,10 +72,10 @@
 #define BATT_PRECHARGE_TIME_MAX (30ULL * 60ULL * 1000ULL)
 
 //[mV]
-#define INPUT_START_MIN 4500
+#define INPUT_START_MIN 4750
 
 //[mV]
-#define INPUT_CONT_MIN 4400
+#define INPUT_CONT_MIN 4600
 //[mV]
 #define INPUT_MAX 5500
 
@@ -141,7 +141,7 @@ static uint16_t ChargerRegulator(chargerState_t * pCS, uint16_t battU, uint16_t 
 		}
 		if (pCS->pwm == CHARGER_PWM_MAX) {
 			pCS->state = 8;
-			pCS->error = 4; //ERROR: Maximum PWM, but no current measured!
+			pCS->error = 5; //ERROR: Maximum PWM, but no current measured!
 			CHARGER_DEBUGMSG("Stop charge - no current but max PWM\n");
 			return 0; //testcase 10
 		}

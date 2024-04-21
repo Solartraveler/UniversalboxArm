@@ -284,7 +284,7 @@ int main(void) {
 	ArmBatteryOn();
 	SensorsOn();
 	SpiInit();
-	SpiDataSet(CMD_VERSION, 0x0506); //05 for the program (folder name), 06 for the version
+	SpiDataSet(CMD_VERSION, 0x0507); //05 for the program (folder name), 07 for the version
 	uint16_t pressedLeft = 0, pressedRight = 0; //Time the left or right button is hold down [10ms]
 	uint8_t resetHold = 0; //count down until the reset of the ARM CPU is released [10ms]
 	uint8_t armNormal = 1; //startup mode of the ARM cpu 0: DFU bootloader, 1: normal program start
@@ -311,6 +311,7 @@ int main(void) {
 	uint16_t batteryWakeupTime = 0; //power up time in [s] when running on battery
 	uint8_t batteryMode = 0; //if on battery, 0 = power down, 1 = continue to operate
 	uint8_t onUsbPower = 1; //current source for the power. 0 = battery, 1 = USB
+	uint8_t delayedPowerDown = 0; //if this counter reached zero when running on battery, there will be a request to power down
 	uint8_t timeLoadLast = 0; //timestamp the last time the Load was updated [10ms]
 	uint32_t ticksIdle = 0; //accumulated ticks of noting to do since timeLoadLast was updated
 	uint8_t percentIdlePrevious = 0; //previous value of being idle in [%]
@@ -538,9 +539,17 @@ int main(void) {
 		}
 		if (inU <= 4000) {
 			if ((onUsbPower) && (batteryMode == 0)) {
-				requestPowerDown = 1;
+				/*Sometimes power just goes off for a short moment, in this case
+				  the battery should just act as UPS for 500ms */
+				delayedPowerDown = 50;
 			}
 			onUsbPower = 0;
+			if (delayedPowerDown) {
+				delayedPowerDown--;
+				if (delayedPowerDown == 0) {
+					requestPowerDown = 1;
+				}
+			}
 		}
 		if ((onUsbPower == 0) && (battU <= 3100) && (battU)) { //prevent full discharge. We may go down to 3V
 			requestPowerDown = 1;

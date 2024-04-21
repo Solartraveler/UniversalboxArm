@@ -175,7 +175,7 @@ static void TicksAnalyze(input_t * data) {
 //Under this conditions, the charging should start
 static void CommonStartCondition(input_t * data) {
 	data->battU = 3100;
-	data->inU = 4700;
+	data->inU = 4900;
 	data->battI = 0;
 	data->battTemp = 250;
 	data->inImax = 100;
@@ -419,12 +419,11 @@ static uint8_t test10(void) {
 	CommonStartCondition(&data);
 	data.pwmMin = 0;
 	TASSH(TimeForwardS(&cs, 10, &data), 1);
-	TASSH(CheckErrorExpected(&cs, 4), 3);
+	TASSH(CheckErrorExpected(&cs, 5), 3);
 	TASSH(CheckStateExpected(&cs, 8), 4);
 	TicksAnalyze(&data);
 	return 0;
 }
-
 
 //battery should be full, but fails to reach maximum voltage
 static uint8_t test11(void) {
@@ -597,7 +596,7 @@ static uint8_t test16(void) {
 	data.pwmMin = 0;
 	data.pwmMax = 0;
 	data.battI = 0;
-	data.inU = 4000;
+	data.inU = 4500;
 	TASSH(StepForward(&cs, 100, &data), 6);
 	TASSH(CheckStateExpected(&cs, 5), 7);
 	TASSH(CheckErrorExpected(&cs, 0), 8);
@@ -606,13 +605,13 @@ static uint8_t test16(void) {
 	TASSH(CheckErrorExpected(&cs, 0), 11);
 
 	//increase voltage a little
-	data.inU = 4450;
+	data.inU = 4700;
 	TASSH(StepForward(&cs, 100, &data), 12);
 	TASSH(CheckStateExpected(&cs, 5), 13);
 	TASSH(CheckErrorExpected(&cs, 0), 14);
 
 	//increase voltage more, should allow restart charging
-	data.inU = 4700;
+	data.inU = 4900;
 	TASSH(StepForward(&cs, 100, &data), 15);
 	TASSH(CheckStateExpected(&cs, 0), 16);
 	TASSH(CheckErrorExpected(&cs, 0), 17);
