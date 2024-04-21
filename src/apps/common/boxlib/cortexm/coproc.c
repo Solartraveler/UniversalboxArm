@@ -165,3 +165,4 @@ void CoprocBatteryForceCharge(void) {
 void CoprocBatteryCurrentMax(uint16_t current) {
 	CoprocSendCommand(CMD_BAT_CURRENT_MAX, current);
 }
+

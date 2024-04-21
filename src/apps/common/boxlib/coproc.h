@@ -153,4 +153,3 @@ void CoprocBatteryForceCharge(void);
 //sets the maximum charging current in [mA]
 void CoprocBatteryCurrentMax(uint16_t current);
 
-
