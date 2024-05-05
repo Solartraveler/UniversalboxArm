@@ -476,8 +476,8 @@ int main(void) {
 		adcCycleFast++;
 
 		if (adcCycleFast == 1) {
-			inU = SensorsInputvoltageGet(); //we should do this in the first cycle!
-			SpiDataSet(CMD_VCC, inU);
+			battI = SensorsBatterycurrentGet(); //always measure the current before the input voltage
+			SpiDataSet(CMD_BAT_CURRENT, battI);
 		}
 		if (adcCycleFast == 3) {
 			battU = SensorsBatteryvoltageGet();
@@ -488,8 +488,8 @@ int main(void) {
 			}
 		}
 		if (adcCycleFast == 5) {
-			battI = SensorsBatterycurrentGet();
-			SpiDataSet(CMD_BAT_CURRENT, battI);
+			inU = SensorsInputvoltageGet();
+			SpiDataSet(CMD_VCC, inU);
 		}
 		if (adcCycleFast == 7) {
 			uint8_t timestamp = TimerGetValue();
