@@ -5,7 +5,7 @@
 
 #define STATES_MAX 11
 
-#define ERRORS_MAX 5
+#define ERRORS_MAX 6
 
 extern const char * g_chargerState[STATES_MAX];
 

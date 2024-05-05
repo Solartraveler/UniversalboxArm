@@ -419,12 +419,11 @@ static uint8_t test10(void) {
 	CommonStartCondition(&data);
 	data.pwmMin = 0;
 	TASSH(TimeForwardS(&cs, 10, &data), 1);
-	TASSH(CheckErrorExpected(&cs, 4), 3);
+	TASSH(CheckErrorExpected(&cs, 5), 3);
 	TASSH(CheckStateExpected(&cs, 8), 4);
 	TicksAnalyze(&data);
 	return 0;
 }
-
 
 //battery should be full, but fails to reach maximum voltage
 static uint8_t test11(void) {

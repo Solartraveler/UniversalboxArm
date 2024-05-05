@@ -117,7 +117,8 @@ const char * g_chargerError[ERRORS_MAX] = {
 "Battery voltage too high - defective",
 "Battery voltage too low - defective, or started without a battery inserted",
 "Failed to fully charge - charger or battery defective",
-"Failed to measure current - charger or battery defective"
+"Too high current - charger or battery defective",
+"Too low current - charger or battery defective",
 };
 
 void ExecPrintStats(void) {

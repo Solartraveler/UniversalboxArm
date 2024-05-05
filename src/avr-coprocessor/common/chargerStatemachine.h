@@ -8,7 +8,8 @@ typedef struct {
 	 1: Battery voltage too high - defective
 	 2: Battery voltage too low - defective, or started without a battery inserted
 	 3: Failed to fully charge - charger or battery defective
-	 4: Failed to measure current - charger or battery defective
+	 4: Too high current - charger or battery defective (too high current)
+	 5: Too low current - charger or battery defective (too low current)
 	*/
 	uint8_t error;
 	/*

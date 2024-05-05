@@ -141,7 +141,7 @@ static uint16_t ChargerRegulator(chargerState_t * pCS, uint16_t battU, uint16_t 
 		}
 		if (pCS->pwm == CHARGER_PWM_MAX) {
 			pCS->state = 8;
-			pCS->error = 4; //ERROR: Maximum PWM, but no current measured!
+			pCS->error = 5; //ERROR: Maximum PWM, but no current measured!
 			CHARGER_DEBUGMSG("Stop charge - no current but max PWM\n");
 			return 0; //testcase 10
 		}
