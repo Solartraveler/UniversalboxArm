@@ -34,6 +34,7 @@ typedef struct {
 	uint64_t chargingSumAllTime; //mAms
 	uint32_t chargingCycles; //increments every time a charging starts
 	uint32_t prechargingCycles; //increments every time a precharging starts
+	uint16_t noCurrentVoltage; //[mV] intended as debug value
 } chargerState_t;
 
 #define CHARGER_PWM_MAX 127
@@ -97,4 +98,9 @@ inline static uint32_t ChargerGetPreCycles(chargerState_t * pCS) {
 
 inline static uint32_t ChargerGetTime(chargerState_t * pCS) {
 	return pCS->chargingTime;
+}
+
+//Returns the input voltage in [mV] when error 5 was set. For debug purpose.
+inline static uint16_t ChargerGetNoCurrentVoltage(chargerState_t * pCS) {
+	return pCS->noCurrentVoltage;
 }

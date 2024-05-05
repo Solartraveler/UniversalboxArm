@@ -527,6 +527,7 @@ int main(void) {
 				SpiDataSet(CMD_BAT_PWM, battPwm);
 				uint32_t timeS = ChargerGetTime(&CS) / 1000;
 				SpiDataSet(CMD_BAT_TIME, timeS);
+				SpiDataSet(CMD_BAT_CHARGE_NOCURR_VOLT, ChargerGetNoCurrentVoltage(&CS));
 			}
 			if (adcCycleSlow == 5) {
 				adcCycleSlow = 0;

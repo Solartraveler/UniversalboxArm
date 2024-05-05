@@ -210,6 +210,10 @@ void ExecPrintStats(void) {
 
 	printf("CPU load: normal %u%c, communicating: %u%c\r\n", cpuLoadNormal, '%', cpuLoadComm, '%');
 
+	//only valid when actually an error (5) happened, otherwise 0.
+	uint16_t noCurrentVin = CoprocReadChargeNoCurrentVolt();
+	printf("No current vin: %umV\r\n", noCurrentVin);
+
 	uint32_t tStop = HAL_GetTick();
 	printf("Printing took: %ums\r\n", (unsigned int)(tStop - tStart));
 }

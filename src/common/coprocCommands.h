@@ -31,6 +31,7 @@
   Read current max    0x20 xx xx     00 yy yy (maximum current value, value set by charge current max command, [mA])
   Read charge time    0x21 xx xx     00 yy yy (time since charging started, [s])
   Read batt min volt  0x22 xx xx     00 yy yy (minimum voltage ever measured for the battery, [mV])
+  Read vin no curr    0x23 xx xx     00 yy yy (input voltage when charging stopped with a no current error, [mV])
   Reboot              0x80 A6 00     00 00 00 (resets with user selected bootmode)
   Reboot              0x80 A6 01     00 00 00 (resets with program bootmode)
   Reboot              0x80 A6 02     00 00 00 (resets with bootloader bootmode)
@@ -89,6 +90,7 @@ of 200ms until a new transfer is started.
 #define CMD_BAT_CURRENT_MAX_READ 0x20
 #define CMD_BAT_TIME          0x21
 #define CMD_BAT_MIN_VOLTAGE   0x22
+#define CMD_BAT_CHARGE_NOCURR_VOLT 0x23
 
 //write commands
 #define CMD_REBOOT            0x80

@@ -161,6 +161,10 @@ uint8_t CoprocReadCpuLoad(void) {
 	return 10;
 }
 
+uint16_t CoprocReadChargeNoCurrentVolt(void) {
+	return 1234;
+}
+
 void CoprocWriteReboot(uint8_t mode) {
 	(void)mode;
 }

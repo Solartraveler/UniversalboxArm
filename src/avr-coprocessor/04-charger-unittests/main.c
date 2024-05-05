@@ -421,6 +421,7 @@ static uint8_t test10(void) {
 	TASSH(TimeForwardS(&cs, 10, &data), 1);
 	TASSH(CheckErrorExpected(&cs, 5), 3);
 	TASSH(CheckStateExpected(&cs, 8), 4);
+	TASSH(ChargerGetNoCurrentVoltage(&cs) == data.inU, 5);
 	TicksAnalyze(&data);
 	return 0;
 }

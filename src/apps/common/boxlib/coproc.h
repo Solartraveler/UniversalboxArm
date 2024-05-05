@@ -106,6 +106,9 @@ uint16_t CoprocReadBatteryChargeTime(void);
 //read back the approximated CPU load in [%]
 uint8_t CoprocReadCpuLoad(void);
 
+//read back the input voltage at the time when a no charging current error happened in [mV]
+uint16_t CoprocReadChargeNoCurrentVolt(void);
+
 //===== Write commands ======
 
 //parameter: 0: user selected mode, 1: program bootmode, 2: bootloader bootmode
