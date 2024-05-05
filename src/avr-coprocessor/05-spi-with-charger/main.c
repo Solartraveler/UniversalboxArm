@@ -311,6 +311,7 @@ int main(void) {
 	uint16_t batteryWakeupTime = 0; //power up time in [s] when running on battery
 	uint8_t batteryMode = 0; //if on battery, 0 = power down, 1 = continue to operate
 	uint8_t onUsbPower = 1; //current source for the power. 0 = battery, 1 = USB
+	uint8_t delayedPowerDown = 0; //if this counter reached zero when running on battery, there will be a request to power down
 	uint8_t timeLoadLast = 0; //timestamp the last time the Load was updated [10ms]
 	uint32_t ticksIdle = 0; //accumulated ticks of noting to do since timeLoadLast was updated
 	uint8_t percentIdlePrevious = 0; //previous value of being idle in [%]
@@ -539,9 +540,17 @@ int main(void) {
 		}
 		if (inU <= 4000) {
 			if ((onUsbPower) && (batteryMode == 0)) {
-				requestPowerDown = 1;
+				/*Sometimes power just goes off for a short moment, in this case
+				  the battery should just act as UPS for 500ms */
+				delayedPowerDown = 50;
 			}
 			onUsbPower = 0;
+			if (delayedPowerDown) {
+				delayedPowerDown--;
+				if (delayedPowerDown == 0) {
+					requestPowerDown = 1;
+				}
+			}
 		}
 		if ((onUsbPower == 0) && (battU <= 3100) && (battU)) { //prevent full discharge. We may go down to 3V
 			requestPowerDown = 1;
