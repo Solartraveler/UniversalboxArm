@@ -27,7 +27,7 @@
 
 //At this point we restart the charging cycle
 //[mV]
-#define BATT_NOT_FULL 3250
+#define BATT_NOT_FULL 3270
 
 
 /*We never charge to more than 3600mV, to prevent damange on the ARM side

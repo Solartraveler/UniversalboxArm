@@ -284,7 +284,7 @@ int main(void) {
 	ArmBatteryOn();
 	SensorsOn();
 	SpiInit();
-	SpiDataSet(CMD_VERSION, 0x0506); //05 for the program (folder name), 06 for the version
+	SpiDataSet(CMD_VERSION, 0x0507); //05 for the program (folder name), 07 for the version
 	uint16_t pressedLeft = 0, pressedRight = 0; //Time the left or right button is hold down [10ms]
 	uint8_t resetHold = 0; //count down until the reset of the ARM CPU is released [10ms]
 	uint8_t armNormal = 1; //startup mode of the ARM cpu 0: DFU bootloader, 1: normal program start
