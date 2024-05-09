@@ -18,6 +18,8 @@ all:
 	$(MAKE) -j -C 09-gamebox/arm
 	$(MAKE) -j -C 10-infrared-decoder
 	$(MAKE) -j -C 11-adc-scope
+	$(MAKE) -j -C 11-adc-scope/pc-simulator
+	$(MAKE) -C 11-adc-scope/stm32f411-nucleo
 
 clean:
 	$(MAKE) clean -C 01-blinky-hal
@@ -38,3 +40,4 @@ clean:
 	$(MAKE) clean -C 09-gamebox/arm
 	$(MAKE) clean -C 10-infrared-decoder
 	$(MAKE) clean -C 11-adc-scope
+	$(MAKE) clean -C 11-adc-scope/pc-simulator

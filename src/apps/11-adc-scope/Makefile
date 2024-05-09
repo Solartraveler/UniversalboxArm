@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = ADC-Scope
 #Version of this application, to be used in the metadata
-VERSION  = 0.9.0
+VERSION  = 0.10.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -253,10 +253,13 @@ LDFLAGSRAM =   $(LDFLAGS) -T$(LDSCRIPTRAM) -Wl,-Map=$(BUILD_DIR)/$(TARGETRAM).ma
 LDFLAGSFLASH = $(LDFLAGS) -T$(LDSCRIPTFLASH) -Wl,-Map=$(BUILD_DIR)/$(TARGETFLASH).map,--cref
 
 # default action: build all
-all: $(BUILD_DIR)/$(TARGETFLASH).elf $(BUILD_DIR)/$(TARGETFLASH).hex $(BUILD_DIR)/$(TARGETFLASH).bin $(BUILD_DIR)/$(TARGETRAM).tar
+all: build-flash build-ram
 
 disassembly: $(BUILD_DIR)/$(TARGETFLASH).disass  $(BUILD_DIR)/$(TARGETRAM).disass
 
+build-flash: $(BUILD_DIR)/$(TARGETFLASH).elf $(BUILD_DIR)/$(TARGETFLASH).hex $(BUILD_DIR)/$(TARGETFLASH).bin
+
+build-ram: $(BUILD_DIR)/$(TARGETRAM).tar
 
 
 #######################################
