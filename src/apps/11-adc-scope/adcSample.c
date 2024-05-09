@@ -41,6 +41,7 @@ typedef struct {
 	float avcc; //typically 3.3V
 
 	uint16_t timeExceed; //debug value to detect bad ISR setupt
+	uint16_t timeExceedNum; //debug value to detect bad ISR setupt
 	uint32_t error; //debug value
 } adcState_t;
 
@@ -64,20 +65,24 @@ static void SampleInputsRestore(void) {
 
 void SampleAvccCalib(void) {
 	//printf("Start avc calib\r\n");
+	uint32_t tim2Backup = TIM2->CR1;
+	TIM2->CR1 &= ~TIM_CR1_CEN; //stop the timer, otherwise the ISR detects the ADC as busy
 	g_adcState.avcc = AdcAvrefGet();
+	TIM2->CR1 = tim2Backup; //restore old settings
 	//printf("Avcc: %umV\r\n", (unsigned int)(g_adcState.avcc * 1000.0f));
 	SampleInputsRestore();
 }
 
 void SampleInit(void) {
-
 	HAL_NVIC_DisableIRQ(TIM2_IRQn);
 	AdcInit(false, 0);
 	SampleAvccCalib();
+
 	__HAL_RCC_TIM2_CLK_ENABLE();
 	TIM2->CR1 = 0; //all stopped
 	TIM2->CR2 = 0;
 	TIM2->CNT = 0;
+	TIM2->PSC = 0;
 	TIM2->SR = 0;
 	TIM2->DIER = TIM_DIER_UIE;
 	HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
@@ -163,6 +168,7 @@ void TIM2_IRQHandler(void) {
 		uint32_t tick1 = TIM2->CNT;
 		uint32_t delta = tick1 - tick0;
 		g_adcState.timeExceed = MAX(delta, g_adcState.timeExceed);
+		g_adcState.timeExceedNum++;
 	}
 	Led1Off();
 }
@@ -299,11 +305,13 @@ uint8_t SampleGet(uint8_t type, const uint16_t ** pBufferOut, uint32_t * element
 	if ((g_adcState.timeExceed) || (g_adcState.error)) {
 		__disable_irq();
 		uint32_t exceed = g_adcState.timeExceed;
+		uint32_t exceedNum = g_adcState.timeExceedNum;
 		uint32_t error = g_adcState.error;
 		g_adcState.timeExceed = 0;
+		g_adcState.timeExceedNum = 0;
 		g_adcState.error = 0;
 		__enable_irq();
-		printf("Time exceed %u ticks, error %u\r\n", (unsigned int)exceed, (unsigned int)error);
+		printf("Time exceed %u ticks (%ux), error %u\r\n", (unsigned int)exceed, (unsigned int)exceedNum, (unsigned int)error);
 	}
 	return dataNew;
 }
