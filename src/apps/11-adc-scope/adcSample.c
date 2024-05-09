@@ -5,6 +5,7 @@
 
 #include "adcSample.h"
 
+#include "adcSamplePlatform.h"
 #include "boxlib/adcDma.h"
 #include "boxlib/leds.h"
 #include "boxlib/timer16Bit.h"
@@ -183,21 +184,23 @@ void SampleRecalcSetupTime() {
 	uint32_t arr = TIM2->ARR;
 	//The timer2 runs with the same clock as the ADC
 	int32_t sampleIdx;
-	/*The fixed 12.5 ADC clocks per 12bit sample are already added:
+	/*The fixed 12.5 ADC clocks per 12bit sample are already added (for STM32L452):
 	uint32_t convertTime[8] = {15, 19, 25, 37, 40, 105, 260, 653};
 	but these values do not work!, Instead the benchmark indicates some slower timings need
 	to be used:
 	*/
-	const uint32_t convertTime[8]       = {20, 20, 40, 40, 60, 120, 260, 660};
-	const uint32_t convertTimeOffset[8] = {60, 60, 80, 80, 80, 80, 80, 60};
-	for (sampleIdx = 7; sampleIdx >= 0; sampleIdx--) {
-		float requiredTime = convertTimeOffset[sampleIdx] + convertTime[sampleIdx] * g_adcState.activeChannels + ISRTIME_MAX;
+	const uint32_t * convertTime     = g_convertTime;
+	const uint32_t * convertTimeOffset = g_convertTimeOffset;
+	float requiredTime;
+	for (sampleIdx = (CONVERTTIMES - 1); sampleIdx >= 0; sampleIdx--) {
+		requiredTime = convertTimeOffset[sampleIdx] + convertTime[sampleIdx] * g_adcState.activeChannels + ISRTIME_MAX;
 		if (requiredTime < arr) {
 			break;
 		}
 	}
 	sampleIdx = MAX(sampleIdx, 0);
-	printf("Arr: %u, ADC time: %u\r\n", (unsigned int)arr, (unsigned int)(convertTime[sampleIdx]));
+	uint32_t spare = MAX(0, arr - requiredTime);
+	printf("Arr: %u, ADC time: %u, total %u -> spare %u\r\n", (unsigned int)arr, (unsigned int)(convertTime[sampleIdx]), (unsigned int)requiredTime, (unsigned int)spare);
 	AdcSampleTimeSet(sampleIdx);
 	SampleStartAdc();
 }
@@ -384,6 +387,8 @@ void SampleAdcPerformanceTestSub(void) {
 		printf("Testing sample time %u\r\n", (unsigned int)j);
 		AdcSampleTimeSet(j);
 		uint32_t ticksLast = 0;
+		uint32_t ticksFirst = 0;
+		uint32_t ticksDeltaMax = 0;
 		for (uint32_t i = 1; i <= TESTINPUTMAX; i++) {
 			AdcInputsSet(inputs, i);
 			Timer16BitStop();
@@ -397,7 +402,14 @@ void SampleAdcPerformanceTestSub(void) {
 			uint32_t ticksDelta = ticks - ticksLast;
 			printf("Sampling %u channels took %u ticks, (+%u)\r\n", (unsigned int)i, (unsigned int)ticks, (unsigned int)(ticksDelta));
 			ticksLast = ticks;
+			if (i == 1) {
+				ticksFirst = ticks;
+			} else if (ticksDelta > ticksDeltaMax) {
+				ticksDeltaMax = ticksDelta;
+			}
 		}
+		printf("Recommended g_convertTime[%u] = %u, g_convertTimeOffset[%u] = %u\r\n",
+		       (unsigned int)j, (unsigned int)ticksDeltaMax, (unsigned int)j, (unsigned int)(ticksFirst - ticksDeltaMax));
 	}
 	//2. testing trigger performance
 	//2.1 save current settings
