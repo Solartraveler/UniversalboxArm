@@ -5,6 +5,11 @@
 
 #include "adcPlatform.h"
 
+/*Prints all ADC and DMA registers. Do not use from within an ISR.
+  header can be a string printed first. Can be left NULL.
+*/
+void AdcPrintRegisters(const char * header);
+
 /*Set div2 if the ADC is not clocked by a div1 from the base clock.
   Resulting divider: (div2 + 1)* 2 ^ prescaler.
 */
@@ -16,6 +21,7 @@ void AdcInit(bool div2, uint8_t prescaler);
 void AdcInputsSet(const uint8_t * pAdcChannels, uint8_t numChannels);
 
 /*Sets the sample time for all the channels. Number of ADC cycles:
+  For STM32L452:
   0: 2.5
   1: 6.5
   2: 12.5
@@ -24,6 +30,7 @@ void AdcInputsSet(const uint8_t * pAdcChannels, uint8_t numChannels);
   5: 92.5
   6: 247.5
   7: 640.5
+  For all others, see the datasheet.
 */
 void AdcSampleTimeSet(uint8_t adcCycles);
 

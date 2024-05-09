@@ -7,10 +7,36 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "boxlib/adcDma.h"
 
 #include "main.h"
+
+//Do not use for prints from within an ISR
+void AdcPrintRegisters(const char * header) {
+	if (header) {
+		printf("\r\n%s\r\n", header);
+	}
+	//ADC
+	printf("aISR: %x\r\n", (unsigned int)ADC1->ISR);
+	printf("aIER: %x\r\n", (unsigned int)ADC1->IER);
+	printf("aCR: %x\r\n",(unsigned int)ADC1->CR);
+	printf("aCFGR: %x\r\n", (unsigned int)ADC1->CFGR);
+	printf("aCFGR2: %x\r\n", (unsigned int)ADC1->CFGR2);
+	printf("aSQR1: %x\r\n", (unsigned int)ADC1->SQR1);
+	printf("aSQR2: %x\r\n", (unsigned int)ADC1->SQR2);
+	printf("aSQR3: %x\r\n", (unsigned int)ADC1->SQR3);
+	printf("aSQR4: %x\r\n", (unsigned int)ADC1->SQR4);
+	printf("aDR: %x\r\n", (unsigned int)ADC1->DR);
+	printf("aCCR: %x\r\n", (unsigned int)ADC1_COMMON->CCR);
+	//DMA
+	printf("dISR: %x\r\n", (unsigned int)DMA1->ISR);
+	printf("dCCR: %x\r\n", (unsigned int)DMA1_Channel1->CCR);
+	printf("dCNDTR: %x\r\n", (unsigned int)DMA1_Channel1->CNDTR);
+	printf("dCPAR: %x\r\n", (unsigned int)DMA1_Channel1->CPAR);
+	printf("dCMAR: %x\r\n", (unsigned int)DMA1_Channel1->CMAR);
+}
 
 void AdcInit(bool div2, uint8_t prescaler) {
 	//prepare ADC
@@ -49,7 +75,10 @@ void AdcInit(bool div2, uint8_t prescaler) {
 
 void AdcInputsSet(const uint8_t * pAdcChannels, uint8_t numChannels) {
 	while (ADC1->CR & ADC_CR_ADSTART); //otherwise the channel can not be changed
-	ADC1->SQR1 = 0; //zero number of channels
+	ADC1->SQR1 = 0; //zero number of channels and channel bits
+	ADC1->SQR2 = 0;
+	ADC1->SQR3 = 0;
+	ADC1->SQR4 = 0;
 	for (uint32_t i = 0; i < numChannels; i++) {
 		if (i < 4) {
 			ADC1->SQR1 |= pAdcChannels[i] << (ADC_SQR1_SQ1_Pos + i * 6);
@@ -108,7 +137,7 @@ bool AdcIsDone(void) {
 }
 
 float AdcAvrefGet(void) {
-	uint8_t input = 0;
+	uint8_t input = ADC_VREFINT_INPUT;
 	uint16_t result = 0;
 	AdcInputsSet(&input, 1);
 	AdcStartTransfer(&result);

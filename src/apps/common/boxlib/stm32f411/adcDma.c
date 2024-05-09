@@ -19,7 +19,10 @@ https://electronics.stackexchange.com/questions/408907/stm32-adcdma-occurring-on
 
 //Do not use for prints from within an ISR
 void AdcPrintRegisters(const char * header) {
-	printf("\r\n%s\r\n", header);
+	if (header) {
+		printf("\r\n%s\r\n", header);
+	}
+	//ADC
 	printf("aSR: %x\r\n", (unsigned int)ADC1->SR);
 	printf("aCR1: %x\r\n",(unsigned int)ADC1->CR1);
 	printf("aCR2: %x\r\n", (unsigned int)ADC1->CR2);
@@ -28,7 +31,7 @@ void AdcPrintRegisters(const char * header) {
 	printf("aSQR3: %x\r\n", (unsigned int)ADC1->SQR3);
 	printf("aDR: %x\r\n", (unsigned int)ADC1->DR);
 	printf("aCCR: %x\r\n", (unsigned int)ADC->CCR);
-
+	//DMA
 	printf("dLISR: %x\r\n", (unsigned int)DMA2->LISR);
 	printf("dCR: %x\r\n", (unsigned int)DMA2_Stream0->CR);
 	printf("dNDTR: %x\r\n", (unsigned int)DMA2_Stream0->NDTR);
@@ -63,7 +66,9 @@ void AdcInit(bool div2, uint8_t prescaler) {
 }
 
 void AdcInputsSet(const uint8_t * pAdcChannels, uint8_t numChannels) {
-	ADC1->SQR1 = 0; //zero number of channels
+	ADC1->SQR1 = 0; //zero number of channels and channel bits
+	ADC1->SQR2 = 0;
+	ADC1->SQR3 = 0;
 	for (uint32_t i = 0; i < numChannels; i++) {
 		if (i < 6) {
 			ADC1->SQR3 |= pAdcChannels[i] << (ADC_SQR3_SQ1_Pos + i * 5);
@@ -82,8 +87,8 @@ void AdcSampleTimeSet(uint8_t sampleDelay) {
 	for (uint32_t i = 0; i < 10; i++) {
 		smpr |= sampleDelay << (i * 3);
 	}
-	ADC1->SMPR1 = smpr;
-	ADC1->SMPR2 = smpr & 0x7FFFFFF;
+	ADC1->SMPR2 = smpr;
+	ADC1->SMPR1 = smpr & 0x7FFFFFF;
 }
 
 //pOutput must be an array of numChannels elements
@@ -150,8 +155,10 @@ float AdcAvrefGet(void) {
 	AdcInputsSet(&input, 1);
 	AdcStartTransfer(&result);
 	while (AdcIsDone() == false);
+	//printf("%u\r\n", result);
 	if (result) {
 		return 1.21f * 4095.0f / (float)result;
 	}
 	return 0;
 }
+
