@@ -50,6 +50,7 @@ MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
 C_SOURCES =  \
 adcSampleSim.c \
 main.c \
+$(BOXLIB)/adcDma.c \
 $(BOXLIB)/coproc.c \
 $(BOXLIB)/flash.c \
 $(BOXLIB)/keys.c \
@@ -58,7 +59,6 @@ $(BOXLIB)/leds.c \
 $(BOXLIB)/mcu.c \
 $(BOXLIB)/peripheral.c \
 $(BOXLIB)/rs232debug.c \
-$(BOXLIB)/simpleadc.c \
 $(HALLIB)/simulated.c \
 $(FATFS)/diskio.c \
 $(FATFS)/ff.c \
@@ -120,6 +120,7 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
+-I$(BOXLIB) \
 -I$(SIMCOMMON) \
 -I$(COMMON) \
 -I$(VERYCOMMON) \

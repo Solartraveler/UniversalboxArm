@@ -45,3 +45,8 @@ float SampleVoltDigit(void);
   done before must be re-applied
 */
 void SampleAdcPerformanceTest(void);
+
+/* Checks if the ADC works by converting the internal vref voltage.
+Returns true if all values seem valid.
+*/
+bool SampleAdcTest(void);

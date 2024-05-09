@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "adcSample.h"
@@ -191,3 +192,7 @@ float SampleVoltDigit(void) {
 void SampleAdcPerformanceTest(void) {
 }
 
+bool SampleAdcTest(void) {
+	printf("Nothing to test here...\r\n");
+	return true;
+}

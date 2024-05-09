@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "adcScope.h"
 
+#include "boxlib/adcDma.h"
 #include "boxlib/coproc.h"
 #include "boxlib/flash.h"
 #include "boxlib/keys.h"
@@ -42,6 +43,8 @@ void AppHelp(void) {
 	printf("t: Single shot trigger\r\n");
 	printf("x: Save screenshot\r\n");
 	printf("b: Make ADC benchmark\r\n");
+	printf("o: Test the ADC\r\n");
+	printf("p: Print ADC registers\r\n");
 	printf("r: Reset\r\n");
 }
 
@@ -113,6 +116,16 @@ void AppCycle(void) {
 		if (input == 'b') {
 			SampleAdcPerformanceTest();
 			//the right inputs need to be reinitialized by the user after this call!
+		}
+		if (input == 'o') {
+			if (SampleAdcTest()) {
+				printf("...Looks good\r\n");
+			} else {
+				printf("...Failed\r\n");
+			}
+		}
+		if (input == 'p') {
+			AdcPrintRegisters(NULL);
 		}
 	}
 	uint32_t tStart = HAL_GetTick();

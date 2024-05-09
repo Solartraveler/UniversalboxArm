@@ -337,7 +337,8 @@ static uint32_t SampleAdcTriggerPerformanceTest(void) {
 	return ticks;
 }
 
-/* When executing from RAM with 80MHz, the results are
+
+/* When executing from RAM with 80MHz, the results are (for STM32L452)
 For optimization -Os:
 Ticks for low level trigger no cond: 302
 Ticks for low level trigger: 372
@@ -354,9 +355,26 @@ Ticks for falling edge trigger: 392
 Ticks for rising edge trigger: 394
 Ticks for continue sampling: 279
 
-Running from flash is expected to be ~20% faster.
+When executing from flash with 80MHz (STM32F411, the results are)
+-O3 + flash cache:
+Ticks for low level trigger no cond: 255
+Ticks for low level trigger: 267
+Ticks for high level trigger: 277
+Ticks for falling edge trigger: 286
+Ticks for rising edge trigger: 292
+Ticks for continue sampling: 208
+
+-O3 + no flash cache:
+Ticks for low level trigger no cond: 276
+Ticks for low level trigger: 295
+Ticks for high level trigger: 306
+Ticks for falling edge trigger: 314
+Ticks for rising edge trigger: 318
+Ticks for continue sampling: 231
+
+-> Running from flash is 10...17% faster.
 */
-void SampleAdcPerformanceTest(void) {
+void SampleAdcPerformanceTestSub(void) {
 	SampleStopAdc();
 	Timer16BitInit(0);
 	const uint8_t inputs[TESTINPUTMAX] = {1, 1, 1, 1, 1, 1, 1, 1};
@@ -376,7 +394,8 @@ void SampleAdcPerformanceTest(void) {
 			while (AdcIsDone() == false);
 			uint32_t ticks = Timer16BitGet();
 			__enable_irq();
-			printf("Sampling %u channels took %u ticks, (+%u)\r\n", (unsigned int)i, (unsigned int)ticks, (unsigned int)(ticks - ticksLast));
+			uint32_t ticksDelta = ticks - ticksLast;
+			printf("Sampling %u channels took %u ticks, (+%u)\r\n", (unsigned int)i, (unsigned int)ticks, (unsigned int)(ticksDelta));
 			ticksLast = ticks;
 		}
 	}
@@ -468,8 +487,53 @@ void SampleAdcPerformanceTest(void) {
 	g_adcState.triggerType = tTOld;
 	g_adcState.triggerChannel = tCOld;
 	g_adcState.activeChannels = aCOld;
-
 	SampleInputsRestore();
 	SampleRecalcSetupTime();
+}
+
+void SampleAdcPerformanceTest(void) {
+	//we want to measure worst-case timings...
+	printf("\r\nTimings without flash cache\r\n");
+	__HAL_FLASH_INSTRUCTION_CACHE_DISABLE();
+	__HAL_FLASH_DATA_CACHE_DISABLE();
+	SampleAdcPerformanceTestSub();
+	printf("\r\nTimings with flash cache\r\n");
+	__HAL_FLASH_INSTRUCTION_CACHE_ENABLE();
+	__HAL_FLASH_DATA_CACHE_ENABLE();
+	SampleAdcPerformanceTestSub();
+}
+
+#define ADC_SEQ_MAX 16
+bool SampleAdcTest(void) {
+	SampleStopAdc();
+	uint8_t inputs[ADC_SEQ_MAX];
+	memset(inputs, ADC_VREFINT_INPUT, sizeof(inputs));
+	uint16_t data[ADC_SEQ_MAX];
+	bool success = true;
+	AdcSampleTimeSet(1);
+	for (uint32_t i = 1; i <= ADC_SEQ_MAX; i++) {
+		memset(data, 0, sizeof(data));
+		AdcInputsSet(inputs, i);
+		AdcStartTransfer(data);
+		while (AdcIsDone() == false);
+		printf("%02ux: ", (unsigned int)i);
+		for (uint32_t j = 0; j < i; j++) {
+			printf("%u ", (unsigned int)data[j]);
+			//typical value is ~1500 when operating at 3.3V
+			if ((data[j] < 1200) || (data[j] > 2000)) {
+				success = false;
+			}
+		}
+		for (uint32_t j = i; j < ADC_SEQ_MAX; j++) {
+			if (data[j] != 0) {
+				printf("  Error, data %u found at index %u!", (unsigned int)data[j], (unsigned int)j);
+				success = false;
+			}
+		}
+		printf("\r\n");
+	}
+	SampleInputsRestore();
+	SampleRecalcSetupTime();
+	return success;
 }
 
