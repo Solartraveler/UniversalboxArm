@@ -20,7 +20,8 @@ provides a simple 32KiB ramdisk.
   Otherwise a RAM disk could be created.
 */
 
-void FlashEnable(uint32_t /*clockPrescaler*/) {
+void FlashEnable(uint32_t clockPrescaler) {
+	(void)clockPrescaler;
 }
 
 void FlashDisable(void) {
@@ -47,10 +48,16 @@ uint32_t FlashSizeGet(void) {
 	return 0;
 }
 
-bool FlashRead(uint32_t /*address*/, uint8_t * /*buffer*/, size_t /*len*/) {
+bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
+	(void)address;
+	(void)buffer;
+	(void)len;
 	return false;
 }
 
-bool FlashWrite(uint32_t /*address*/, const uint8_t * /*buffer*/, size_t /*len*/) {
+bool FlashWrite(uint32_t address, const uint8_t * buffer, size_t len) {
+	(void)address;
+	(void)buffer;
+	(void)len;
 	return false;
 }

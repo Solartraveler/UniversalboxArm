@@ -25,7 +25,8 @@ void DMA2_Stream5_IRQHandler(void) {
 	HAL_DMA_IRQHandler(&g_hdma_spi5_tx);
 }
 
-void PeripheralTransferComplete(SPI_HandleTypeDef * /*hspi*/) {
+void PeripheralTransferComplete(SPI_HandleTypeDef * hspi) {
+	(void)hspi;
 	g_PeripheralDmaDone = true;
 }
 
