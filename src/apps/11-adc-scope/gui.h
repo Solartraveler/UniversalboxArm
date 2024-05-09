@@ -5,6 +5,11 @@
 
 #include "boxlib/lcd.h"
 
+typedef struct {
+	const char text[7];
+	float unit;
+} textUnit_t;
+
 //needs the filesystem running, to get the display type
 void GuiInit(void);
 

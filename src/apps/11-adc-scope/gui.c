@@ -1,3 +1,11 @@
+/* ADC scope
+(c) 2024 by Malte Marwedel
+
+SPDX-License-Identifier: GPL-3.0-or-later
+
+
+*/
+
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,12 +17,14 @@
 #include "menudata.c"
 
 #include "adcSample.h"
+#include "boxlib/flash.h"
 #include "boxlib/keys.h"
 #include "boxlib/keysIsr.h"
 #include "boxlib/lcd.h"
 #include "femtoVsnprintf.h"
 #include "filesystem.h"
 #include "framebufferColor.h"
+#include "guiPlatform.h"
 #include "json.h"
 #include "menu-interpreter.h"
 #include "menu-text.h"
@@ -63,45 +73,6 @@ typedef struct {
 	int8_t activeChannels;
 } guiState_t;
 
-
-typedef struct {
-	const char text[7];
-	float unit;
-} textUnit_t;
-
-/*sample rate 20px and samples/sec
-The ADC would even support 0.25µs/sample for 12Bit resolution,
-but the 80MHz CPU can't handle the interrupts fast enough, so 50µs is the
-fastest to be allowed to be selected. A 200MHz CPU might support more.
-unit: [ns/pix]
-*/
-const textUnit_t g_scaleTime[] = {
-{"5s",   250000000.0},
-{"2s",   100000000.0},
-{"1.5s",  75000000.0},
-{"1s",    50000000.0},
-{"0.5s",  25000000.0},
-{"0.3s",  15000000.0},
-{"0.2s",  10000000.0},
-{"0.15s",  7500000.0},
-{"0.1s",   5000000.0},
-{"50ms",   2500000.0},
-{"30ms",   1500000.0},
-{"20ms",   1000000.0},
-{"15ms",    750000.0},
-{"10ms",    500000.0},
-{"5ms",     250000.0},
-{"3ms",     150000.0},
-{"2ms",     100000.0},
-{"1.5ms",    75000.0},
-{"1ms",      50000.0}, //<- default value
-{"0.5ms",    25000.0},
-{"0.3ms",    15000.0}, //<- limit at which 4Hz GUI refresh can be handled
-{"0.2ms",    10000.0},
-{"150µs",     7500.0},
-//lower values are better to be used only in single trigger mode
-{"100µs",     5000.0}, //on the limit of what the 80MHz CPU can handle, framerate already drops
-};
 
 /*At 8 divs and 3.3Vref, little more than 6 blocks will spawn the full voltage
   rang at 500mV/div.
@@ -523,16 +494,16 @@ static void GuiLoadSettings(void) {
 
 static void GuiDefaultSettings(void) {
 	//input settings
-	menu_listindexstate[MENU_LISTINDEX_ADCRED] = 2;
-	menu_listindexstate[MENU_LISTINDEX_ADCGREEN] = 3;
-	menu_listindexstate[MENU_LISTINDEX_ADCBLUE] = 4;
+	menu_listindexstate[MENU_LISTINDEX_ADCRED] = INPUT_RED_DEFAULT;
+	menu_listindexstate[MENU_LISTINDEX_ADCGREEN] = INPUT_GREEN_DEFAULT;
+	menu_listindexstate[MENU_LISTINDEX_ADCBLUE] = INPUT_BLUE_DEFAULT;
 	//trigger settings
 	menu_radiobuttonstate[MENU_RBUTTON_TRIGGERMODE] = 1; //automatic
 	menu_radiobuttonstate[MENU_RBUTTON_TRIGGERTYPE] = 0; //low level
 	menu_radiobuttonstate[MENU_RBUTTON_TRIGGERSOURCE] = 0; //red channel
 	g_gui.triggerLevelMv = 1500;
 	//view settings
-	g_gui.timeScaleIndex = 18;
+	g_gui.timeScaleIndex = SCALETIME_INDEX_DEFAULT;
 	g_gui.voltageScaleIndex = 2;
 	g_gui.offsetMv = 0;
 	//analyze settings
@@ -651,13 +622,19 @@ uint8_t menu_action(MENUACTION action) {
 
 void GuiInit(void) {
 	printf("Starting GUI\r\n");
+	menu_strings[MENU_TEXT_INPUTSLIST] = g_inputsList;
 	menu_strings[MENU_TEXT_XAXIS] = g_gui.textXAxis;
 	menu_strings[MENU_TEXT_YAXIS] = g_gui.textYAxis;
 	menu_strings[MENU_TEXT_YOFF] = g_gui.textYOff;
 	menu_strings[MENU_TEXT_TRIGGER] = g_gui.textTrigger;
 	menu_strings[MENU_TEXT_VANALYZE] = g_gui.textVanalyze;
 	menu_gfxdata[MENU_GFX_SCOPE] = g_gui.scope;
-	g_gui.type = FilesystemReadLcd();
+	if (FlashReady()) {
+		g_gui.type = FilesystemReadLcd();
+	} else {
+		printf("No filesystem, assuming ILI9341 LCD!\r\n");
+		g_gui.type = ILI9341;
+	}
 	if (g_gui.type != NONE) {
 		LcdBacklightOn();
 		//At 40MHz: The SPI transfer takes 73ms, at 20MHz: 103ms
