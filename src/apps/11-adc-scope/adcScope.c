@@ -2,6 +2,29 @@
 (c) 2024 by Malte Marwedel
 
 SPDX-License-Identifier: GPL-3.0-or-later
+
+Input pins to use for ADC
+
+ADC Channel STM32L452          STM32F411-nucleo
+0           Internal V Ref     PA0
+1           PC0                PA1
+2           PC1                (used for UART TX)
+3           (internal)         (used for UART RX)
+4           PC3                PA4
+5           PA0                (used for LED)
+6           PA1                PA6
+7           PA2                PA7
+8           PA3                (used for SPI)
+9           PA4                PB1
+10          (internal)         (used for input key)
+11          (internal)         (used for input key)
+12          (internal)         PC2
+13          (internal)         PC3
+14          (internal)         PC4
+15          (internal)         PC5
+16          (internal)         Temperature sensor
+17          Temperature sensor Internal V Ref
+18          Vbat               Temperature sensor
 */
 
 #include <stdint.h>
@@ -29,6 +52,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "main.h"
 
 #include "adcSample.h"
+#include "adcScopePlatform.h"
 #include "femtoVsnprintf.h"
 #include "filesystem.h"
 #include "gui.h"
@@ -52,7 +76,7 @@ void AppInit(void) {
 	LedsInit();
 	Led2Red();
 	PeripheralPowerOff();
-	McuClockToHsiPll(80000000, RCC_HCLK_DIV1);
+	McuClockToHsiPll(F_CPU, RCC_HCLK_DIV1);
 	HAL_Delay(100);
 	PeripheralPowerOn();
 	Rs232Init();
@@ -64,6 +88,7 @@ void AppInit(void) {
 	PeripheralInit();
 	FlashEnable(32); //2.5MHz
 	FilesystemMount();
+	InputsAnalogInit();
 	SampleInit();
 	GuiInit();
 	Led2Green();
