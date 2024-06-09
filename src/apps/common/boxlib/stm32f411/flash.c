@@ -27,9 +27,16 @@ void FlashEnable(uint32_t clockPrescaler) {
 void FlashDisable(void) {
 }
 
+uint16_t FlashGetStatus(void) {
+	return 0;
+}
+
 void FlashGetId(uint8_t * manufacturer, uint16_t * device) {
 	*manufacturer = 0;
 	*device = 0;
+}
+
+void FlashPagesizePowertwoSet(void) {
 }
 
 bool FlashPagesizePowertwoGet(void) {
@@ -42,6 +49,13 @@ bool FlashReady(void) {
 
 uint32_t FlashBlocksizeGet(void) {
 	return 1;
+}
+
+bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len) {
+	(void)buffer;
+	(void)offset;
+	(void)len;
+	return false;
 }
 
 uint32_t FlashSizeGet(void) {

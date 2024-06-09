@@ -9,10 +9,70 @@ License: BSD-3-Clause
 
 #include "boxlib/mcu.h"
 
+#include "boxlib/leds.h"
 #include "main.h"
 
 uint32_t g_mcuFrequceny = 16000000;
 uint32_t g_mcuApbDivider = 1;
+
+//See https://stm32f4-discovery.net/2017/04/tutorial-jump-system-memory-software-stm32/
+void McuStartOtherProgram(void * startAddress, bool ledSignalling) {
+	volatile uint32_t * pStackTop = (uint32_t *)(startAddress);
+	volatile uint32_t * pProgramStart = (uint32_t *)(startAddress + 0x4);
+	if (ledSignalling) {
+		Led2Green();
+	}
+	__HAL_FLASH_INSTRUCTION_CACHE_DISABLE();
+	__HAL_FLASH_DATA_CACHE_DISABLE();
+	__HAL_FLASH_PREFETCH_BUFFER_DISABLE();
+	HAL_RCC_DeInit();
+	SysTick->CTRL = 0;
+	SysTick->LOAD = 0;
+	SysTick->VAL = 0;
+	__disable_irq();
+	__DSB();
+	__HAL_SYSCFG_REMAPMEMORY_SYSTEMFLASH();
+	__DSB();
+	__ISB();
+	__HAL_RCC_SPI1_FORCE_RESET();
+	__HAL_RCC_SPI2_FORCE_RESET();
+	__HAL_RCC_SPI3_FORCE_RESET();
+	__HAL_RCC_SPI4_FORCE_RESET();
+	__HAL_RCC_SPI5_FORCE_RESET();
+	__HAL_RCC_USART1_FORCE_RESET();
+	__HAL_RCC_USART2_FORCE_RESET();
+	__HAL_RCC_USART6_FORCE_RESET();
+	__HAL_RCC_SPI1_RELEASE_RESET();
+	__HAL_RCC_SPI2_RELEASE_RESET();
+	__HAL_RCC_SPI3_RELEASE_RESET();
+	__HAL_RCC_SPI4_RELEASE_RESET();
+	__HAL_RCC_SPI5_RELEASE_RESET();
+	__HAL_RCC_USART1_RELEASE_RESET();
+	__HAL_RCC_USART2_RELEASE_RESET();
+	__HAL_RCC_USART6_RELEASE_RESET();
+	//Is there a generic maximum interrupt number defined somewhere?
+	for (uint32_t i = 0; i <= SPI5_IRQn; i++) {
+		NVIC_DisableIRQ(i);
+		NVIC_ClearPendingIRQ(i);
+	}
+	__enable_irq(); //actually, the system seems to start with enabled interrupts
+	if (ledSignalling) {
+		Led1Off();
+	}
+	/* Writing the stack change as C code is a bad idea, because the compiler
+	   can insert stack changeing code before the function call. And in fact, it
+	   does with some optimization. So
+	       __set_MSP(*pStackTop);
+	       ptrFunction_t * pDfu = (ptrFunction_t *)(*pProgramStart);
+	       pDfu();
+	   would work with -Og optimization, but not with -Os optimization.
+	   Instead we use two commands of assembly, where the compiler can't add code
+	   inbetween.
+*/
+	asm("msr msp, %[newStack]\n bx %[newProg]"
+	     : : [newStack]"r"(*pStackTop), [newProg]"r"(*pProgramStart));
+}
+
 
 uint8_t McuClockToHsiPll(uint32_t frequency, uint32_t apbDivider) {
 	uint32_t latency; //div 2
@@ -84,4 +144,7 @@ uint8_t McuClockToHsiPll(uint32_t frequency, uint32_t apbDivider) {
 	g_mcuFrequceny = frequency;
 	g_mcuApbDivider = apbDivider;
 	return 0;
+}
+
+void McuLockCriticalPins(void) {
 }
