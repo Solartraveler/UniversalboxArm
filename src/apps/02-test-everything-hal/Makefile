@@ -18,7 +18,7 @@
 #Name of this application
 NAME     = Test-everything
 #Version of this application, to be used in the metadata
-VERSION  = 0.14.0
+VERSION  = 0.15.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -99,9 +99,11 @@ ALGORITHM=$(VERYCOMMON)/algorithm
 ######################################
 # C sources
 C_SOURCES =  \
-Core/Src/main.c \
-Core/Src/rtc.c \
-Core/Src/$(CHIPFAMILY)_hal_msp.c \
+$(CHIPSUBFAMILY)-$(BOARD)/main.c \
+$(CHIPSUBFAMILY)-$(BOARD)/testEverythingPlatform.c \
+$(CHIPSUBFAMILY)-$(BOARD)/rtc.c \
+$(CHIPSUBFAMILY)-$(BOARD)/system_$(CHIPFAMILY).c \
+$(CHIPSUBFAMILY)-$(BOARD)/$(CHIPFAMILY)_hal_msp.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc_ex.c \
@@ -118,7 +120,6 @@ $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rtc_ex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_spi.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_tim.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_tim_ex.c \
-Core/Src/system_$(CHIPFAMILY).c \
 $(BOXLIB)/keys.c \
 $(BOXLIB)/leds.c \
 $(BOXLIB)/relays.c \
@@ -129,6 +130,7 @@ $(BOXLIB)/coproc.c \
 $(BOXLIB)/ir.c \
 $(BOXLIB)/esp.c \
 $(BOXLIB)/simpleadc.c \
+$(BOXLIB)/spiExternal.c \
 $(BOXLIB)/boxusb.c \
 $(BOXLIB)/mcu.c \
 $(BOXLIBCORE)/readLine.c \
@@ -137,11 +139,13 @@ $(BOXLIBCORE)/lcd.c \
 $(BOXLIBCORE)/systickWithFreertos.c \
 $(DISPLAYLIB1)/st7735.c \
 $(DISPLAYLIB2)/ili9341.c \
-$(USBLIB)/usbd_core.c \
-$(USBLIB)/usbd_stm32l433_devfs.c \
 $(ALGORITHM)/utility.c \
 testEverything.c
 
+ifeq ($(CHIPSUBFAMILY), stm32l452)
+C_SOURCES += $(USBLIB)/usbd_core.c \
+$(USBLIB)/usbd_stm32l433_devfs.c
+endif
 
 # ASM sources
 ASM_SOURCES =  \
@@ -200,7 +204,6 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
--ICore/Inc \
 -I$(BOXLIB) \
 -I$(STM_HAL)/Inc \
 -I$(STM_HAL)/Inc/Legacy \
@@ -210,6 +213,7 @@ C_INCLUDES =  \
 -I$(VERYCOMMON) \
 -I$(USBLIB) \
 -I$(ALGORITHM) \
+-I$(CHIPSUBFAMILY)-$(BOARD) \
 -I.
 
 
@@ -243,8 +247,13 @@ LDFLAGSRAM =   $(LDFLAGS) -T$(LDSCRIPTRAM) -Wl,-Map=$(BUILD_DIR)/$(TARGETRAM).ma
 LDFLAGSFLASH = $(LDFLAGS) -T$(LDSCRIPTFLASH) -Wl,-Map=$(BUILD_DIR)/$(TARGETFLASH).map,--cref
 
 # default action: build all
-all: $(BUILD_DIR)/$(TARGETFLASH).elf $(BUILD_DIR)/$(TARGETFLASH).hex $(BUILD_DIR)/$(TARGETFLASH).bin $(BUILD_DIR)/$(TARGETRAM).tar
+all: build-flash build-ram
 
+disassembly: $(BUILD_DIR)/$(TARGETFLASH).disass  $(BUILD_DIR)/$(TARGETRAM).disass
+
+build-flash: $(BUILD_DIR)/$(TARGETFLASH).elf $(BUILD_DIR)/$(TARGETFLASH).hex $(BUILD_DIR)/$(TARGETFLASH).bin
+
+build-ram: $(BUILD_DIR)/$(TARGETRAM).tar
 
 #######################################
 # build the application
