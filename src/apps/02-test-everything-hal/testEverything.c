@@ -403,11 +403,12 @@ void CheckEspPrint(const char * buffer) {
 	const uint32_t maxCharsLine = 80;
 	uint32_t forceNewline = maxCharsLine;
 	while (*buffer) {
-		if (isprint(*buffer) || (*buffer == '\r') || (*buffer == '\n')) {
-			if (*buffer == '\r') {
+		char c = *buffer;
+		if (isprint(c) || (c == '\r') || (c == '\n')) {
+			if (c == '\r') {
 				forceNewline = maxCharsLine;
 			}
-			putchar(*buffer);
+			putchar(c);
 			forceNewline--;
 		}
 		buffer++;
