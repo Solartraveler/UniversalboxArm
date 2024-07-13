@@ -327,6 +327,38 @@ uploadExtflashNostart:
 	../../utilities/dfu-upload.sh --store --nostart $(BUILD_DIR)/$(TARGET)
 
 #######################################
+# zip exporting
+#######################################
+
+FOLDERS = apps/11-adc-scope
+FOLDERS += apps/common
+FOLDERS += common/algorithm
+FOLDERS += common/fatfs
+FOLDERS += common/ili9341
+FOLDERS += common/jsmn
+FOLDERS += common/menuInterpreter
+FOLDERS += common/st7735
+FOLDERS += common/*.md
+FOLDERS += common/*.h
+
+PATTERNSNOT = \*.o
+PATTERNSNOT += \*~
+PATTERNSNOT += \*.lst
+PATTERNSNOT += \*.d
+PATTERNSNOT += \*.map
+PATTERNSNOT += \*.zip
+PATTERNSNOT += \*.elf
+PATTERNSNOT += \*menudata.bin
+PATTERNSNOT += \*menudata-progmem.c
+PATTERNSNOT += \*libusb_stm32*
+PATTERNSNOT += \*emulatedFlash.bin
+PATTERNSNOT += \*pc-simulator/build*
+
+zip:
+	mkdir -p build
+	cd ../..; zip -r apps/11-adc-scope/build/adc-scope-$(VERSION).zip $(FOLDERS) -x $(PATTERNSNOT) -FS
+
+#######################################
 # dependencies
 #######################################
 -include $(wildcard $(BUILD_DIR)/*.d)
