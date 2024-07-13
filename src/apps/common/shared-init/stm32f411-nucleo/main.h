@@ -82,8 +82,6 @@ void Error_Handler(void);
 /*The LCD pins and SPI pins are
   all on a female connector of the nucleo board,
   with the exception of the PerSpiMiso.
-  But PerSpiMiso is not needed for the LCD,
-  (the pin would only be needed for the flash).
 */
 #define LcdCs_Pin GPIO_PIN_10
 #define LcdCs_GPIO_Port GPIOB
@@ -95,6 +93,10 @@ void Error_Handler(void);
 #define LcdBacklight_GPIO_Port GPIOA
 #define PerSpiSck_Pin GPIO_PIN_0
 #define PerSpiSck_GPIO_Port GPIOB
+/*PerSpiMiso is not needed for the LCD,
+  (the pin would only be needed for the flash).
+  Should USB be used, the pin is needed there.
+*/
 #define PerSpiMiso_Pin GPIO_PIN_12
 #define PerSpiMiso_GPIO_Port GPIOA
 #define PerSpiMosi_Pin GPIO_PIN_10

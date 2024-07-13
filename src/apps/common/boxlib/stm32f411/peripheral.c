@@ -50,12 +50,7 @@ void PeripheralBaseInit(void) {
 	GPIO_InitStruct.Alternate = GPIO_AF6_SPI5;
 	HAL_GPIO_Init(PerSpiSck_GPIO_Port, &GPIO_InitStruct);
 
-	GPIO_InitStruct.Pin = PerSpiMiso_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	GPIO_InitStruct.Alternate = GPIO_AF6_SPI5;
-	HAL_GPIO_Init(PerSpiMiso_GPIO_Port, &GPIO_InitStruct);
+	//MISO is not needed for the LCD
 
 	GPIO_InitStruct.Pin = PerSpiMosi_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
