@@ -6,6 +6,7 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "boxlib/flash.h"
@@ -252,6 +253,13 @@ bool FlashReady(void) {
 	uint16_t status = FlashGetStatus();
 	uint16_t error = (status >> 5) & 1;
 	uint16_t ready = (status >> 15) & 1;
+	uint8_t manufacturer;
+	uint16_t device;
+	FlashGetId(&manufacturer, &device);
+	if (manufacturer != 0x1F) {
+		printf("Error, no valid answer from flash\r\n");
+		return false;
+	}
 	if ((ready) && (error == 0)) {
 		return true;
 	}

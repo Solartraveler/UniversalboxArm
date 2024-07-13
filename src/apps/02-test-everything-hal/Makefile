@@ -18,7 +18,7 @@
 #Name of this application
 NAME     = Test-everything
 #Version of this application, to be used in the metadata
-VERSION  = 0.16.0
+VERSION  = 0.17.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -139,6 +139,7 @@ $(BOXLIBCORE)/lcd.c \
 $(BOXLIBCORE)/systickWithFreertos.c \
 $(DISPLAYLIB1)/st7735.c \
 $(DISPLAYLIB2)/ili9341.c \
+$(ALGORITHM)/sdmmcAccess.c \
 $(ALGORITHM)/utility.c \
 testEverything.c
 
@@ -196,7 +197,10 @@ C_DEFS =  \
 -DUSE_HAL_DRIVER \
 -DAPPVERSION=\"$(VERSION)\" \
 -D$(CHIPDEFINE) \
--DBOARD_$(BOARDDEFINE)
+-DBOARD_$(BOARDDEFINE) \
+-DSDMMC_DEBUG=printf \
+-DSDMMC_DEBUGHEX=PrintHex
+
 
 
 # AS includes

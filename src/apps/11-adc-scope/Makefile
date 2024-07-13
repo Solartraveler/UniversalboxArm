@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = ADC-Scope
 #Version of this application, to be used in the metadata
-VERSION  = 0.10.0
+VERSION  = 0.11.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -123,6 +123,7 @@ $(BOXLIB)/mcu.c \
 $(BOXLIB)/peripheral.c \
 $(BOXLIB)/peripheralDma.c \
 $(BOXLIB)/rs232debug.c \
+$(BOXLIB)/spiExternal.c \
 $(BOXLIB)/timer16Bit.c \
 $(BOXLIBCORE)/exceptions.c \
 $(BOXLIBCORE)/lcd.c \
@@ -139,6 +140,7 @@ $(ALGORITHM)/imageTgaWrite.c \
 $(ALGORITHM)/json.c \
 $(ALGORITHM)/libcMinsize.c \
 $(ALGORITHM)/screenshot.c \
+$(ALGORITHM)/sdmmcAccess.c \
 $(ALGORITHM)/utility.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \

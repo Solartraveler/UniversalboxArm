@@ -631,21 +631,20 @@ void GuiInit(void) {
 	menu_gfxdata[MENU_GFX_SCOPE] = g_gui.scope;
 	if (FlashReady()) {
 		g_gui.type = FilesystemReadLcd();
-	} else {
-		printf("No filesystem, assuming ILI9341 LCD!\r\n");
+	}
+	if (g_gui.type == NONE) {
+		printf("No LCD type configured, assuming ILI9341 LCD!\r\n");
 		g_gui.type = ILI9341;
 	}
-	if (g_gui.type != NONE) {
-		LcdBacklightOn();
-		//At 40MHz: The SPI transfer takes 73ms, at 20MHz: 103ms
-		LcdEnable(2); //40MHz
-		LcdInit(g_gui.type);
-	}
+	LcdBacklightOn();
+	//At 40MHz: The SPI transfer takes 73ms, at 20MHz: 103ms
+	LcdEnable(2); //40MHz
+	LcdInit(g_gui.type);
 	if (g_gui.type == ILI9341) {
 		g_gui.pixelX = 320;
 		g_gui.pixelY = 240;
 	} else {
-		printf("No GUI enabled, or LCD not supported\r\n");
+		printf("Configured LCD type not supported\r\n");
 	}
 	GuiDefaultSettings();
 	GuiLoadSettings();

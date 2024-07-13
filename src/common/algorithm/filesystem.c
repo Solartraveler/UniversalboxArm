@@ -22,10 +22,7 @@ SPDX-License-Identifier: BSD-3-Clause
 FATFS g_fatfs;
 
 bool FilesystemMount(void) {
-	uint8_t manufacturer;
-	uint16_t device;
-	FlashGetId(&manufacturer, &device);
-	if (manufacturer != 0x1F) {
+	if (FlashReady() != true) {
 		printf("Error, no valid answer from flash\r\n");
 		return false;
 	}

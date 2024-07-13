@@ -14,14 +14,20 @@ provides a simple 32KiB ramdisk.
 
 #include "boxlib/flash.h"
 
-/* Minimum flash size for fat is 128 sectors, 512byte each.
-  Also the first 4Kib are left unsued (could be changed).
-  So the minimum memory needed is 68KiB. But there are no 68KiB RAM left...
-  Otherwise a RAM disk could be created.
-*/
+#include "boxlib/flash.h"
+#include "boxlib/spiExternal.h"
+#include "sdmmcAccess.h"
+
+bool g_flashInitSuccess;
 
 void FlashEnable(uint32_t clockPrescaler) {
-	(void)clockPrescaler;
+	SpiExternalInit();
+	SpiExternalPrescaler(clockPrescaler);
+	if (SdmmcInit(&SpiExternalTransfer, 1) == 0) {
+		g_flashInitSuccess = true;
+		//Assuming 250kHz before, now we run at 1MHz, a breadboard propably will not allow anything faster
+		SpiExternalPrescaler(clockPrescaler / 4);
+	}
 }
 
 void FlashDisable(void) {
@@ -44,11 +50,11 @@ bool FlashPagesizePowertwoGet(void) {
 }
 
 bool FlashReady(void) {
-	return false;
+	return g_flashInitSuccess;
 }
 
 uint32_t FlashBlocksizeGet(void) {
-	return 1;
+	return SDMMC_BLOCKSIZE;
 }
 
 bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len) {
@@ -59,19 +65,13 @@ bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len) {
 }
 
 uint64_t FlashSizeGet(void) {
-	return 0;
+	return SdmmcCapacity() * SDMMC_BLOCKSIZE;
 }
 
 bool FlashRead(uint64_t address, uint8_t * buffer, size_t len) {
-	(void)address;
-	(void)buffer;
-	(void)len;
-	return false;
+	return SdmmcRead(buffer, address / SDMMC_BLOCKSIZE, len / SDMMC_BLOCKSIZE);
 }
 
 bool FlashWrite(uint64_t address, const uint8_t * buffer, size_t len) {
-	(void)address;
-	(void)buffer;
-	(void)len;
-	return false;
+	return SdmmcWrite(buffer, address / SDMMC_BLOCKSIZE, len / SDMMC_BLOCKSIZE);
 }

@@ -30,7 +30,7 @@ License: BSD-3-Clause
 #include "boxlib/readLine.h"
 
 #include "main.h"
-
+#include "sdmmcAccess.h"
 #include "testEverythingPlatform.h"
 
 #include "usbd_core.h"
@@ -162,196 +162,7 @@ void ChangePullPin(void) {
 	printf("Done\r\n");
 }
 
-uint32_t SeekSDR1Response(const uint8_t * data, size_t len) {
-	for (uint32_t i = 0; i < len; i++) {
-		if ((data[i] & 0x80) == 0) {
-			uint8_t r1 = data[i];
-			if (r1 & 0x1) printf("  idle state\r\n");
-			if (r1 & 0x2) printf("  erase reset\r\n");
-			if (r1 & 0x4) printf("  illegal command\r\n");
-			if (r1 & 0x8) printf("  command crc error\r\n");
-			if (r1 & 0x10) printf("  erase sequence error\r\n");
-			if (r1 & 0x20) printf("  address error\r\n");
-			if (r1 & 0x40) printf("  parameter error\r\n");
-			return i;
-		}
-	}
-	return len; //not found
-}
-
-//see http://problemkaputt.de/gbatek-dsi-sd-mmc-protocol-ocr-register-32bit-operation-conditions-register.htm
-//returns 0: ok, 1: busy (retry), 2: voltage range not fitting, 3: error
-uint8_t SeekSDR3Response(const uint8_t * data, size_t len) {
-	uint8_t result = 3;
-	uint32_t i = SeekSDR1Response(data, len);
-	if (i + 4 < len) {
-		uint32_t ocr = (data[i + 1] << 24) | (data[i + 2] << 16) | (data[i + 3] << 8) | (data[i + 4]);
-		if (ocr & 0x01000000) {
-			printf("  1.8V ok\r\n");
-		}
-		if (ocr & 0x00800000) {
-			printf("  3.5 - 3.6V ok\r\n");
-		}
-		if (ocr & 0x00400000) {
-			printf("  3.4 - 3.5V ok\r\n");
-		}
-		if (ocr & 0x00200000) {
-			printf("  3.3 - 3.4V ok\r\n");
-		}
-		if (ocr & 0x00100000) {
-			printf("  3.2 - 3.3V ok\r\n");
-		}
-		if (ocr & 0x00080000) {
-			printf("  3.1 - 3.2V ok\r\n");
-		}
-		if (ocr & 0x00040000) {
-			printf("  3.0 - 3.1V ok\r\n");
-		}
-		if (ocr & 0x00020000) {
-			printf("  2.9 - 3.0V ok\r\n");
-		}
-		if (ocr & 0x00010000) {
-			printf("  2.8 - 2.9V ok\r\n");
-		}
-		if (ocr & 0x00008000) {
-			printf("  2.7 - 2.8V ok\r\n");
-		}
-		if ((ocr & 0x003E0000) != 0x003E0000) { //2.9...3.4 V supported
-			result = 2;
-		}
-		//this is only set when ACMD41 was sent before
-		if (ocr & 0x80000000) {
-			printf("  ready\r\n");
-			if (ocr & 0x40000000) {
-				printf("    SDHC card\r\n");
-			} else {
-				printf("    SD/MMC card\r\n");
-			}
-			if (result != 2) {
-				result = 0;
-			}
-		} else {
-			printf("  not ready\r\n");
-			if (result != 2) {
-				result = 1;
-			}
-		}
-	}
-	return result;
-}
-
-void SeekSDR7Response(const uint8_t * data, size_t len) {
-	uint32_t i = SeekSDR1Response(data, len);
-	if (((data[i] & 0x4) == 0) && ((i + 4) < len)) {
-		printf("  -> SD version 2.0 or later\r\n");
-		uint8_t version = data[i + 1] >> 4;
-		printf("  Command set version %u\r\n", (unsigned int)version);
-		if (data[i + 4] == 0xAA) {
-			printf("  Check pattern ok\r\n");
-		} else {
-			printf("  Check pattern error\r\n");
-		}
-		uint8_t voltageRange = data[i + 3];
-		if (voltageRange == 0x1) {
-			printf("  2.7 - 3.3V accepted\r\n");
-		} else {
-			printf("  unsuppored voltage!\r\n");
-		}
-	} else {
-		printf("  -> SD ver 1.0  or MMC card\r\n");
-	}
-}
-
-//1 command byte, 4 parameter bytes, 1 CRC byte
-#define SD_COMMAND_LEN 6
-/*Up to 8 dummy bytes can be sent, then there should be at least the R1 response in the 9th byte
-  Tested cards only seem to make use of one dummy byte
-*/
-#define SD_R1_RESPONSE_RANGE 9
-
 #define SD_CHIPSELECT 1
-
-//returns 0: ok, 1: busy (retry), 2: voltage range not fitting, 3: error
-uint8_t CheckCmd58(void) {
-	uint8_t dataOutCmd58[19]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait byte, 5 response bytes
-	uint8_t dataInCmd58[19];
-	memset(dataInCmd58, 0, sizeof(dataInCmd58));
-	memset(dataOutCmd58, 0xFF, sizeof(dataOutCmd58));
-	dataOutCmd58[0] = 0x40 | 58;
-	dataOutCmd58[1] = 0;
-	dataOutCmd58[2] = 0;
-	dataOutCmd58[3] = 0;
-	dataOutCmd58[4] = 0;
-	dataOutCmd58[5] = 1; //CRC is ignored, would be the higher 7 bits
-	SpiExternalTransfer(dataOutCmd58, dataInCmd58, sizeof(dataOutCmd58), SD_CHIPSELECT, true);
-	printf("Response from CMD58 (get ocr):\r\n");
-	PrintHex(dataInCmd58, sizeof(dataInCmd58));
-	return SeekSDR3Response(dataInCmd58 + SD_COMMAND_LEN, sizeof(dataInCmd58) - SD_COMMAND_LEN);
-}
-
-//returns 0: ok, 1: idle, 2: unsupported, 3: error
-uint8_t CheckAcmd41(void) {
-	//CMD55 - application specific command follows
-	uint8_t dataOutCmd55[15]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait byte, 1 response bytes
-	uint8_t dataInCmd55[15];
-	memset(dataInCmd55, 0, sizeof(dataInCmd55));
-	memset(dataOutCmd55, 0xFF, sizeof(dataOutCmd55));
-	dataOutCmd55[0] = 0x40 | 55;
-	dataOutCmd55[1] = 0;
-	dataOutCmd55[2] = 0;
-	dataOutCmd55[3] = 0;
-	dataOutCmd55[4] = 0;
-	dataOutCmd55[5] = 1; //CRC is ignored
-	SpiExternalTransfer(dataOutCmd55, dataInCmd55, sizeof(dataOutCmd55), SD_CHIPSELECT, true);
-	printf("Response from CMD55 (app cmd):\r\n");
-	PrintHex(dataInCmd55, sizeof(dataInCmd55));
-	uint32_t idxR1 = SeekSDR1Response(dataInCmd55 + SD_COMMAND_LEN, SD_R1_RESPONSE_RANGE);
-	if (idxR1 >= SD_R1_RESPONSE_RANGE) {
-		return 3;
-	}
-	idxR1 += SD_COMMAND_LEN;
-	if (dataInCmd55[idxR1] & 0x4) {
-		return 2; //illegal command
-	}
-	//ACMD41 to get the card to be initalized
-	uint8_t dataOutCmd41[15]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait byte, 1 response bytes
-	uint8_t dataInCmd41[15];
-	memset(dataInCmd41, 0, sizeof(dataInCmd41));
-	memset(dataOutCmd41, 0xFF, sizeof(dataOutCmd41));
-	dataOutCmd41[0] = 0x40 | 41;
-	dataOutCmd41[1] = 0x40; //tell, we support SDHC
-	dataOutCmd41[2] = 0;
-	dataOutCmd41[3] = 0;
-	dataOutCmd41[4] = 0;
-	dataOutCmd41[5] = 1; //CRC is ignored
-	SpiExternalTransfer(dataOutCmd41, dataInCmd41, sizeof(dataOutCmd41), SD_CHIPSELECT, true);
-	printf("Response from ACMD41 (start init):\r\n");
-	PrintHex(dataInCmd41, sizeof(dataInCmd41));
-	idxR1 = SeekSDR1Response(dataInCmd41 + SD_COMMAND_LEN, SD_R1_RESPONSE_RANGE);
-	if (idxR1 >= SD_R1_RESPONSE_RANGE) {
-		return 3;
-	}
-	idxR1 += SD_COMMAND_LEN;
-	if (dataInCmd41[idxR1] & 0x4) {
-		return 2; //illegal command
-	}
-	if (dataInCmd41[idxR1] & 0xFE) {
-		return 3; //some other error
-	}
-	if (dataInCmd41[idxR1] & 1) {
-		return 1; //idle
-	}
-	return 0; //ready
-}
-
-uint32_t SeekDataStart(const uint8_t * data, size_t len) {
-	for (uint32_t i = 0; i < len; i++) {
-		if (data[i] == 0xFE) {
-			return i;
-		}
-	}
-	return len;
-}
 
 /*Tested cards (all do respond as expected):
   64MB MMC from Dual (as expected, it reports not supported when sending ACMD41)
@@ -364,84 +175,24 @@ void CheckSpiExternal(void) {
 	SpiExternalInit();
 	//initializing SD/MMC cards require 100kHz - 400kHz
 	SpiExternalPrescaler(64); //so 125kHz @ 16MHz peripheral clock
-	//SD/MMC needs at least 74 clocks with DI and CS to be high to enter native operating mode
-	uint8_t initArray[16]; //128 clocks :P
-	memset(&initArray, 0xFF, sizeof(initArray));
-	SpiExternalTransfer(initArray, NULL, sizeof(initArray), 0, true);
-	HAL_Delay(100);
-
-	//CMD0 -> software reset to enter SPI mode
-	uint8_t dataOutCmd0[15]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait byte, 1 response bytes
-	uint8_t dataInCmd0[15];
-	memset(dataInCmd0, 0, sizeof(dataInCmd0));
-	memset(dataOutCmd0, 0xFF, sizeof(dataOutCmd0));
-	dataOutCmd0[0] = 0x40 | 0;
-	dataOutCmd0[1] = 0;
-	dataOutCmd0[2] = 0;
-	dataOutCmd0[3] = 0;
-	dataOutCmd0[4] = 0;
-	dataOutCmd0[5] = 0x94 | 1; //CRC at the higher 7 bits is a must
-	SpiExternalTransfer(dataOutCmd0, dataInCmd0, sizeof(dataOutCmd0), SD_CHIPSELECT, true);
-	printf("Response from CMD0 (reset):\r\n");
-	PrintHex(dataInCmd0, sizeof(dataInCmd0));
-	SeekSDR1Response(dataInCmd0 + SD_COMMAND_LEN, SD_R1_RESPONSE_RANGE);
-	//CMD8 to determine working voltage range (and if it is a SDHC/SDXC card)
-	uint8_t dataOutCmd8[19]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait byte, 1 response bytes
-	uint8_t dataInCmd8[19];
-	memset(dataInCmd8, 0, sizeof(dataInCmd8));
-	memset(dataOutCmd8, 0xFF, sizeof(dataOutCmd8));
-	dataOutCmd8[0] = 0x40 | 8;
-	dataOutCmd8[1] = 0;
-	dataOutCmd8[2] = 0;
-	dataOutCmd8[3] = 1; //2.7 - 3.6 V range supported?
-	dataOutCmd8[4] = 0xAA; //check pattern
-	dataOutCmd8[5] = 0x86 | 1; //CRC at the higher 7 bit is a must
-	SpiExternalTransfer(dataOutCmd8, dataInCmd8, sizeof(dataOutCmd8), SD_CHIPSELECT, true);
-	printf("Response from CMD8 (if cmd):\r\n");
-	PrintHex(dataInCmd8, sizeof(dataInCmd8));
-	SeekSDR7Response(dataInCmd8 + SD_COMMAND_LEN, sizeof(dataInCmd8) - SD_COMMAND_LEN);
-	//CMD58 -> get status (the card is not ready now)
-	if (CheckCmd58() >= 2) {
-		printf("No proper voltage range or error, stopping init\r\n");
+	if (!SdmmcInit(&SpiExternalTransfer, SD_CHIPSELECT) == 0) {
 		return;
 	}
-	//ACMD41 - init the card and wait for the init to be done
-	for (uint32_t i = 0; i < 10; i++) {
-		uint8_t result = CheckAcmd41();
-		if (result >= 2) {
-			return; //MMC cards will stop here
-		}
-		if (result == 0) {
-			break;
-		}
-		HAL_Delay(1000);
-	}
-	//CMD58 -> get status (now the busy bit should be cleared and the report if it is a SD or SDHC card be valid)
-	if (CheckCmd58() != 0) {
-		return;
-	}
-	//CMD10 lets read out the vendor
+	//CMD10 -> lets read out the vendor
 	uint8_t dataOutCmd10[31]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait byte, 17 response bytes
 	uint8_t dataInCmd10[31];
-	memset(dataInCmd10, 0, sizeof(dataInCmd10));
-	memset(dataOutCmd10, 0xFF, sizeof(dataOutCmd10));
-	dataOutCmd10[0] = 0x40 | 10;
-	dataOutCmd10[1] = 0;
-	dataOutCmd10[2] = 0;
-	dataOutCmd10[3] = 0;
-	dataOutCmd10[4] = 0;
-	dataOutCmd10[5] = 1; //CRC is ignored
+	SdmmcFillCommand(dataOutCmd10, dataInCmd10, sizeof(dataOutCmd10), 10, 0x40);
 	SpiExternalTransfer(dataOutCmd10, dataInCmd10, sizeof(dataInCmd10), SD_CHIPSELECT, true);
 	printf("Response from CMD10 (card identification):\r\n");
 	PrintHex(dataInCmd10, sizeof(dataInCmd10));
-	uint8_t index = SeekSDR1Response(dataInCmd10 + SD_COMMAND_LEN, SD_R1_RESPONSE_RANGE);
-	if (index >= SD_R1_RESPONSE_RANGE) {
+	size_t idxR1 = SdmmcSDR1ResponseIndex(dataInCmd10, sizeof(dataInCmd10));
+	if (idxR1 == 0) {
 		printf("  No response found\r\n");
 		return;
 	}
-	index += SD_COMMAND_LEN + 1; //+1 for beyond R1 response
+	size_t index = idxR1 + 1;
 	size_t bytesLeft = sizeof(dataInCmd10) - index;
-	uint32_t dataStart = SeekDataStart(dataInCmd10 + index, bytesLeft);
+	size_t dataStart = SdmmcSeekDataStart(dataInCmd10 + index, bytesLeft);
 	if (dataStart >= bytesLeft) {
 		printf("  No data start found\r\n");
 	}
@@ -469,62 +220,44 @@ void CheckSpiExternal(void) {
 	printf("  Serial %u\r\n", (unsigned int)serial);
 	uint16_t date = (dataInCmd10[index + 13] << 8) | (dataInCmd10[index + 14]);
 	printf("  Date %u-%u\r\n", ((date >> 4) & 0xFF) + 2000, date & 4);
-	//set block length to be 512byte (for SD cards, SDHC and SDXC always use 512)
-	uint8_t dataOutCmd16[15]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait byte, 1 response bytes
-	uint8_t dataInCmd16[15];
-	memset(dataInCmd16, 0, sizeof(dataInCmd16));
-	memset(dataOutCmd16, 0xFF, sizeof(dataOutCmd16));
-	dataOutCmd16[0] = 0x40 | 16;
-	dataOutCmd16[1] = 0;
-	dataOutCmd16[2] = 0;
-	dataOutCmd16[3] = 2; //512 byte block length
-	dataOutCmd16[4] = 0;
-	dataOutCmd16[5] = 1; //CRC is ignored
-	SpiExternalTransfer(dataOutCmd16, dataInCmd16, sizeof(dataOutCmd16), SD_CHIPSELECT, true);
-	printf("Response from CMD16 (set block length):\r\n");
-	PrintHex(dataInCmd16, sizeof(dataInCmd16));
-	SeekSDR1Response(dataInCmd16 + SD_COMMAND_LEN, SD_R1_RESPONSE_RANGE);
-	//read first block (since its block 0, no need to distinguish between SD and SDHC/SDXC)
-	uint8_t dataOutCmd17[16]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait byte, 1 response bytes, 1 extra byte for have a good buffer size
-	uint8_t dataInCmd17[16];
-	memset(dataInCmd17, 0, sizeof(dataInCmd17));
-	memset(dataOutCmd17, 0xFF, sizeof(dataOutCmd17));
-	dataOutCmd17[0] = 0x40 | 17;
-	dataOutCmd17[1] = 0;
-	dataOutCmd17[2] = 0;
-	dataOutCmd17[3] = 0;
-	dataOutCmd17[4] = 0;
-	dataOutCmd17[5] = 1; //CRC is ignored
-	size_t thisRound = sizeof(dataOutCmd17);
-	SpiExternalTransfer(dataOutCmd17, dataInCmd17, thisRound, SD_CHIPSELECT, false);
-	printf("Response from CMD17 (read single block):\r\n");
-	PrintHex(dataInCmd17, sizeof(dataInCmd17));
-	uint32_t idx = SeekSDR1Response(dataInCmd17 + SD_COMMAND_LEN, SD_R1_RESPONSE_RANGE);
-	if (idx < SD_R1_RESPONSE_RANGE) {
-		idx += SD_COMMAND_LEN;
-		bool gotDataStart = false;
-		size_t bytesLeft = 514; //512 byte + 2byte crc
-		for (uint32_t i = 0; i < 1000; i++) {
-			if (gotDataStart == false) {
-				uint32_t dStart = SeekDataStart(dataInCmd17 + idx, thisRound - idx);
-				if (dStart < (thisRound - idx)) {
-					gotDataStart = true;
-					bytesLeft -= thisRound - idx - dStart - 1;
-				}
-			}
-			if (bytesLeft == 0) {
-				break;
-			}
-			idx = 0;
-			size_t thisRound = MIN(bytesLeft, sizeof(dataOutCmd17));
-			SpiExternalTransfer(dataOutCmd17, dataInCmd17, thisRound, SD_CHIPSELECT, false);
-			PrintHex(dataInCmd17, thisRound);
-			if (gotDataStart) {
-				bytesLeft -= thisRound;
-			}
-		}
+	const size_t numTestblocks = 2;
+	uint8_t buffer[SDMMC_BLOCKSIZE * numTestblocks];
+	if (SdmmcRead(buffer, 0, numTestblocks) == false) {
+		printf("  Return indicated a failure\r\n");
+		return;
 	}
-		SpiExternalTransfer(NULL, NULL, 0, SD_CHIPSELECT, true);
+	printf("Test writing? This will likely result in a loss of the partition table! Press 'Y' to test\r\n");
+	char c;
+	do {
+		c = Rs232GetChar();
+	} while (c == 0);
+	if (c != 'Y') {
+		printf("  Not testing...\r\n");
+		return;
+	}
+	uint16_t writeBuffer[SDMMC_BLOCKSIZE / sizeof(uint16_t)];
+	uint16_t readBuffer[SDMMC_BLOCKSIZE / sizeof(uint16_t)];
+	for (uint32_t i = 0; i < SDMMC_BLOCKSIZE / sizeof(uint16_t); i++) {
+		writeBuffer[i] = i;
+	}
+	writeBuffer[0] = HAL_GetTick(); //so its different on many retries
+	if (SdmmcWrite((const uint8_t *)writeBuffer, 0, 1) == false) {
+		printf("  Write return indicated a failure\r\n");
+		return;
+	}
+	if (SdmmcRead((uint8_t *)readBuffer, 0, 1) == false) {
+		printf("  Read return indicated a failure\r\n");
+		return;
+	}
+	if (memcmp(writeBuffer, readBuffer, sizeof(writeBuffer))) {
+		printf("  Error, readback data differ\r\n");
+		return;
+	}
+	printf("  Readback data match. Restoring original data...\r\n");
+	if (SdmmcWrite((uint8_t *)buffer, 0, 1) == false) {
+		printf("  Write return indicated a failure\r\n");
+		return;
+	}
 }
 
 void SetLeds(void) {
