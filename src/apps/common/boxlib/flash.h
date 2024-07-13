@@ -42,7 +42,7 @@ void FlashPagesizePowertwoSet(void);
 bool FlashPagesizePowertwoGet(void);
 
 //Thread safe if peripheralMt.c is used
-bool FlashRead(uint32_t address, uint8_t * buffer, size_t len);
+bool FlashRead(uint64_t address, uint8_t * buffer, size_t len);
 
 //Use for debug only.
 //Writes to the SRAM1 buffer, so no flash is actually written.
@@ -55,7 +55,7 @@ Thread safe if peripheralMt.c is used. If two threads are writing at overlapping
 memory, each page will only contain data from one thread. But it is not defined
 from which.
 */
-bool FlashWrite(uint32_t address, const uint8_t * buffer, size_t len);
+bool FlashWrite(uint64_t address, const uint8_t * buffer, size_t len);
 
 //This should return the last FLASHPAGESIZE byte written by FlashWrite
 //or FlashWriteBuffer1 data
@@ -63,8 +63,10 @@ bool FlashWrite(uint32_t address, const uint8_t * buffer, size_t len);
 //Thread safe if peripheralMt.c is used
 bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len);
 
-//Thread safe if peripheralMt.c is used
-uint32_t FlashSizeGet(void);
+/*Thread safe if peripheralMt.c is used
+  Returns the size in bytes.
+*/
+uint64_t FlashSizeGet(void);
 
 //Thread safe
 uint32_t FlashBlocksizeGet(void);

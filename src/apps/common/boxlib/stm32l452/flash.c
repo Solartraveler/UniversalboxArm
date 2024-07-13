@@ -116,7 +116,7 @@ bool FlashPagesizePowertwoGet(void) {
 	return false;
 }
 
-bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
+bool FlashRead(uint64_t address, uint8_t * buffer, size_t len) {
 	uint8_t out[4];
 	out[0] = 0x01; //low power read up to 15MHz
 	out[1] = (address >> 16) & 0xFF;
@@ -192,7 +192,7 @@ static bool FlashWritePage(uint32_t address, const uint8_t * buffer) {
 	return success;
 }
 
-bool FlashWrite(uint32_t address, const uint8_t * buffer, size_t len) {
+bool FlashWrite(uint64_t address, const uint8_t * buffer, size_t len) {
 	if ((address % FLASHPAGESIZE) || (len % FLASHPAGESIZE)) {
 		return false;
 	}
@@ -230,7 +230,7 @@ bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len) {
 	return true;
 }
 
-uint32_t FlashSizeGet(void) {
+uint64_t FlashSizeGet(void) {
 	uint8_t manufacturer;
 	uint16_t device;
 	FlashGetId(&manufacturer, &device);

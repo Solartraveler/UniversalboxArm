@@ -58,18 +58,18 @@ bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len) {
 	return false;
 }
 
-uint32_t FlashSizeGet(void) {
+uint64_t FlashSizeGet(void) {
 	return 0;
 }
 
-bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
+bool FlashRead(uint64_t address, uint8_t * buffer, size_t len) {
 	(void)address;
 	(void)buffer;
 	(void)len;
 	return false;
 }
 
-bool FlashWrite(uint32_t address, const uint8_t * buffer, size_t len) {
+bool FlashWrite(uint64_t address, const uint8_t * buffer, size_t len) {
 	(void)address;
 	(void)buffer;
 	(void)len;

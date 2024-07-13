@@ -72,7 +72,7 @@ bool FlashPagesizePowertwoGet(void) {
 	return true;
 }
 
-bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
+bool FlashRead(uint64_t address, uint8_t * buffer, size_t len) {
 	if ((g_flashData) && ((address + len) <= g_flashDataSize)) {
 		memcpy(buffer, g_flashData + address, len);
 		return true;
@@ -80,7 +80,7 @@ bool FlashRead(uint32_t address, uint8_t * buffer, size_t len) {
 	return false;
 }
 
-bool FlashWrite(uint32_t address, const uint8_t * buffer, size_t len) {
+bool FlashWrite(uint64_t address, const uint8_t * buffer, size_t len) {
 	if ((address % FLASHPAGESIZE) || (len % FLASHPAGESIZE)) {
 		return false;
 	}
@@ -101,7 +101,7 @@ bool FlashReadBuffer1(uint8_t * buffer, uint32_t offset, size_t len) {
 	return false;
 }
 
-uint32_t FlashSizeGet(void) {
+uint64_t FlashSizeGet(void) {
 	return g_flashDataSize;
 }
 
