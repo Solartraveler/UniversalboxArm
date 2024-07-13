@@ -123,3 +123,17 @@ Milling the case is done.
 ![alt text](img/box-v1-complete-backside.jpg "PCB version 1 running, backside")
 
 See [readme.md](case/readme.md)
+
+## Using a breadboard
+
+Without soldering an own PCB, some of the apps can be used together with a Nucleo evaluation board from ST.
+Then it is just a connection of some wires.
+Instead of the onboard flash, the SD card can be used to store settings.
+Many of the breakout boards for the LCDs already have a SD card slot on the backside.
+The serial port is provided by the nucleo board over USB itself.
+One LED and one button is provided by the nucleo board, thee additional buttons can be connected, everthing else is currently missing support.
+Currently only the blinky-hal, test-everything and adc-scope apps have been tested on a nucleo with a STM32F411.
+As the used board with a STM32F411 only has 128KiB of RAM, it will never be possible to load and execute all apps from RAM there.
+However all could made working when running from flash.
+
+![alt text](schematic/stm-nucleo-board/nucleo-with-lcd.png "Wiring of a nucleo to the LCD and SD card")
