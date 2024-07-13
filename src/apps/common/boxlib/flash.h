@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "flashPlatform.h"
+
 /*Important:
 32MBit AT45DB321E: 512byte pagesize
 Device id: 0x28, second byte: 0x0

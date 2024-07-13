@@ -11,9 +11,6 @@
 extern "C" {
 #endif
 
-//let the first 4K for testing other non FS data
-#define DISK_RESERVEDOFFSET 4096
-
 //must be at least 512 byte, so the value from FlashBlocksizeGet() can not be used
 #define DISK_BLOCKSIZE 512
 

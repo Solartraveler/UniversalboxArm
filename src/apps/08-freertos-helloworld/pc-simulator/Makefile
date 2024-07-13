@@ -110,6 +110,7 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
+-I$(BOXLIB) \
 -I$(SIMCOMMON) \
 -I$(COMMON) \
 -I$(VERYCOMMON) \
