@@ -129,3 +129,11 @@ Features __missing__ to be a real oscilloscope replacement:
 - Rotary encoders for a fast-to-use user interface. Four buttons are really limited.
 
 - Proper analogue/digital separation on PCB
+
+## 12-usb-cdc-loop
+
+Ported USB cdc loop sample from [Libusb_stm32](https://github.com/dmitrystu/libusb_stm32).
+
+After starting, an USB to serial converter is registered. All data transmitted are looped
+back to the input. This allows testing the USB connection.
+

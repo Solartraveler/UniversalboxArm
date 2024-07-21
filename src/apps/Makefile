@@ -21,6 +21,7 @@ all:
 	$(MAKE) -j -C 11-adc-scope
 	$(MAKE) -j -C 11-adc-scope/pc-simulator
 	$(MAKE) -C 11-adc-scope/stm32f411-nucleo
+	$(MAKE) -j -C 12-usb-cdc-loop
 
 clean:
 	$(MAKE) clean -C 01-blinky-hal
@@ -42,3 +43,4 @@ clean:
 	$(MAKE) clean -C 10-infrared-decoder
 	$(MAKE) clean -C 11-adc-scope
 	$(MAKE) clean -C 11-adc-scope/pc-simulator
+	$(MAKE) clean -C 12-usb-cdc-loop
