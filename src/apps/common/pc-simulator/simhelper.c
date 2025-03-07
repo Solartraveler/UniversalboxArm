@@ -18,7 +18,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include "boxlib/flash.h"
 #include "boxlib/rs232debug.h"
 #include "boxlib/lcd.h"
-
+#include <sys/stat.h>
 #include "filesystem.h"
 
 //create a filesystem and configuration with a LCD setting
@@ -47,4 +47,44 @@ void CatchSignal(int sig) {
 	LcdDisable();
 	printf("Stopped. Terminating now\n");
 	exit(0);
+}
+
+bool CopyFileToFilesystem(const char * filenameSource, const char * filenameDest) {
+	//Get the source file content
+	struct stat statbuf;
+	if (stat(filenameSource, &statbuf)) {
+		printf("Error, could not stat %s\n", filenameSource);
+		return false;
+	}
+	void * buffer = malloc(statbuf.st_size);
+	if (!buffer) {
+		printf("Error, %s too large?\n", filenameSource);
+		return false;
+	}
+	FILE * f = fopen(filenameSource, "rb");
+	if (!f) {
+		printf("Error, could not open file %s\n", filenameSource);
+		free(buffer);
+		return false;
+	}
+	int result = fread(buffer, statbuf.st_size, 1, f);
+	fclose(f);
+	if (result != 1) {
+		printf("Error, could not read file %s\n", filenameSource);
+		free(buffer);
+		return false;
+	}
+
+	//Write to the destination
+	bool success = false;
+	FATFS fatfs = {0};
+	FRESULT fres = f_mount(&fatfs, "0", 1);
+	if (fres == FR_OK) {
+		success = FilesystemWriteFile(filenameDest, buffer, statbuf.st_size);
+		f_unmount("0");
+	} else {
+		printf("Error, could not mount drive\n");
+	}
+	free(buffer);
+	return success;
 }
