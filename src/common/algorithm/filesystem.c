@@ -72,7 +72,7 @@ eDisplay_t FilesystemReadLcd(void) {
 			return ST7735_128;
 		}
 		if (strcmp(lcdtype, "ST7735_160x128") == 0) {
-			printf("LCD 128x160 selected\r\n");
+			printf("LCD 160x128 selected\r\n");
 			return ST7735_160;
 		}
 		if (strcmp(lcdtype, "ILI9341_320x240") == 0) {
