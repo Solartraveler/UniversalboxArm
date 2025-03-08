@@ -21,8 +21,10 @@ jobs:
       run: make -C src/apps
     - name: make Tests
       run: make -C src/common/algorithm/unittests test
+#Artifact upload always breaks the CI by becoming deprecated, refusing to repeat pipelines
+#Should this happen once more, I will simply remove artifacts at all.
     - name: Artifacts upload
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: Build artifacts
         path: |
