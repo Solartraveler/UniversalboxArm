@@ -13,7 +13,7 @@
 /*
 These settings result in a PWM frequency of 32kHz @ 16MHz CPU clock.
 32kHz -> no flicker, no high pitch noise
-At 8kHz -> no flicker, but annoying noise noise
+At 8kHz -> no flicker, but annoying noise
 At 1kHz -> flicker, no high pitch noise
 
 With higher CPU frequencies, the resulting frequency increases up to a factor 2.
