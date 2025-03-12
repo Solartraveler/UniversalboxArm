@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MenuConfig Xsize="320" Ysize="240" compact="-1" multilang="0" languages="1" utf8="1" mousesupport="0" fileformat="2" colorFormatRed1="3" colorFormatRed2="5" colorFormatRed3="8" colorFormatGreen1="3" colorFormatGreen2="6" colorFormatGreen3="8" colorFormatBlue1="2" colorFormatBlue2="5" colorFormatBlue3="8" backgroundcolor="16777215" bordercolor="0" textcolor="0" subwindowBordercolor="0" subwindowBackgroundcolor="16777215" projectinfo="Wav player with file selector for 128x128 and 320x240 LCDs">
+  <window number="1" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="Select 128x128">
+    <list number="1" Xpos="0" Ypos="20" focusable="-1" rectangle="-1" Xsize="128" Ysize="108" font="4" fontfocus="6" text="FILESELECT" storagemethod="1" checkname="FILEINDEX" action="FILESELECT" screen="" upkey="3" downkey="4" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <label number="2" Xpos="10" Ypos="1" font="4" storagemethod="0" text="Select a .wav file" multilang="0" transparency="0"/>
+    <shortcut number="3" shortcutkey="102" action="" screen="window 2"/>
+    <shortcut number="4" shortcutkey="50" action="" screen="window 3"/>
+  </window>
+  <window number="2" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="Select 320x240">
+    <list number="1" Xpos="0" Ypos="20" focusable="1" rectangle="1" Xsize="320" Ysize="220" font="4" fontfocus="6" text="FILESELECT" storagemethod="1" checkname="FILEINDEX" action="FILESELECT" screen="" upkey="3" downkey="4" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <label number="2" Xpos="20" Ypos="1" font="4" storagemethod="0" text="Select a .wav file" multilang="0" transparency="0"/>
+    <shortcut number="3" shortcutkey="50" action="" screen="window 4"/>
+  </window>
+  <window number="3" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Play 128x128">
+    <label number="1" Xpos="1" Ypos="1" font="4" storagemethod="1" text="FILENAME" multilang="0" transparency="0"/>
+    <label number="2" Xpos="1" Ypos="20" font="4" storagemethod="1" text="ATTRIBUTES" multilang="0" transparency="0"/>
+    <label number="3" Xpos="1" Ypos="40" font="4" storagemethod="1" text="STATE" multilang="0" transparency="0"/>
+    <button number="5" Xpos="40" Ypos="60" focusable="-1" rectangle="-1" Xsize="35" Ysize="20" font="4" fontfocus="6" text="Play" storagemethod="0" action="PLAY" screen="" multilang="0" transparency="0"/>
+    <button number="6" Xpos="80" Ypos="60" focusable="1" rectangle="1" Xsize="35" Ysize="20" font="4" fontfocus="6" text="Stop" storagemethod="0" action="STOP" screen="" multilang="0" transparency="0"/>
+    <button number="4" Xpos="1" Ypos="60" focusable="1" rectangle="1" Xsize="35" Ysize="20" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="window 1" multilang="0" transparency="0"/>
+    <shortcut number="7" shortcutkey="2" action="" screen="window 1"/>
+  </window>
+  <window number="4" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Play 320x240">
+    <label number="1" Xpos="50" Ypos="1" font="4" storagemethod="1" text="FILENAME" multilang="0" transparency="0"/>
+    <label number="2" Xpos="50" Ypos="40" font="4" storagemethod="1" text="ATTRIBUTES" multilang="0" transparency="0"/>
+    <label number="3" Xpos="50" Ypos="80" font="4" storagemethod="1" text="STATE" multilang="0" transparency="0"/>
+    <button number="5" Xpos="140" Ypos="160" focusable="1" rectangle="1" Xsize="35" Ysize="20" font="4" fontfocus="6" text="Play" storagemethod="0" action="PLAY" screen="" multilang="0" transparency="0"/>
+    <button number="6" Xpos="180" Ypos="160" focusable="1" rectangle="1" Xsize="35" Ysize="20" font="4" fontfocus="6" text="Stop" storagemethod="0" action="STOP" screen="" multilang="0" transparency="0"/>
+    <button number="4" Xpos="100" Ypos="160" focusable="-1" rectangle="-1" Xsize="35" Ysize="20" font="4" fontfocus="6" text="Back" storagemethod="0" action="" screen="window 2" multilang="0" transparency="0"/>
+    <shortcut number="7" shortcutkey="2" action="" screen="window 2"/>
+  </window>
+</MenuConfig>

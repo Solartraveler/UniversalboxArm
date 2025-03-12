@@ -137,3 +137,19 @@ Ported USB cdc loop sample from [Libusb_stm32](https://github.com/dmitrystu/libu
 After starting, an USB to serial converter is registered. All data transmitted are looped
 back to the input. This allows testing the USB connection.
 
+
+## 14-wav-player
+
+Plays a normal uncompressed audio .wav file over one 8 bit PWM channel from the internal flash.
+[Needs some external components](https://www.mikrocontroller.net/articles/Klangerzeugung#Lautsprecher) to be connected to port B, pin 4.
+Supports:
+- 8 and 16bit PCM
+- mono and stereo
+- 100Hz to 44200Hz samplerate
+
+16bit and stereo files are automatically converted to 8 bit mono.
+Other formats are not supported.
+The .wav file can be transferred to the flash with the 06-usb-mass-storage project.
+
+The audio quality can not be compared to a normal computer, it is more on the level of a telephone or a cheap toy doing some sounds.
+The reason is the simple A/D conversion with a 128kHz PWM signal.
