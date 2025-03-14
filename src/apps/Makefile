@@ -22,6 +22,8 @@ all:
 	$(MAKE) -j -C 11-adc-scope/pc-simulator
 	$(MAKE) -C 11-adc-scope/stm32f411-nucleo
 	$(MAKE) -j -C 12-usb-cdc-loop
+	$(MAKE) -j -C 13-battery-capacity-tester
+	$(MAKE) -j -C 13-battery-capacity-tester/pc-simulator
 	$(MAKE) -j -C 14-wav-player
 	$(MAKE) -j -C 14-wav-player/pc-simulator
 
@@ -46,5 +48,7 @@ clean:
 	$(MAKE) clean -C 11-adc-scope
 	$(MAKE) clean -C 11-adc-scope/pc-simulator
 	$(MAKE) clean -C 12-usb-cdc-loop
+	$(MAKE) clean -C 13-battery-capacity-tester
+	$(MAKE) clean -C 13-battery-capacity-tester/pc-simulator
 	$(MAKE) clean -C 14-wav-player
 	$(MAKE) clean -C 14-wav-player/pc-simulator
