@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MenuConfig Xsize="320" Ysize="240" compact="-1" multilang="0" languages="1" utf8="1" mousesupport="0" fileformat="2" colorFormatRed1="3" colorFormatRed2="5" colorFormatRed3="8" colorFormatGreen1="3" colorFormatGreen2="6" colorFormatGreen3="8" colorFormatBlue1="2" colorFormatBlue2="5" colorFormatBlue3="8" backgroundcolor="16777215" bordercolor="0" textcolor="0" subwindowBordercolor="0" subwindowBackgroundcolor="16777215" projectinfo="Cap tester">
+  <window number="1" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Config">
+    <checkbox number="1" Xpos="1" Ypos="1" focusable="-1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Use first input" storagemethod="0" checkname="TEST1" action="" screen="" multilang="0" transparency="0"/>
+    <label number="2" Xpos="1" Ypos="18" font="4" storagemethod="1" text="TEST1SETTINGS" multilang="0" transparency="0"/>
+    <button number="3" Xpos="1" Ypos="34" focusable="-1" rectangle="-1" Xsize="39" Ysize="18" font="4" fontfocus="6" text="+50mV" storagemethod="0" action="TEST1UINC" screen="" multilang="0" transparency="0"/>
+    <button number="4" Xpos="41" Ypos="34" focusable="1" rectangle="1" Xsize="39" Ysize="18" font="4" fontfocus="6" text="-50mV" storagemethod="0" action="TEST1UDEC" screen="" multilang="0" transparency="0"/>
+    <button number="5" Xpos="81" Ypos="34" focusable="-1" rectangle="-1" Xsize="32" Ysize="18" font="4" fontfocus="6" text="+0.1Ω" storagemethod="0" action="TEST1RINC" screen="" multilang="0" transparency="0"/>
+    <button number="6" Xpos="114" Ypos="34" focusable="1" rectangle="-1" Xsize="32" Ysize="18" font="4" fontfocus="6" text="-0.1Ω" storagemethod="0" action="TEST1RDEC" screen="" multilang="0" transparency="0"/>
+    <checkbox number="7" Xpos="1" Ypos="54" focusable="1" rectangle="0" Xsize="20" Ysize="9" font="4" fontfocus="6" text="Use second input" storagemethod="0" checkname="TEST2" action="" screen="" multilang="0" transparency="0"/>
+    <label number="8" Xpos="1" Ypos="72" font="4" storagemethod="1" text="TEST2SETTINGS" multilang="0" transparency="0"/>
+    <button number="9" Xpos="1" Ypos="88" focusable="1" rectangle="-1" Xsize="39" Ysize="18" font="4" fontfocus="6" text="+50mV" storagemethod="0" action="TEST2UINC" screen="" multilang="0" transparency="0"/>
+    <button number="10" Xpos="41" Ypos="88" focusable="1" rectangle="1" Xsize="39" Ysize="18" font="4" fontfocus="6" text="-50mV" storagemethod="0" action="TEST2UDEC" screen="" multilang="0" transparency="0"/>
+    <button number="11" Xpos="81" Ypos="88" focusable="1" rectangle="1" Xsize="32" Ysize="18" font="4" fontfocus="6" text="+0.1Ω" storagemethod="0" action="TEST2RINC" screen="" multilang="0" transparency="0"/>
+    <button number="12" Xpos="114" Ypos="88" focusable="1" rectangle="1" Xsize="32" Ysize="18" font="4" fontfocus="6" text="-0.1Ω" storagemethod="0" action="TEST2RDEC" screen="" multilang="0" transparency="0"/>
+    <button number="13" Xpos="35" Ypos="108" focusable="1" rectangle="1" Xsize="60" Ysize="18" font="5" fontfocus="7" text="Start" storagemethod="0" action="START" screen="window 2" multilang="0" transparency="0"/>
+  </window>
+  <window number="2" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Test">
+    <list number="5" Xpos="1" Ypos="1" focusable="0" rectangle="-1" Xsize="318" Ysize="51" font="5" fontfocus="5" text="TEST1STATE" storagemethod="1" checkname="list1" action="" screen="" upkey="0" downkey="0" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <list number="6" Xpos="1" Ypos="55" focusable="0" rectangle="-1" Xsize="318" Ysize="51" font="5" fontfocus="5" text="TEST2STATE" storagemethod="1" checkname="list1" action="" screen="" upkey="0" downkey="0" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <button number="3" Xpos="1" Ypos="108" focusable="-1" rectangle="-1" Xsize="80" Ysize="18" font="5" fontfocus="7" text="ABORT" storagemethod="1" action="ABORT" screen="window 3" multilang="0" transparency="0"/>
+    <shortcut number="4" shortcutkey="100" action="" screen="window 3"/>
+    <box number="7" Xpos="313" Ypos="2" focusable="0" Xsize="5" Ysize="49" color="16777215" action="" screen=""/>
+    <box number="8" Xpos="313" Ypos="56" focusable="0" Xsize="5" Ysize="49" color="16777215" action="" screen=""/>
+  </window>
+  <window number="3" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Result">
+    <list number="4" Xpos="1" Ypos="1" focusable="0" rectangle="-1" Xsize="318" Ysize="51" font="5" fontfocus="5" text="TEST1STATE" storagemethod="1" checkname="list1" action="" screen="" upkey="0" downkey="0" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <list number="5" Xpos="1" Ypos="55" focusable="0" rectangle="-1" Xsize="318" Ysize="51" font="5" fontfocus="5" text="TEST2STATE" storagemethod="1" checkname="list1" action="" screen="" upkey="0" downkey="0" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <button number="3" Xpos="1" Ypos="108" focusable="-1" rectangle="-1" Xsize="85" Ysize="18" font="4" fontfocus="6" text="Save &amp; Return" storagemethod="0" action="SAVERESULTS" screen="window 1" multilang="0" transparency="0"/>
+    <button number="8" Xpos="87" Ypos="108" focusable="-1" rectangle="-1" Xsize="40" Ysize="18" font="4" fontfocus="6" text="Return" storagemethod="0" action="" screen="window 1" multilang="0" transparency="0"/>
+    <box number="6" Xpos="313" Ypos="2" focusable="0" Xsize="5" Ysize="49" color="16777215" action="" screen=""/>
+    <box number="7" Xpos="313" Ypos="56" focusable="0" Xsize="5" Ysize="49" color="16777215" action="" screen=""/>
+  </window>
+</MenuConfig>

@@ -5,6 +5,8 @@
 //The filename adc is already used by the HAL
 #include "boxlib/simpleadc.h"
 
+#include "adcPlatform.h"
+
 #include "main.h"
 
 void AdcInit(void) {
@@ -46,6 +48,12 @@ uint16_t AdcGet(uint32_t channel) {
 	while ((ADC1->ISR & ADC_ISR_EOC) == 0);
 	uint16_t val = ADC1->DR;
 	return val;
+}
+
+float AdcAvrefGet(void) {
+	uint16_t result = AdcGet(ADC_VREFINT_INPUT);
+	uint16_t cal = AdcCalibGet();
+	return 3.0f * (float)cal/(float)result;
 }
 
 void AdcStop(void) {

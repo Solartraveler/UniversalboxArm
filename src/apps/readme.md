@@ -137,6 +137,14 @@ Ported USB cdc loop sample from [Libusb_stm32](https://github.com/dmitrystu/libu
 After starting, an USB to serial converter is registered. All data transmitted are looped
 back to the input. This allows testing the USB connection.
 
+## 13-battery-capacity-tester
+
+Discharges a battery with the help of an external resistor until a minimum voltage is reached.
+Then the discharged capacity is written to a log file.
+While the software supports to discharge and measure two batteries at the same time, this requires
+the relays to be connected in a way the positive outputs of the batteries can not be connected together.
+Otherwise limit the use to one battery.
+Input voltage limit is ~14V and the maximum discharge current by the selected load resistor must be limited to 2A.
 
 ## 14-wav-player
 
