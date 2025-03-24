@@ -26,6 +26,8 @@ all:
 	$(MAKE) -j -C 13-battery-capacity-tester/pc-simulator
 	$(MAKE) -j -C 14-wav-player
 	$(MAKE) -j -C 14-wav-player/pc-simulator
+	$(MAKE) -j -C 15-mp3-player
+	$(MAKE) -j -C 15-mp3-player/pc-simulator
 
 clean:
 	$(MAKE) clean -C 01-blinky-hal
@@ -52,3 +54,5 @@ clean:
 	$(MAKE) clean -C 13-battery-capacity-tester/pc-simulator
 	$(MAKE) clean -C 14-wav-player
 	$(MAKE) clean -C 14-wav-player/pc-simulator
+	$(MAKE) clean -C 15-mp3-player
+	$(MAKE) clean -C 15-mp3-player/pc-simulator
