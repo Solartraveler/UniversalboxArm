@@ -1,5 +1,5 @@
 /* Boxlib
-(c) 2021 by Malte Marwedel
+(c) 2021, 2025 by Malte Marwedel
 
 SPDX-License-Identifier: BSD-3-Clause
 */
@@ -14,6 +14,13 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include "main.h"
 
+/*If the ST LCD is not used, dummy weak functions are there. This will
+  save program memory in apps which do not support the LCD anyway.
+  For some reasons, the driver for the ILI9341 is much smaller than the one for
+  the ST7735. And the ILI9341 looks way better.
+  For completeness, there are dummy functions for the ILI9341 too, so it could
+  be disabled if only a ST7735 is used.
+*/
 #include "st7735/st7735.h"
 #include "ili9341/ili9341.h"
 
@@ -28,6 +35,83 @@ uint16_t g_lcdPrescaler;
 
 
 eDisplay_t g_lcdType;
+
+//ST7735 weak functions
+
+__attribute__((weak)) void st7735_Init(uint8_t width) {
+	(void)width;
+}
+
+__attribute__((weak)) void st7735_WritePixel(uint16_t Xpos, uint16_t Ypos, uint16_t RGBCode) {
+	(void)Xpos;
+	(void)Ypos;
+	(void)RGBCode;
+}
+
+__attribute__((weak)) void st7735_SetDisplayWindow(uint16_t Xpos, uint16_t Ypos, uint16_t Width, uint16_t Height) {
+	(void)Xpos;
+	(void)Ypos;
+	(void)Width;
+	(void)Height;
+}
+
+__attribute__((weak)) void st7735_DrawHLine(uint16_t RGBCode, uint16_t Xpos, uint16_t Ypos, uint16_t Length) {
+	(void)RGBCode;
+	(void)Xpos;
+	(void)Ypos;
+	(void)Length;
+}
+
+__attribute__((weak)) void st7735_DrawVLine(uint16_t RGBCode, uint16_t Xpos, uint16_t Ypos, uint16_t Length) {
+	(void)RGBCode;
+	(void)Xpos;
+	(void)Ypos;
+	(void)Length;
+}
+
+__attribute__((weak)) uint16_t st7735_GetLcdPixelWidth(void) {
+	return 0;
+}
+
+__attribute__((weak)) uint16_t st7735_GetLcdPixelHeight(void) {
+	return 0;
+}
+
+__attribute__((weak)) void st7735WriteArray(const uint8_t * data, size_t len) {
+	(void)data;
+	(void)len;
+}
+
+//ILI9341 weak functions
+
+__attribute__((weak)) void ili9341_Init(void) {
+}
+
+__attribute__((weak)) uint16_t ili9341_GetLcdPixelWidth(void) {
+	return 0;
+}
+
+__attribute__((weak)) uint16_t ili9341_GetLcdPixelHeight(void) {
+	return 0;
+}
+
+__attribute__((weak)) void Ili9341SetWindowStart(uint16_t xStart, uint16_t xEnd, uint16_t yStart, uint16_t yEnd) {
+	(void)xStart;
+	(void)xEnd;
+	(void)yStart;
+	(void)yEnd;
+}
+
+__attribute__((weak)) void Ili9341WritePixel(uint16_t x, uint16_t y, uint16_t color) {
+	(void)x;
+	(void)y;
+	(void)color;
+}
+
+__attribute__((weak)) void Ili9341WriteArray(const uint8_t * colors, uint16_t length) {
+	(void)colors;
+	(void)length;
+}
 
 //write to chip
 void LcdCsOn(void) {
