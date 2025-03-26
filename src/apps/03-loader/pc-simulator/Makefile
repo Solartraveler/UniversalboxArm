@@ -171,7 +171,7 @@ $(BUILD_DIR)/$(TARGET): $(OBJECTS) Makefile
 $(BUILD_DIR):
 	mkdir $@
 
-MCUTESTAPP=stm32l452
+MCUTESTAPP=stm32l452xx-PcbV1
 
 test: $(BUILD_DIR)/$(TARGET)
 	./$(BUILD_DIR)/$(TARGET) --UploadRun ../../02-test-everything-hal/build/$(MCUTESTAPP)/*-ram.tar
