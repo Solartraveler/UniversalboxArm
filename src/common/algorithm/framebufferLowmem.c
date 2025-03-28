@@ -33,7 +33,9 @@ FB_SIZE_X
 FB_SIZE_Y
 
 For the granularity of the color information:
+Must be a fraction of FB_OUTPUTBLOCK_X:
 FB_COLOR_RES_X
+must be a fraction of FB_OUTPUTBLOCK_Y:
 FB_COLOR_RES_Y
 Defining both to 1 would give a full color framebuffer, but this would waste
 more memory than using a simple full color framebuffer.
@@ -56,12 +58,17 @@ FB_RED_OUT_BITS
 FB_GREEN_OUT_BITS
 FB_BLUE_OUT_BITS
 
-
 The default level between background and front color
 FB_FRONT_LEVEL
 */
 
 #include "framebufferConfig.h"
+
+_Static_assert((FB_BITMAP_BITS >= 2), "FB_BITMAP_BITS must be able to store at least two bits for g_fbWrittenBlock");
+_Static_assert((sizeof(FB_BITMAP_TYPE) * 8) == FB_BITMAP_BITS, "FB_BITMAP_TYPE must fit to FB_BITMAP_BITS, see bitmapMask in FbBlockFlush");
+
+_Static_assert((FB_OUTPUTBLOCK_X % FB_COLOR_RES_X) == 0, "FB_OUTPUTBLOCK_X must be multiple of FB_COLOR_RES_X, otherwise g_fbWrittenBlock skips required redraws");
+_Static_assert((FB_OUTPUTBLOCK_Y % FB_COLOR_RES_Y) == 0, "FB_OUTPUTBLOCK_Y must be multiple of FB_COLOR_RES_Y, otherwise g_fbWrittenBlock skips required redraws");
 
 #define FB_COLORBLOCKS_X ((FB_SIZE_X + FB_COLOR_RES_X - 1) / FB_COLOR_RES_X)
 #define FB_COLORBLOCKS_Y ((FB_SIZE_Y + FB_COLOR_RES_Y - 1) / FB_COLOR_RES_Y)
@@ -165,17 +172,32 @@ void menu_screen_set(FB_SCREENPOS_TYPE x, FB_SCREENPOS_TYPE y, FB_COLOR_IN_TYPE 
 //block must have FB_OUTPUTBLOCK_X * FB_OUTPUTBLOCK_Y elements
 static void FbBlockFlush(const uint16_t startX, const uint16_t startY, FB_COLOR_OUT_TYPE * block) {
 	uint32_t wptr = 0;
-	uint32_t colorIdxBase = (startX / FB_COLOR_RES_X) + (startY / FB_COLOR_RES_X) * (FB_SIZE_X / FB_COLOR_RES_X);
-	uint32_t colorIdxCntY = 0;
+	uint32_t colorIdxBase = (startX / FB_COLOR_RES_X) + (startY / FB_COLOR_RES_Y) * FB_COLORBLOCKS_X;
+	uint32_t colorIdxCntY;
+#if (FB_OUTPUTBLOCK_Y % FB_COLOR_RES_Y)
+	colorIdxCntY = startY % FB_COLOR_RES_Y;
+#else
+	colorIdxCntY = 0;
+#endif
 	FB_COLOR_IN_TYPE colorIn;
 	FB_COLOR_IN_TYPE colorInLast = 0;
 	FB_COLOR_OUT_TYPE colorOut = 0;
 	for (uint32_t y = startY; y < (startY + FB_OUTPUTBLOCK_Y); y++) {
 		uint32_t bitmapIdxBase = y * FB_ELEMENTS_X + (startX / FB_BITMAP_BITS);
-		FB_BITMAP_TYPE bitmapMask = 1;
+		FB_BITMAP_TYPE bitmapMask;
+#if (FB_OUTPUTBLOCK_X % FB_BITMAP_BITS)
+		bitmapMask = 1 << (startX % FB_BITMAP_BITS);
+#else
+		bitmapMask = 1;
+#endif
 		uint32_t bitmapIdxOffset = 0;
 		uint32_t colorIdxOffset = 0;
-		uint32_t colorIdxCntX = 0;
+		uint32_t colorIdxCntX;
+#if (FB_OUTPUTBLOCK_X % FB_COLOR_RES_X)
+		colorIdxCntX = startX % FB_COLOR_RES_X;
+#else
+		colorIdxCntX = 0;
+#endif
 		FB_BITMAP_TYPE pixelData = g_fbFrontPixel[bitmapIdxBase + bitmapIdxOffset];
 		for (uint32_t x = startX; x < (startX + FB_OUTPUTBLOCK_X); x++) {
 			uint32_t colorIdx = colorIdxBase + colorIdxOffset;
