@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Wav-Player
 #Version of this application, to be used in the metadata
-VERSION  = 0.9.0
+VERSION  = 0.9.1
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -217,7 +217,6 @@ C_INCLUDES =  \
 -I$(ALGORITHM) \
 -I$(JSMN)\
 -I$(MENUINTERPRETER)\
--I$(IRMP)\
 -I$(CHIPSUBFAMILY)-$(BOARD) \
 -I.\
 

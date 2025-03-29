@@ -300,7 +300,6 @@ void LcdWriteRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const
 			Ili9341WriteArray(data, len);
 		}
 	}
-	LcdWaitBackgroundDoneRelease();
 }
 
 void LcdDrawHLine(uint16_t color, uint16_t x, uint16_t y, uint16_t length) {

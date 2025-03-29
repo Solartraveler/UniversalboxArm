@@ -142,6 +142,8 @@ void menu_screen_flush(void) {
 #ifdef FB_TWOBUFFERS
 				toggle = 1 - toggle;
 				block = blocks[toggle];
+#else
+				LcdWaitBackgroundDone();
 #endif
 			}
 			offset += elem;

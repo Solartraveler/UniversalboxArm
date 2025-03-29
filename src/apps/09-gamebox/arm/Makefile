@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Gamebox
 #Version of this application, to be used in the metadata
-VERSION  = 1.13.0
+VERSION  = 1.13.1
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
