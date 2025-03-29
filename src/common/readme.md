@@ -55,3 +55,10 @@ Files for the 128x128 GLCD
 License: BSD 3-Clause
 
 Taken from [STM32Cube_FW_L4_V1.16.0](https://github.com/STMicroelectronics/STM32CubeL4/releases/tag/v1.16.0)
+
+## libmad ##
+Libmad - MPEG audio decoder library
+
+License: GPL v2 or newer
+
+Taken from [libmad-0.15.1b.tar.gz](https://sourceforge.net/projects/mad/files/libmad/)
