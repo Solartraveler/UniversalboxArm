@@ -38,7 +38,7 @@ char g_uart4Buffer[UARTBUFFERLEN];
 volatile uint16_t g_uart4BufferReadIdx;
 volatile uint16_t g_uart4BufferWriteIdx;
 
-void ForwarderInit(void) {
+void AppInit(void) {
 	LedsInit();
 	Led1Yellow();
 	PeripheralPowerOff();
@@ -84,7 +84,7 @@ bool Uart4WritePutChar(char out) {
 	return succeed;
 }
 
-void ForwarderCycle(void) {
+void AppCycle(void) {
 	static uint32_t ledCycle = 0;
 	//led flash
 	if (ledCycle < 250) {

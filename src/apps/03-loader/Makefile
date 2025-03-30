@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Loader
 #Version of this application, to be used in the metadata
-VERSION  = 0.18.1
+VERSION  = 0.18.2
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -105,7 +105,6 @@ Core/Src/main.c \
 Core/Src/$(CHIPFAMILY)_hal_msp.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc.c \
-$(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc_ex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_flash.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_flash_ex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_flash_ramfunc.c \

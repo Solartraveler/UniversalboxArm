@@ -26,7 +26,7 @@ int main(int argc, char ** argv) {
 	if (argc > 1) {
 		CreateFilesystem(argv[1]);
 	}
-	ForwarderInit();
+	AppInit();
 	//could not figure out how to add \n as parameter when called from a makefile
 	const char * mystring = "Hello Word!\nThis is a second line.\nSome utf-8: 42°C.\n23µF\n666Ω\nKey up -> terminate.\nThe LED flashes slowly.\nThat's it.";
 	//const char * mystring = "This is a second line.\nSome utf-8: 42°C.\n23µF\n666Ω\nKey up -> terminate.\nThe LED flashes slowly.\nThat's it.";
@@ -34,7 +34,7 @@ int main(int argc, char ** argv) {
 	uint32_t i = 0;
 	uint32_t j = 2;
 	while(1) {
-		ForwarderCycle();
+		AppCycle();
 		i++;
 		if (i == 20) {
 			if (j < argc) {

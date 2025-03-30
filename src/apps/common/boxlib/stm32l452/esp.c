@@ -47,12 +47,7 @@ void EspInit(void) {
 	GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-
-	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART3;
-	PeriphClkInit.Usart3ClockSelection = RCC_USART3CLKSOURCE_SYSCLK;
-	PeriphClkInit.AdcClockSelection = RCC_ADCCLKSOURCE_SYSCLK;
-	HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
+	__HAL_RCC_USART3_CONFIG(RCC_USART3CLKSOURCE_SYSCLK);
 
 	uint32_t sysclk = HAL_RCC_GetSysClockFreq();
 	const uint32_t baudrate = 115200; //bootup garbage can be decoded at 74880baud

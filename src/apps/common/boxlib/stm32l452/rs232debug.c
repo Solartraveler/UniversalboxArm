@@ -26,12 +26,7 @@ volatile uint16_t g_uartBufferWriteIdx;
 
 void Rs232Init(void) {
 
-	RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1;
-	PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
-	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
-		Error_Handler();
-	}
+	__HAL_RCC_USART1_CONFIG(RCC_USART1CLKSOURCE_PCLK2);
 
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 

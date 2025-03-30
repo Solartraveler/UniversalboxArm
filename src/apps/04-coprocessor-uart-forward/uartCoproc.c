@@ -16,6 +16,8 @@
 void UartCoprocInit(void) {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
+	__HAL_RCC_UART4_CONFIG(RCC_UART4CLKSOURCE_PCLK1);
+
 	__HAL_RCC_UART4_CLK_ENABLE();
 
 	__HAL_RCC_GPIOC_CLK_ENABLE();

@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Ntp-clock
 #Version of this application, to be used in the metadata
-VERSION  = 0.10.2
+VERSION  = 0.10.3
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -110,7 +110,6 @@ $(SHARED_INIT)/$(CHIPFAMILY)_hal_msp.c \
 $(SHARED_INIT)/system_$(CHIPFAMILY).c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc.c \
-$(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc_ex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_gpio.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_pwr.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_pwr_ex.c \

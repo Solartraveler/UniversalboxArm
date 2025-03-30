@@ -48,12 +48,7 @@ int32_t UsbStartAdv(usbd_device * usbDev, usbd_cfg_callback configCallback,
 	if (result != HAL_OK) {
 		return -1;
 	}
-	RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
-	PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
-	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
-		return -2;
-	}
+	__HAL_RCC_USB_CONFIG(RCC_USBCLKSOURCE_HSI48);
 	//TODO: Enable HSI48 clock recovery system
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 	GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;

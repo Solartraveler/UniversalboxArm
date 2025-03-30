@@ -2,8 +2,8 @@
 
 #include <stdbool.h>
 
-void ForwarderInit(void);
+void AppInit(void);
 
-void ForwarderCycle(void);
+void AppCycle(void);
 
 bool Uart4WritePutChar(char out);
