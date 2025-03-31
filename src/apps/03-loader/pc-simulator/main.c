@@ -10,6 +10,7 @@
 
 #include "loader.h"
 #include "boxlib/boxusb.h"
+#include "dfuMemory.h"
 
 #include "simhelper.h"
 
@@ -17,9 +18,6 @@ extern usbd_device * g_pUsbDev;
 extern usbd_cfg_callback g_usbCfgCallback;
 extern usbd_ctl_callback g_usbControlCallback;
 extern usbd_dsc_callback g_usbDescriptorCallback;
-
-uint8_t * g_DfuMem;
-size_t g_DfuMemSize;
 
 
 void UsbControlCall(uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex,
@@ -177,18 +175,21 @@ void * CommandProcessor(void * parameter) {
 	return NULL;
 }
 
-int main(int argc, char ** argv) {
-	g_DfuMemSize = (132 * 1024);
-	g_DfuMem = (uint8_t *)malloc(g_DfuMemSize);
-	if (!g_DfuMem) {
-		return 1;
+void DfuMemInit(uint8_t ** pMemory, size_t * pSize) {
+	*pSize = (132 * 1024);
+	*pMemory = (uint8_t *)malloc(g_DfuMemSize);
+	if (!*pMemory) {
+		exit(1);
 	}
-	memset(g_DfuMem, 0xEE, g_DfuMemSize);
+	memset(*pMemory, 0xEE, *pSize);
+}
+
+int main(int argc, char ** argv) {
 	signal(SIGTERM, CatchSignal);
 	signal(SIGHUP, CatchSignal);
 	signal(SIGINT, CatchSignal);
 	SimulatedInit();
-	LoaderInit();
+	AppInit();
 	pthread_t thread;
 	commandList_t cl;
 	if (argc > 1) {
@@ -197,6 +198,6 @@ int main(int argc, char ** argv) {
 		pthread_create(&thread, NULL, &CommandProcessor, &cl);
 	}
 	while(1) {
-		LoaderCycle();
+		AppCycle();
 	}
 }

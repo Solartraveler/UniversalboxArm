@@ -26,6 +26,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "boxlib/boxusb.h"
 #include "boxlib/mcu.h"
 
+#include "dfuMemory.h"
+
 #include "md5.h"
 
 #include "main.h"
@@ -179,6 +181,9 @@ typedef struct {
 } dfuState_t;
 
 dfuState_t g_dfuState = {0, 0, 0, DFU_STATE_DFUIDLE, DFU_STATUS_OK,  0, false};
+
+uint8_t * g_DfuMem;
+size_t g_DfuMemSize;
 
 #define TARFILENAME_MAX 64
 
@@ -555,7 +560,8 @@ void LoaderTextToDescriptor(const char * text, struct usb_string_descriptor * pD
 	pDescr->bLength = 2 + l * 2;
 }
 
-void LoaderInit(void) {
+void AppInit(void) {
+	DfuMemInit(&g_DfuMem, &g_DfuMemSize);
 	LedsInit();
 	Led1Yellow();
 	PeripheralPowerOff();
@@ -1111,7 +1117,7 @@ void LoaderFormatAsk(void) {
 	}
 }
 
-void LoaderCycle(void) {
+void AppCycle(void) {
 	//led flash
 	if (g_loaderState.ledCycle < 25) {
 		Led2Green();

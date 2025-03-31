@@ -2,9 +2,9 @@
 
 #include <stdbool.h>
 
-void LoaderInit(void);
+void AppInit(void);
 
-void LoaderCycle(void);
+void AppCycle(void);
 
 //Executes a program already loaded to the main buffer
 //If the call returns, an error has happened

@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Loader
 #Version of this application, to be used in the metadata
-VERSION  = 0.18.2
+VERSION  = 0.18.3
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -101,8 +101,9 @@ MENUINTERPRETER=$(VERYCOMMON)/menuInterpreter
 ######################################
 # C sources
 C_SOURCES =  \
-Core/Src/main.c \
-Core/Src/$(CHIPFAMILY)_hal_msp.c \
+$(SHARED_INIT)/main.c \
+$(SHARED_INIT)/$(CHIPFAMILY)_hal_msp.c \
+$(SHARED_INIT)/system_$(CHIPFAMILY).c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rcc.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_flash.c \
@@ -117,7 +118,6 @@ $(STM_HAL)/Src/$(CHIPFAMILY)_hal_spi.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_tim.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_tim_ex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_dma.c \
-Core/Src/system_$(CHIPFAMILY).c \
 $(BOXLIB)/keys.c \
 $(BOXLIB)/leds.c \
 $(BOXLIB)/rs232debug.c \
@@ -150,6 +150,7 @@ $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
 loader.c \
 gui.c \
+arm/dfuMemory.c
 
 
 # ASM sources
@@ -201,15 +202,17 @@ C_DEFS =  \
 -DUSE_HAL_DRIVER \
 -DAPPVERSION=\"$(VERSION)\" \
 -D$(CHIPDEFINE) \
--DBOARD_$(BOARDDEFINE)
-
+-DBOARD_$(BOARDDEFINE) \
+-DMAIN_INC_EXTRA=\"mainExtra.h\"
 
 # AS includes
 AS_INCLUDES =
 
 # C includes
-C_INCLUDES =  \
--ICore/Inc \
+C_INCLUDES = \
+-I$(SHARED_INIT)/$(CHIPSUBFAMILY)-$(BOARD) \
+-I$(SHARED_INIT)/$(CHIPSUBFAMILY) \
+-I$(SHARED_INIT) \
 -I$(BOXLIB) \
 -I$(STM_HAL)/Inc \
 -I$(STM_HAL)/Inc/Legacy \
