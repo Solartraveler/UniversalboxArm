@@ -177,19 +177,21 @@ MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 AS_DEFS =
 
 # C defines
-C_DEFS =  \
+C_DEFS = \
 -DUSE_HAL_DRIVER \
 -DAPPVERSION=\"$(VERSION)\" \
 -D$(CHIPDEFINE) \
--DBOARD_$(BOARDDEFINE)
-
+-DBOARD_$(BOARDDEFINE) \
+-DMAIN_INC_EXTRA=\"mainExtra.h\"
 
 # AS includes
 AS_INCLUDES =
 
 # C includes
-C_INCLUDES =  \
--ICore/Inc \
+C_INCLUDES = \
+-I$(SHARED_INIT)/$(CHIPSUBFAMILY)-$(BOARD) \
+-I$(SHARED_INIT)/$(CHIPSUBFAMILY) \
+-I$(SHARED_INIT) \
 -I$(BOXLIB) \
 -I$(STM_HAL)/Inc \
 -I$(STM_HAL)/Inc/Legacy \
