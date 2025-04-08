@@ -121,6 +121,7 @@ $(BOXLIB)/mcu.c \
 $(BOXLIB)/peripheral.c \
 $(BOXLIB)/peripheralDma.c \
 $(BOXLIB)/rs232debug.c \
+$(BOXLIB)/sequenceToPwm.c \
 $(BOXLIB)/spiExternal.c \
 $(BOXLIBCORE)/exceptions.c \
 $(BOXLIBCORE)/lcd.c \
@@ -138,7 +139,6 @@ $(ALGORITHM)/libcMinsize.c \
 $(ALGORITHM)/utility.c \
 $(MENUINTERPRETER)/menu-interpreter.c \
 $(MENUINTERPRETER)/menu-text.c \
-$(CHIPSUBFAMILY)-$(BOARD)/sequenceToPwm.c \
 wavplayer.c \
 gui.c
 

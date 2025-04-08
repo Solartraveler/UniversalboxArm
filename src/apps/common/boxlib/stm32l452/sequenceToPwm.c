@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "sequenceToPwm.h"
+#include "boxlib/sequenceToPwm.h"
 
 #include "boxlib/leds.h"
 

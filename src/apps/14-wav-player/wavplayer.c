@@ -19,6 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "boxlib/lcd.h"
 #include "boxlib/flash.h"
 #include "boxlib/peripheral.h"
+#include "boxlib/sequenceToPwm.h"
 #include "boxlib/coproc.h"
 #include "boxlib/mcu.h"
 #include "femtoVsnprintf.h"
@@ -26,7 +27,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "filesystem.h"
 #include "gui.h"
 #include "main.h"
-#include "sequenceToPwm.h"
 #include "utility.h"
 #include "wav.h"
 

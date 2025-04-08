@@ -53,6 +53,7 @@ $(BOXLIB)/keys.c \
 $(BOXLIB)/leds.c \
 $(BOXLIB)/rs232debug.c \
 $(BOXLIB)/peripheral.c \
+$(BOXLIB)/sequenceToPulseaudio.c \
 $(BOXLIB)/flash.c \
 $(BOXLIB)/lcd.c \
 $(BOXLIB)/coproc.c \
@@ -73,7 +74,6 @@ $(MENUINTERPRETER)/menu-text.c \
 $(SIMCOMMON)/simhelper.c \
 ../wavplayer.c \
 ../gui.c \
-sequenceToPwm.c
 
 # ASM sources
 ASM_SOURCES =

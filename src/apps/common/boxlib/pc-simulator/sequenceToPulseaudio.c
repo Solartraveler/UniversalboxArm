@@ -11,7 +11,7 @@
 #include <pulse/simple.h>
 #endif
 
-#include "sequenceToPwm.h"
+#include "boxlib/sequenceToPwm.h"
 
 #include "simulated.h"
 
