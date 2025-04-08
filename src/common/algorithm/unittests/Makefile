@@ -3,7 +3,7 @@ BUILD_DIR = build
 CFLAGS += -fsanitize=address -Wall
 LDFLAGS += -fsanitize=address
 
-all: compileHighres compileLowres compileDateTime compileFemtoVsnprintf compileTgaWrite
+all: compileHighres compileLowres compileDateTime compileFemtoVsnprintf compileTgaWrite compileLocklessfifo
 
 buildDir:
 	mkdir -p $(BUILD_DIR)
@@ -25,6 +25,8 @@ compileTgaWrite: buildDir
 	gcc $(CFLAGS) -c ../imageTgaWrite.c -o $(BUILD_DIR)/imageTgaWrite.o
 	gcc $(LDFLAGS) $(BUILD_DIR)/imageTgaWrite.o $(BUILD_DIR)/testImageTgaWrite.o -o $(BUILD_DIR)/testTgaWrite
 
+compileLocklessfifo: buildDir
+	gcc $(CFLAGS) testLocklessfifo.c -o $(BUILD_DIR)/testLocklessfifo
 
 test: all
 	./$(BUILD_DIR)/testImageDrawerHighres
@@ -33,6 +35,7 @@ test: all
 	./$(BUILD_DIR)/testFemtoVsnprintf
 	./$(BUILD_DIR)/testTgaWrite $(BUILD_DIR)
 	identify $(BUILD_DIR)/*.tga
+	./$(BUILD_DIR)/testLocklessfifo
 
 clean:
 	rm -f $(BUILD_DIR)/*
