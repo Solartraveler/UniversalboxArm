@@ -6,13 +6,13 @@
 #include "sequenceToPwm.h"
 
 #include "boxlib/leds.h"
+
+#define FIFO_DATA_GET_OK Led1Green
+#define FIFO_DATA_GET_FAIL Led1Red
+#include "locklessfifo.h"
 #include "main.h"
 
-static size_t g_sequenceBuferLen;
-static uint8_t * g_sequenceBuffer;
-static volatile uint32_t g_sequenceBufferReadIdx;
-static volatile uint32_t g_sequenceBufferWriteIdx;
-
+static FifoState_t g_sequence;
 
 /*One timer (TIM2) will get the data from the fifos and set
   the next PWM value. As this is a 32bit timer, no prescaler calculation is needed
@@ -22,10 +22,7 @@ static volatile uint32_t g_sequenceBufferWriteIdx;
 void SeqStart(uint32_t pwmDivider, uint32_t seqMax, uint8_t * fifoBuffer, size_t fifoLen) {
 	HAL_NVIC_DisableIRQ(TIM2_IRQn);
 
-	g_sequenceBuffer = fifoBuffer;
-	g_sequenceBuferLen = fifoLen;
-	g_sequenceBufferReadIdx = 0;
-	g_sequenceBufferWriteIdx = 0;
+	FifoInit(&g_sequence, fifoBuffer, fifoLen);
 
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_TIM2_CLK_ENABLE();
@@ -66,42 +63,18 @@ void SeqStart(uint32_t pwmDivider, uint32_t seqMax, uint8_t * fifoBuffer, size_t
 	TIM2->CR1 |= TIM_CR1_CEN;
 }
 
-uint8_t SequenceGetData(void) {
-	char out = 0;
-	if ((g_sequenceBuffer) && (g_sequenceBufferReadIdx != g_sequenceBufferWriteIdx)) {
-		size_t ri = g_sequenceBufferReadIdx;
-		out = g_sequenceBuffer[ri];
-		__sync_synchronize(); //the pointer increment may only be visible after the copy
-		ri = (ri + 1) % g_sequenceBuferLen;
-		g_sequenceBufferReadIdx = ri;
-		Led1Green();
-	} else {
-		Led1Red();
-	}
-	return out;
-}
-
 //sending fifo put
 //returns true if the char could be put into the queue
 bool SequencePutData(uint8_t out) {
-	bool succeed = false;
-	size_t writeThis = g_sequenceBufferWriteIdx;
-	size_t writeNext = (writeThis + 1) % g_sequenceBuferLen;
-	if (writeNext != g_sequenceBufferReadIdx) {
-		g_sequenceBuffer[writeThis] = out;
-		g_sequenceBufferWriteIdx = writeNext;
-		succeed = true;
-	}
-	return succeed;
+	return FifoDataPut(&g_sequence, out);
 }
 
 void TIM2_IRQHandler(void) {
 	TIM2->SR = 0;
 	NVIC_ClearPendingIRQ(TIM2_IRQn);
-	TIM3->CCR1 = SequenceGetData();
+	TIM3->CCR1 = FifoDataGet(&g_sequence);
 	//TIM3->CCR1 = 255 - TIM3->CCR1;
 }
-
 
 void SeqStop(void) {
 	TIM2->CR1 &= ~TIM_CR1_CEN;
@@ -110,27 +83,13 @@ void SeqStop(void) {
 }
 
 size_t SeqFifoFree(void) {
-	size_t rp = g_sequenceBufferReadIdx;
-	size_t wp = g_sequenceBufferWriteIdx;
-	size_t unused;
-	if (wp >= rp) {
-		unused = (g_sequenceBuferLen - wp) + rp;
-	} else {
-		unused = (rp - wp);
-	}
+	size_t unused = FifoDataFree(&g_sequence);
 	//printf("Unused: %u\r\n", (unsigned int)unused);
 	return unused;
 }
 
 void SeqFifoPut(const uint8_t * data, size_t dataLen) {
-	bool success = true;
-	for (size_t i = 0; i < dataLen; i++) {
-		success &= SequencePutData(data[i]);
-		if (!success) {
-			printf("Breaking at %u byte\r\n", (unsigned int)i);
-			break;
-		}
-	}
+	bool success = FifoBufferPut(&g_sequence, data, dataLen);
 	if (!success) {
 		printf("Error, FIFO overflow, wanting to put %u\r\n", (unsigned int)dataLen);
 	}
