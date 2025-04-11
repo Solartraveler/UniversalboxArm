@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Wav-Player
 #Version of this application, to be used in the metadata
-VERSION  = 0.10.0
+VERSION  = 0.10.1
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -189,12 +189,12 @@ MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 AS_DEFS =
 
 # C defines
-C_DEFS =  \
+C_DEFS = \
 -DUSE_HAL_DRIVER \
 -DAPPVERSION=\"$(VERSION)\" \
 -D$(CHIPDEFINE) \
--DBOARD_$(BOARDDEFINE)
-
+-DBOARD_$(BOARDDEFINE) \
+-DMAIN_INC_EXTRA=\"mainExtra.h\"
 
 # AS includes
 AS_INCLUDES =

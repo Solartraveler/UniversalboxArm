@@ -7,52 +7,102 @@
 */
 #define USE_PULSEAUDIO
 
-#ifdef USE_PULSEAUDIO
-#include <pulse/simple.h>
-#endif
-
 #include "boxlib/sequenceToPwm.h"
 
+#include "main.h"
 #include "simulated.h"
+
+#ifndef F_CPU
+#error "Define F_CPU within main.h or a -DFCPU=123456789 compiler parameter. Value is in Hz"
+#endif
+
+
+#ifdef USE_PULSEAUDIO
+
+#include <unistd.h>
+#include <pthread.h>
+#include <pulse/simple.h>
+
+#include "locklessfifo.h"
+
+static FifoState_t g_fifo;
+
+static volatile bool g_requestTerminate;
+
+static pthread_t g_outputThread;
+
+
+void * SeqOutputThread(void * arg) {
+	pa_sample_spec * pDataFormat = (pa_sample_spec *)arg;
+	pa_simple * pS = pa_simple_new(NULL, "Wav Player", PA_STREAM_PLAYBACK, NULL, "Wave file", pDataFormat, NULL, NULL, NULL);
+	if (!pS) {
+		printf("Error, opening pulse audio output failed\n");
+		return NULL;
+	}
+	while (g_requestTerminate == false) {
+		while ((FifoDataFree(&g_fifo) + 1) < g_fifo.bufferLen) {
+			uint8_t data = FifoDataGet(&g_fifo);
+			int err = 0;
+			if (pa_simple_write(pS, &data, 1, &err)) {
+				printf("Error, could not write data to pulse audio, errorcode %i\n", err);
+			}
+		}
+		usleep(2000);
+	}
+	pa_simple_free(pS);
+	return NULL;
+}
+
+void SeqStart(uint32_t pwmDivider, uint32_t seqMax, uint8_t * fifoBuffer, size_t fifoLen) {
+	(void)pwmDivider;
+	FifoInit(&g_fifo, fifoBuffer, fifoLen);
+	//Initialize pulseaudio output
+	static pa_sample_spec dataFormat;
+	dataFormat.format = PA_SAMPLE_U8;
+	dataFormat.channels = 1;
+	dataFormat.rate = (F_CPU / seqMax);
+	printf("Pulse audio rate %uHz\n", (unsigned int)dataFormat.rate);
+	//start a thread for data processing
+	g_requestTerminate = false;
+	if (pthread_create(&g_outputThread, NULL, &SeqOutputThread, &dataFormat)) {
+		printf("Error, starting thread for audio failed\n");
+	}
+}
+
+void SeqStop(void) {
+	g_requestTerminate = true;
+	if (g_outputThread) {
+		pthread_join(g_outputThread, NULL);
+		g_outputThread = 0;
+	}
+}
+
+size_t SeqFifoFree(void) {
+	return FifoDataFree(&g_fifo);
+}
+
+void SeqFifoPut(const uint8_t * data, size_t dataLen) {
+	FifoBufferPut(&g_fifo, data, dataLen);
+}
+
+#else
 
 static size_t g_seqSize;
 static size_t g_seqFree;
 static float g_seqConsumptionSecond;
 static uint32_t g_seqLastCheck;
 
-#ifdef USE_PULSEAUDIO
-static pa_simple * g_pS;
-#endif
-
 void SeqStart(uint32_t pwmDivider, uint32_t seqMax, uint8_t * fifoBuffer, size_t fifoLen) {
 	(void)pwmDivider;
 	(void)fifoBuffer;
 	g_seqSize = fifoLen;
 	g_seqFree = fifoLen;
-	//F_CPU is 32MHz
-	g_seqConsumptionSecond = (32000000 / seqMax);
+	g_seqConsumptionSecond = (F_CPU / seqMax);
 	g_seqLastCheck = HAL_GetTick();
-	//Initialize pulseaudio output
-#ifdef USE_PULSEAUDIO
-	pa_sample_spec dataFormat;
-	dataFormat.format = PA_SAMPLE_U8;
-	dataFormat.channels = 1;
-	dataFormat.rate = g_seqConsumptionSecond;
-	g_pS = pa_simple_new(NULL, "Wav Player", PA_STREAM_PLAYBACK, NULL, "Wave file", &dataFormat, NULL, NULL, NULL);
-	if (!g_pS) {
-		printf("Error, opening pulse audio output failed\n");
-	}
-#endif
 }
 
 void SeqStop(void) {
 	g_seqFree = g_seqSize;
-#ifdef USE_PULSEAUDIO
-	if (g_pS) {
-		pa_simple_free(g_pS);
-		g_pS = NULL;
-	}
-#endif
 }
 
 size_t SeqFifoFree(void) {
@@ -72,14 +122,9 @@ size_t SeqFifoFree(void) {
 void SeqFifoPut(const uint8_t * data, size_t dataLen) {
 	if (SeqFifoFree() >= dataLen) {
 		g_seqFree -= dataLen;
-#ifdef USE_PULSEAUDIO
-		if (g_pS) {
-			int err = 0;
-			if (pa_simple_write(g_pS, data, dataLen, &err)) {
-				printf("Error, could not write data to pulse audio, errorcode %i\n", err);
-			}
-		}
-#endif
 	}
 }
+
+#endif
+
 

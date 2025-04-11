@@ -30,8 +30,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "utility.h"
 #include "wav.h"
 
-#define F_CPU 32000000
-
 //should buffer 0.5s at 8bit, 44100Hz, mono
 #define FIFO_SIZE 22050
 
