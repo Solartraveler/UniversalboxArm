@@ -61,4 +61,5 @@ Libmad - MPEG audio decoder library
 
 License: GPL v2 or newer
 
-Taken from [libmad-0.15.1b.tar.gz](https://sourceforge.net/projects/mad/files/libmad/)
+Taken from GIT [version 0.16.4 commit ee7c3cdd4361b7f7c7da52fa3ba9f76cc35230a9](https://codeberg.org/tenacityteam/libmad/releases/tag/0.16.4)
+

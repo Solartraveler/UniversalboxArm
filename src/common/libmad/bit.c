@@ -19,10 +19,6 @@
  * $Id: bit.c,v 1.12 2004/01/23 09:41:32 rob Exp $
  */
 
-# ifdef HAVE_CONFIG_H
-#  include "config.h"
-# endif
-
 # include "global.h"
 
 # ifdef HAVE_LIMITS_H
@@ -31,7 +27,7 @@
 #  define CHAR_BIT  8
 # endif
 
-# include "bit.h"
+# include "mad.h"
 
 /*
  * This is the lookup table for computing the CRC-check word.
@@ -137,6 +133,9 @@ void mad_bit_skip(struct mad_bitptr *bitptr, unsigned int len)
 unsigned long mad_bit_read(struct mad_bitptr *bitptr, unsigned int len)
 {
   register unsigned long value;
+
+  if (len == 0)
+    return 0;
 
   if (bitptr->left == CHAR_BIT)
     bitptr->cache = *bitptr->byte;

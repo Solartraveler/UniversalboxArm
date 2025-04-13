@@ -24,24 +24,25 @@
 extern "C" {
 # endif
 
-# define FPM_INTEL
+#cmakedefine FPM_INTEL
+#cmakedefine FPM_ARM
+#cmakedefine FPM_MIPS
+#cmakedefine FPM_SPARC
+#cmakedefine FPM_PPC
+#cmakedefine FPM_64BIT
+#cmakedefine FPM_DEFAULT
 
-
-
-# define SIZEOF_INT 4
-# define SIZEOF_LONG 4
-# define SIZEOF_LONG_LONG 8
-
+# define SIZEOF_INT @SIZEOF_INT@
 
 /* Id: version.h,v 1.26 2004/01/23 09:41:33 rob Exp */
 
 # ifndef LIBMAD_VERSION_H
 # define LIBMAD_VERSION_H
 
-# define MAD_VERSION_MAJOR	0
-# define MAD_VERSION_MINOR	15
-# define MAD_VERSION_PATCH	1
-# define MAD_VERSION_EXTRA	" (beta)"
+# define MAD_VERSION_MAJOR	@CMAKE_PROJECT_VERSION_MAJOR@
+# define MAD_VERSION_MINOR	@CMAKE_PROJECT_VERSION_MINOR@
+# define MAD_VERSION_PATCH	@CMAKE_PROJECT_VERSION_PATCH@
+# define MAD_VERSION_EXTRA	""
 
 # define MAD_VERSION_STRINGIZE(str)	#str
 # define MAD_VERSION_STRING(num)	MAD_VERSION_STRINGIZE(num)
@@ -67,23 +68,19 @@ extern char const mad_build[];
 # ifndef LIBMAD_FIXED_H
 # define LIBMAD_FIXED_H
 
+# include <stdint.h>
+
 # if SIZEOF_INT >= 4
 typedef   signed int mad_fixed_t;
-
 typedef   signed int mad_fixed64hi_t;
 typedef unsigned int mad_fixed64lo_t;
 # else
 typedef   signed long mad_fixed_t;
-
 typedef   signed long mad_fixed64hi_t;
 typedef unsigned long mad_fixed64lo_t;
 # endif
 
-# if defined(_MSC_VER)
-#  define mad_fixed64_t  signed __int64
-# elif 1 || defined(__GNUC__)
-#  define mad_fixed64_t  signed long long
-# endif
+typedef int64_t mad_fixed64_t;
 
 # if defined(FPM_FLOAT)
 typedef double mad_sample_t;
@@ -320,12 +317,25 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
 	 : "+r" (lo), "+r" (hi)  \
 	 : "%r" (x), "r" (y))
 
+#ifdef __thumb__
+/* In Thumb-2, the RSB-immediate instruction is only allowed with a zero
+	operand.  If needed this code can also support Thumb-1
+	(simply append "s" to the end of the second two instructions). */
+#  define MAD_F_MLN(hi, lo)  \
+    asm ("rsbs        %0, %0, #0\n\t"  \
+	 "sbc   %1, %1, %1\n\t"  \
+	 "sub   %1, %1, %2"  \
+	 : "+&r" (lo), "=&r" (hi)  \
+	 : "r" (hi)  \
+	 : "cc")
+#else /* ! __thumb__ */
 #  define MAD_F_MLN(hi, lo)  \
     asm ("rsbs	%0, %2, #0\n\t"  \
 	 "rsc	%1, %3, #0"  \
-	 : "=r" (lo), "=r" (hi)  \
+	 : "=&r" (lo), "=r" (hi)  \
 	 : "0" (lo), "1" (hi)  \
 	 : "cc")
+#endif /* __thumb__ */
 
 #  define mad_f_scale64(hi, lo)  \
     ({ mad_fixed_t __result;  \
@@ -348,31 +358,13 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
  * This MIPS version is fast and accurate; the disposition of the least
  * significant bit depends on OPT_ACCURACY via mad_f_scale64().
  */
-#  define MAD_F_MLX(hi, lo, x, y)  \
-    asm ("mult	%2,%3"  \
-	 : "=l" (lo), "=h" (hi)  \
-	 : "%r" (x), "r" (y))
-
-# if defined(HAVE_MADD_ASM)
-#  define MAD_F_MLA(hi, lo, x, y)  \
-    asm ("madd	%2,%3"  \
-	 : "+l" (lo), "+h" (hi)  \
-	 : "%r" (x), "r" (y))
-# elif defined(HAVE_MADD16_ASM)
-/*
- * This loses significant accuracy due to the 16-bit integer limit in the
- * multiply/accumulate instruction.
- */
-#  define MAD_F_ML0(hi, lo, x, y)  \
-    asm ("mult	%2,%3"  \
-	 : "=l" (lo), "=h" (hi)  \
-	 : "%r" ((x) >> 12), "r" ((y) >> 16))
-#  define MAD_F_MLA(hi, lo, x, y)  \
-    asm ("madd16	%2,%3"  \
-	 : "+l" (lo), "+h" (hi)  \
-	 : "%r" ((x) >> 12), "r" ((y) >> 16))
-#  define MAD_F_MLZ(hi, lo)  ((mad_fixed_t) (lo))
-# endif
+   typedef unsigned int u64_di_t __attribute__ ((mode (DI)));
+#  define MAD_F_MLX(hi, lo, x, y) \
+   do { \
+      u64_di_t __ll = (u64_di_t) (x) * (y); \
+      hi = __ll >> 32; \
+      lo = __ll; \
+   } while (0)
 
 # if defined(OPT_SPEED)
 #  define mad_f_scale64(hi, lo)  \
@@ -424,8 +416,8 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
        asm ("addc %0,%2,%3\n\t"  \
 	    "adde %1,%4,%5"  \
 	    : "=r" (lo), "=r" (hi)  \
-	    : "%r" (lo), "r" (__lo),  \
-	      "%r" (hi), "r" (__hi)  \
+	    : "0" (lo), "r" (__lo), \
+	      "1" (hi), "r" (__hi) \
 	    : "xer");  \
     })
 #  endif

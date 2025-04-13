@@ -6,6 +6,28 @@
 
 ===============================================================================
 
+Verison 0.16.4
+  * Fix compatibility with libmad 0.15.1b
+
+Version 0.16.3
+  * Disable assembly optimizations for all 64 bit CPU architectures; they are
+    only for 32 and 16 bit architectures
+  * Fix CPU architecture detection for PowerPC
+
+Version 0.16.2
+  * Fix building assembly file on ARM
+  * Fix pkgconfig file when CMAKE_INSTALL_{INCLUDE,LIB}DIR are absolute paths
+
+Version 0.16.1
+  * Fix generation of mad.h broken by move to CMake
+  * Add CMake options for CPU architecture-specific optimizations
+
+Version 0.16.0
+  * Add CMake build system
+  * Remove autotools build system
+  * Add pkgconfig and CMake config files
+  * Apply patches from Debian and Fedora
+
 Version 0.15.1 (beta)
 
   * Updated to autoconf 2.59, automake 1.8.2, libtool 1.5.2.

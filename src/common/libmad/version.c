@@ -19,13 +19,9 @@
  * $Id: version.c,v 1.15 2004/01/23 09:41:33 rob Exp $
  */
 
-# ifdef HAVE_CONFIG_H
-#  include "config.h"
-# endif
-
 # include "global.h"
 
-# include "version.h"
+# include "mad.h"
 
 char const mad_version[]   = "MPEG Audio Decoder " MAD_VERSION;
 char const mad_copyright[] = "Copyright (C) " MAD_PUBLISHYEAR " " MAD_AUTHOR;
