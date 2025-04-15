@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = USB-Mass-storage
 #Version of this application, to be used in the metadata
-VERSION  = 0.12.2
+VERSION  = 0.12.3
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -58,7 +58,7 @@ STARTADDR=`grep "_Code_Start.=" $(LDSCRIPTRAM) | cut -d " " -f3 | sed 's/[;\r]//
 # debug build?
 DEBUG = 1
 # optimization
-OPT = -O3
+OPT = -Os
 
 #All uppercase, but the x as placeholder should stay lower case
 #Eg stm32l452xx -> STM32L452xx, stm32f411xe -> STM32F411xE
