@@ -55,7 +55,7 @@ void TimerInit(void) {
 	TIM6->CNT = 0;
 	TIM6->ARR = SystemCoreClock / F_INTERRUPTS;
 	TIM6->CR1 |= TIM_CR1_CEN;
-	HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 4, 0);
 	HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
 }
 

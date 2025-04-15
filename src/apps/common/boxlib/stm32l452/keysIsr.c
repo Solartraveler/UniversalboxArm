@@ -93,10 +93,10 @@ void KeysInit(void) {
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	HAL_GPIO_Init(KeyRight_GPIO_Port, &GPIO_InitStruct);
 
-	HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(EXTI9_5_IRQn, 8, 0);
 	HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
-	HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(EXTI15_10_IRQn, 8, 0);
 	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 

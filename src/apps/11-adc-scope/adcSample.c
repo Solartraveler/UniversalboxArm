@@ -86,7 +86,7 @@ void SampleInit(void) {
 	TIM2->PSC = 0;
 	TIM2->SR = 0;
 	TIM2->DIER = TIM_DIER_UIE;
-	HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(TIM2_IRQn, 4, 0);
 	HAL_NVIC_EnableIRQ(TIM2_IRQn);
 }
 

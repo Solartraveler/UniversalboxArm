@@ -58,7 +58,7 @@ void SeqStart(uint32_t pwmDivider, uint32_t seqMax, uint8_t * fifoBuffer, size_t
 	TIM2->SR = 0;
 	TIM2->DIER = TIM_DIER_UIE;
 	TIM2->ARR = seqMax;
-	HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(TIM2_IRQn, 4, 0);
 	HAL_NVIC_EnableIRQ(TIM2_IRQn);
 	TIM2->CR1 |= TIM_CR1_CEN;
 }
