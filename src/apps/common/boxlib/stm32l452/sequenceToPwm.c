@@ -14,10 +14,10 @@
 
 static FifoState_t g_sequence;
 
-/*One timer (TIM2) will get the data from the fifos and set
-  the next PWM value. As this is a 32bit timer, no prescaler calculation is needed
-  it simply counts to seqMax.
-  The second timer (TIM3) will generate the PWM value on PB4 with a 8bit resolution (125KHz @ 32MHz base clock)
+/*One timer (TIM16) will get the data from the FIFOs and set
+  the next PWM value. As this is a 16bit timer, no prescaler calculation is needed
+  it simply counts to seqMax, as long as the update frequency is at least 1200Hz.
+  The second timer (TIM3) will generate the PWM value on PB4 with a 8bit resolution (125KHz @ 32MHz base clock).
 */
 void SeqStart(uint32_t pwmDivider, uint32_t seqMax, uint8_t * fifoBuffer, size_t fifoLen) {
 	HAL_NVIC_DisableIRQ(TIM2_IRQn);
@@ -25,7 +25,7 @@ void SeqStart(uint32_t pwmDivider, uint32_t seqMax, uint8_t * fifoBuffer, size_t
 	FifoInit(&g_sequence, fifoBuffer, fifoLen);
 
 	__HAL_RCC_GPIOB_CLK_ENABLE();
-	__HAL_RCC_TIM2_CLK_ENABLE();
+	__HAL_RCC_TIM16_CLK_ENABLE();
 	__HAL_RCC_TIM3_CLK_ENABLE();
 
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -51,16 +51,16 @@ void SeqStart(uint32_t pwmDivider, uint32_t seqMax, uint8_t * fifoBuffer, size_t
 	TIM3->CR1 |= TIM_CR1_CEN;
 
 	//Timer for ISR data feeder
-	TIM2->CR1 = 0; //all stopped
-	TIM2->CR2 = 0;
-	TIM2->CNT = 0;
-	TIM2->PSC = 0;
-	TIM2->SR = 0;
-	TIM2->DIER = TIM_DIER_UIE;
-	TIM2->ARR = seqMax;
-	HAL_NVIC_SetPriority(TIM2_IRQn, 4, 0);
-	HAL_NVIC_EnableIRQ(TIM2_IRQn);
-	TIM2->CR1 |= TIM_CR1_CEN;
+	TIM16->CR1 = 0; //all stopped
+	TIM16->CR2 = 0;
+	TIM16->CNT = 0;
+	TIM16->PSC = 0;
+	TIM16->SR = 0;
+	TIM16->DIER = TIM_DIER_UIE;
+	TIM16->ARR = seqMax;
+	HAL_NVIC_SetPriority(TIM1_UP_TIM16_IRQn, 4, 0);
+	HAL_NVIC_EnableIRQ(TIM1_UP_TIM16_IRQn);
+	TIM16->CR1 |= TIM_CR1_CEN;
 }
 
 //sending fifo put
@@ -69,15 +69,14 @@ bool SequencePutData(uint8_t out) {
 	return FifoDataPut(&g_sequence, out);
 }
 
-void TIM2_IRQHandler(void) {
-	TIM2->SR = 0;
-	NVIC_ClearPendingIRQ(TIM2_IRQn);
+void TIM1_UP_TIM16_IRQHandler(void) {
+	TIM16->SR = 0;
+	NVIC_ClearPendingIRQ(TIM1_UP_TIM16_IRQn);
 	TIM3->CCR1 = FifoDataGet(&g_sequence);
-	//TIM3->CCR1 = 255 - TIM3->CCR1;
 }
 
 void SeqStop(void) {
-	TIM2->CR1 &= ~TIM_CR1_CEN;
+	TIM16->CR1 &= ~TIM_CR1_CEN;
 	TIM3->CR1 &= ~TIM_CR1_CEN;
 	Led1Off();
 }

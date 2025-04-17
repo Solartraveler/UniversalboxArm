@@ -1,0 +1,18 @@
+Shared sources:
+
+keysIsr:       EXTI9_5_IRQHandler, EXTI15_10_IRQHandler
+clock:         RTC
+spiExternal:   SPI1
+peripheral:    SPI2
+lcdBacklight:  TIM1
+timer32Bit:    TIM2
+sequenceToPwm: TIM3, TIM16, TIM1_UP_TIM16_IRQHandler
+timer16Bit:    TIM6
+stackSampler:  TIM15, TIM1_BRK_TIM15_IRQHandler
+rs232debug:    USART1, USART1_IRQHandler
+esp:           USART3, USART3_IRQHandler
+
+Apps:
+11-adc-scope:  TIM2, TIM2_IRQHandler
+09-gamebox:    TIM15
+
