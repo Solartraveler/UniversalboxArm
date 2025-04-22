@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MenuConfig Xsize="160" Ysize="120" compact="-1" multilang="0" languages="1" utf8="-1" mousesupport="0" fileformat="2" colorFormatRed1="1" colorFormatRed2="5" colorFormatRed3="8" colorFormatGreen1="1" colorFormatGreen2="6" colorFormatGreen3="8" colorFormatBlue1="1" colorFormatBlue2="5" colorFormatBlue3="8" backgroundcolor="16777215" bordercolor="0" textcolor="0" subwindowBordercolor="0" subwindowBackgroundcolor="16777215" projectinfo="Mp3 player with file selector for 160x120 LCDs - scale by 2x for 320x240" displaytype="2">
+  <window number="2" focusNextKey="0" focusPrevKey="0" focusEnterKey="1" comment="Select 160x120">
+    <list number="1" Xpos="0" Ypos="10" focusable="-1" rectangle="-1" Xsize="160" Ysize="110" font="0" fontfocus="2" text="FILESELECT" storagemethod="1" checkname="FILEINDEX" action="FILESELECT" screen="" upkey="3" downkey="4" pageupkey="0" pagedownkey="0" multilang="0" transparency="0"/>
+    <label number="2" Xpos="20" Ypos="1" font="0" storagemethod="0" text="Select a .mp3 file" multilang="0" transparency="0"/>
+    <shortcut number="3" shortcutkey="50" action="" screen="window 4"/>
+  </window>
+  <window number="4" focusNextKey="4" focusPrevKey="3" focusEnterKey="1" comment="Play 160x120">
+    <label number="1" Xpos="5" Ypos="1" font="0" storagemethod="1" text="FILENAME" multilang="0" transparency="0"/>
+    <label number="2" Xpos="5" Ypos="20" font="0" storagemethod="1" text="ATTRIBUTES" multilang="0" transparency="0"/>
+    <label number="3" Xpos="5" Ypos="40" font="0" storagemethod="1" text="STATE" multilang="0" transparency="0"/>
+    <button number="5" Xpos="110" Ypos="60" focusable="-1" rectangle="-1" Xsize="35" Ysize="12" font="0" fontfocus="2" text="Play" storagemethod="0" action="PLAY" screen="" multilang="0" transparency="0"/>
+    <button number="6" Xpos="60" Ypos="60" focusable="1" rectangle="1" Xsize="35" Ysize="12" font="0" fontfocus="2" text="Stop" storagemethod="0" action="STOP" screen="" multilang="0" transparency="0"/>
+    <button number="4" Xpos="10" Ypos="60" focusable="-1" rectangle="-1" Xsize="35" Ysize="12" font="0" fontfocus="2" text="Back" storagemethod="0" action="" screen="window 2" multilang="0" transparency="0"/>
+    <shortcut number="7" shortcutkey="2" action="" screen="window 2"/>
+  </window>
+</MenuConfig>

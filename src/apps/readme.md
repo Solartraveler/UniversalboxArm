@@ -161,3 +161,17 @@ The .wav file can be transferred to the flash with the 06-usb-mass-storage proje
 
 The audio quality can not be compared to a normal computer, it is more on the level of a telephone or a cheap toy doing some sounds.
 The reason is the simple A/D conversion with a 128kHz PWM signal.
+
+## 15-mp3-player
+
+Plays a normal audio .mp3 file over one 8 bit PWM channel from the internal flash. Very similar to 14-wav-player.
+[Needs some external components](https://www.mikrocontroller.net/articles/Klangerzeugung#Lautsprecher) to be connected to port B, pin 4.
+Tested for files up to 128KBit/s.
+At the end of the file performance statistics are printed.
+This is useful to estimate the needed computing power for an mp3 player project using libmad.
+
+The .mp3 file can be transferred to the flash with the 06-usb-mass-storage project.
+
+The audio quality can not be compared to a normal computer, it is more on the level of a telephone or a cheap toy doing some sounds.
+The reason is the simple A/D conversion with a 312,5kHz PWM signal.
+Stereo is converted to mono.
