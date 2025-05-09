@@ -152,7 +152,7 @@ static void FbBlockFlush(const uint16_t startX, const uint16_t startY, FB_COLOR_
 }
 
 void menu_screen_flush(void) {
-	//uint32_t timeStart = HAL_GetTick();
+	uint32_t timeStart = HAL_GetTick();
 	uint16_t xMax = g_fbUseX / FB_OUTPUTBLOCK_X;
 	uint16_t yMax = g_fbUseY / FB_OUTPUTBLOCK_Y;
 	size_t bytes = FB_OUTPUTBLOCK_X * FB_OUTPUTBLOCK_Y * sizeof(FB_COLOR_OUT_TYPE) * g_fbScaleX * g_fbScaleY;
@@ -177,8 +177,8 @@ void menu_screen_flush(void) {
 		}
 	}
 	LcdWaitBackgroundDoneRelease();
-	//uint32_t timeStop = HAL_GetTick();
-	//printf("Redraw took %uticks\r\n", (unsigned int)(timeStop - timeStart));
+	uint32_t timeStop = HAL_GetTick();
+	printf("Redraw took %uticks\r\n", (unsigned int)(timeStop - timeStart));
 }
 
 

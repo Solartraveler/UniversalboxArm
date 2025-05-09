@@ -117,7 +117,6 @@ $(STM_HAL)/Src/$(CHIPFAMILY)_hal_cortex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_exti.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rtc.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_rtc_ex.c \
-$(STM_HAL)/Src/$(CHIPFAMILY)_hal_spi.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_tim.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_tim_ex.c \
 $(BOXLIB)/keys.c \
@@ -131,8 +130,10 @@ $(BOXLIB)/ir.c \
 $(BOXLIB)/esp.c \
 $(BOXLIB)/simpleadc.c \
 $(BOXLIB)/spiExternal.c \
+$(BOXLIB)/spiExternalDma.c \
 $(BOXLIB)/boxusb.c \
 $(BOXLIB)/mcu.c \
+$(BOXLIB)/timer32Bit.c \
 $(BOXLIBCORE)/readLine.c \
 $(BOXLIBCORE)/exceptions.c \
 $(BOXLIBCORE)/lcd.c \

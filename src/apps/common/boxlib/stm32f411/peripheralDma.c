@@ -7,92 +7,65 @@
 
 #include "boxlib/peripheral.h"
 #include "main.h"
+#include "spiPlatform.h"
 
-DMA_HandleTypeDef g_hdma_spi5_rx;
+static uint8_t g_spi5Started; //0: Stopped, 1 = tx only started, 2 = rx + tx started
 
-DMA_HandleTypeDef g_hdma_spi5_tx;
+//These values must fit together and are defined in the datasheet
+#define SPIPORT SPI5
 
-//defined in peripheral.c
-extern SPI_HandleTypeDef g_hspi5;
+#define DMASTREAMTX DMA2_Stream5
+#define DMASTREAMTXCHANNEL 5
+#define DMASTREAMTXCLEARFLAGS (DMA_HIFCR_CTCIF5 | DMA_HIFCR_CHTIF5 | DMA_HIFCR_CTEIF5 | DMA_HIFCR_CDMEIF5 | DMA_HIFCR_CFEIF5)
+#define DMASTREAMTXCLEARREG (DMA2->HIFCR)
+#define DMASTREAMTXCOMPLETEFLAG DMA_HISR_TCIF5
+#define DMASTREAMTXCOMPLETEREG (DMA2->HISR)
 
-volatile bool g_PeripheralDmaDone;
+#define DMASTREAMRX DMA2_Stream3
+#define DMASTREAMRXCHANNEL 2
+#define DMASTREAMRXCLEARFLAGS (DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3 | DMA_LIFCR_CTEIF3 | DMA_LIFCR_CDMEIF3 | DMA_LIFCR_CFEIF3)
+#define DMASTREAMRXCLEARREG (DMA2->LIFCR)
+#define DMASTREAMRXCOMPLETEFLAG DMA_LISR_TCIF3
+#define DMASTREAMRXCOMPLETEREG (DMA2->LISR)
 
-void DMA2_Stream3_IRQHandler(void) {
-  HAL_DMA_IRQHandler(&g_hdma_spi5_rx);
-}
-
-void DMA2_Stream5_IRQHandler(void) {
-	HAL_DMA_IRQHandler(&g_hdma_spi5_tx);
-}
-
-void PeripheralTransferComplete(SPI_HandleTypeDef * hspi) {
-	(void)hspi;
-	g_PeripheralDmaDone = true;
-}
 
 void PeripheralInit(void) {
-	PeripheralBaseInit(); //must set up g_hspi5 first
-
-	//Copied from the STM cube generator output:
+	PeripheralBaseInit();
 	__HAL_RCC_DMA2_CLK_ENABLE();
-
-	HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 8, 0);
-	HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
-
-	g_hdma_spi5_rx.Instance = DMA2_Stream3;
-	g_hdma_spi5_rx.Init.Channel = DMA_CHANNEL_2;
-	g_hdma_spi5_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-	g_hdma_spi5_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-	g_hdma_spi5_rx.Init.MemInc = DMA_MINC_ENABLE;
-	g_hdma_spi5_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-	g_hdma_spi5_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-	g_hdma_spi5_rx.Init.Mode = DMA_NORMAL;
-	g_hdma_spi5_rx.Init.Priority = DMA_PRIORITY_LOW;
-	g_hdma_spi5_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-	if (HAL_DMA_Init(&g_hdma_spi5_rx) != HAL_OK) {
-		printf("Error, failed to init DMA\r\n");
-	}
-
-	HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, 8, 0);
-	HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
-
-	/* SPI5_TX Init */
-	g_hdma_spi5_tx.Instance = DMA2_Stream5;
-	g_hdma_spi5_tx.Init.Channel = DMA_CHANNEL_5;
-	g_hdma_spi5_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-	g_hdma_spi5_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-	g_hdma_spi5_tx.Init.MemInc = DMA_MINC_ENABLE;
-	g_hdma_spi5_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-	g_hdma_spi5_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-	g_hdma_spi5_tx.Init.Mode = DMA_NORMAL;
-	g_hdma_spi5_tx.Init.Priority = DMA_PRIORITY_LOW;
-	g_hdma_spi5_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-	if (HAL_DMA_Init(&g_hdma_spi5_tx) != HAL_OK) {
-		printf("Error, failed to init DMA\r\n");
-	}
-
-	__HAL_LINKDMA(&g_hspi5, hdmatx, g_hdma_spi5_tx);
-	__HAL_LINKDMA(&g_hspi5, hdmarx, g_hdma_spi5_rx);
-	HAL_SPI_RegisterCallback(&g_hspi5, HAL_SPI_TX_COMPLETE_CB_ID, &PeripheralTransferComplete);
-	HAL_SPI_RegisterCallback(&g_hspi5, HAL_SPI_RX_COMPLETE_CB_ID, &PeripheralTransferComplete);
-}
-
-
-void PeripheralTransferBackground(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
-	if ((dataIn == NULL) && (len > 7)) {
-		g_PeripheralDmaDone = false;
-		HAL_SPI_Transmit_DMA(&g_hspi5, (uint8_t*)dataOut, len);
-	} else if ((dataOut == NULL) && (len > 7)) {
-		g_PeripheralDmaDone = false;
-		HAL_SPI_Receive_DMA(&g_hspi5, (uint8_t*)dataIn, len);
-	} else {
-		PeripheralTransfer(dataOut, dataIn, len);
-	}
+	SpiPlatformInitDma(SPIPORT, DMASTREAMTX, DMASTREAMRX, DMASTREAMTXCHANNEL, DMASTREAMRXCHANNEL);
 }
 
 void PeripheralTransferWaitDone(void) {
-	if (g_hspi5.State != HAL_SPI_STATE_READY) {
-		while (!g_PeripheralDmaDone);
+	if (g_spi5Started) {
+		/*The nops are in place because I had some strange timing issues when using
+		  the DMA with the ADC. There at least one NOP was needed, otherwise the bit
+		  was set already on the first check. The second NOP is just to be sure.
+		*/
+		asm volatile ("nop");
+		asm volatile ("nop");
+		while ((DMASTREAMTXCOMPLETEREG & DMASTREAMTXCOMPLETEFLAG) == 0);
+		if (g_spi5Started == 2) {
+			while ((DMASTREAMRXCOMPLETEREG & DMASTREAMRXCOMPLETEFLAG) == 0);
+			SpiPlatformDisableDma(DMASTREAMRX);
+		}
+		SpiPlatformDisableDma(DMASTREAMTX);
+		SpiPlatformWaitDone(SPIPORT);
 	}
+	g_spi5Started = 0;
 }
 
+void PeripheralTransferBackground(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
+	PeripheralTransferWaitDone();
+	g_spi5Started = SpiPlatformTransferBackground(SPIPORT, DMASTREAMTX, DMASTREAMRX,
+	                &DMASTREAMTXCLEARREG, DMASTREAMTXCLEARFLAGS,
+	                &DMASTREAMRXCLEARREG, DMASTREAMRXCLEARFLAGS, dataOut, dataIn, len);
+}
+
+void PeripheralTransferDma(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
+	PeripheralTransferBackground(dataOut, dataIn, len);
+	PeripheralTransferWaitDone();
+}
+
+void PeripheralTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
+	PeripheralTransferDma(dataOut, dataIn, len);
+}

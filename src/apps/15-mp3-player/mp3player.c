@@ -50,12 +50,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #if __GNUC__ <= 12
 
 //GCC version provided by Debian 12 for arm-none-eabi-gcc
-#define FIFO_SIZE 5000
+#define FIFO_SIZE 10000
 
 #else
 
 //GCC version provided by Ubuntu 24.04 for arm-none-eabi-gcc
-#define FIFO_SIZE 4500
+#define FIFO_SIZE 8500
 
 #endif
 

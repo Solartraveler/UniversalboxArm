@@ -12,3 +12,12 @@ void PeripheralInit(void);
 void PeripheralTransferBackground(const uint8_t * dataOut, uint8_t * dataIn, size_t len);
 
 void PeripheralTransferWaitDone(void);
+
+/*Combination of PeripheralTransferBackground with a call to PeripheralTransferWaitDone.
+*/
+void PeripheralTransferDma(const uint8_t * dataOut, uint8_t * dataIn, size_t len);
+
+
+/*Same as PeripheralTransferDma
+*/
+void PeripheralTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len);

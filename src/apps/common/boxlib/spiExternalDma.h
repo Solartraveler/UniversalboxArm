@@ -3,14 +3,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
-//Do not call directly, already done by SpiExternalInit
-void SpiExternalBaseInit();
-
 /*Required for GPIO init.
 */
 void SpiExternalInit(void);
 
-void SpiExternalChipSelect(uint8_t chipSelect, bool selected);
+void SpiExternalTransferWaitDone(void);
 
 /*dataOut or dataIn may be a NULL pointer.
   chipSelect drives low the associated CS pin during the transfer. If chipSelect is zero, no pin is driven.
@@ -20,12 +17,8 @@ void SpiExternalChipSelect(uint8_t chipSelect, bool selected);
   Call with dataOut and DataIn as NULL and resetChipSelect to be true to just disable the chip select again.
   In this case, if the chip select was not set before, a short set pulse is given.
 */
-void SpiExternalTransferPolling(const uint8_t * dataOut, uint8_t * dataIn, size_t len, uint8_t chipSelect, bool resetChipSelect);
+void SpiExternalTransferDma(const uint8_t * dataOut, uint8_t * dataIn, size_t len, uint8_t chipSelect, bool resetChipSelect);
 
-/*Same as SpiExternalTransfer. But it is a weak function, so it can be replaced by a function using DMA.
+/*Same as SpiExternalTransferDma.
 */
 void SpiExternalTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len, uint8_t chipSelect, bool resetChipSelect);
-
-/*Set the prescaler for the SPI clock by the power of 2. Range 2...256.
-*/
-void SpiExternalPrescaler(uint32_t prescaler);
