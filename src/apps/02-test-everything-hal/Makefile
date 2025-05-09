@@ -18,7 +18,7 @@
 #Name of this application
 NAME     = Test-everything
 #Version of this application, to be used in the metadata
-VERSION  = 0.17.0
+VERSION  = 0.18.0
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
@@ -133,6 +133,7 @@ $(BOXLIB)/simpleadc.c \
 $(BOXLIB)/spiExternal.c \
 $(BOXLIB)/boxusb.c \
 $(BOXLIB)/mcu.c \
+$(BOXLIB)/timer32Bit.c \
 $(BOXLIBCORE)/readLine.c \
 $(BOXLIBCORE)/exceptions.c \
 $(BOXLIBCORE)/lcd.c \

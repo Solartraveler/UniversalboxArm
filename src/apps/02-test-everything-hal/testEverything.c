@@ -28,6 +28,7 @@ License: BSD-3-Clause
 #include "boxlib/boxusb.h"
 #include "boxlib/mcu.h"
 #include "boxlib/readLine.h"
+#include "boxlib/timer32Bit.h"
 
 #include "main.h"
 #include "sdmmcAccess.h"
@@ -453,15 +454,20 @@ void CheckFlash(void) {
 				if (memcmp(bufferOut, bufferIn, blocksize) == 0) {
 					printf("Writing and reading back %ubyte successful\r\n", (unsigned int)blocksize);
 					printf("Write+Read took %ums\r\n", (unsigned int)delta);
+					Timer32BitInit(0);
 					for (uint32_t i = 128; i >= 2; i /= 2) {
 						FlashEnable(i);
 						memset(bufferIn, 0, blocksize);
+						Timer32BitReset();
 						timestamp = HAL_GetTick();
+						Timer32BitStart();
 						FlashRead(0, bufferIn, blocksize);
+						uint32_t tTicks = Timer32BitGet();
 						timestamp2 = HAL_GetTick();
+						Timer32BitStop();
 						delta = timestamp2 - timestamp;
 						if (memcmp(bufferOut, bufferIn, blocksize) == 0) {
-							printf("Reading with prescaler %u succeed. Time %ums\r\n", (unsigned int)i, (unsigned int)delta);
+							printf("Reading with prescaler %u succeed. Time %ums - %uticks\r\n", (unsigned int)i, (unsigned int)delta, (unsigned int)tTicks);
 						} else {
 							printf("Reading with prescaler %u failed\r\n", (unsigned int)i);
 							break;
