@@ -1,0 +1,11 @@
+Shared sources:
+
+keysIsr:       EXTI0_IRQHandler, EXTI1_IRQHandler, EXTI9_5_IRQHandler, EXTI15_10_IRQHandler
+spiExternal:   SPI2
+peripheral:    SPI5
+timer32Bit:    TIM2
+timer16Bit:    TIM10
+rs232debug:    USART2, USART2_IRQHandler
+
+Apps:
+11-adc-scope:  TIM2, TIM2_IRQHandler

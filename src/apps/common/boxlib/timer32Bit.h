@@ -6,7 +6,7 @@
 
 #include "timer32BitPlatform.h"
 
-/*Provides a simple abstract functions for using a timer for performance tests.
+/*Provides simple abstract functions for using a timer for performance tests.
   Use if the resolution of HAL_GetTick() would be not precise enough.
   The timer counts with the peripheral clock divided by (prescaler + 1).
 */
