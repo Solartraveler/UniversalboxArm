@@ -9,10 +9,10 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <stddef.h>
 
 #include "boxlib/spiExternal.h"
+#include "boxlib/spiGeneric.h"
+#include "spiPlatform.h"
 
 #include "main.h"
-
-SPI_HandleTypeDef g_hspiExternal;
 
 void SpiExternalBaseInit(void) {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -45,21 +45,7 @@ void SpiExternalBaseInit(void) {
 	GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-	//Copied from the STM cube generator output:
-	g_hspiExternal.Instance = SPI2;
-	g_hspiExternal.Init.Mode = SPI_MODE_MASTER;
-	g_hspiExternal.Init.Direction = SPI_DIRECTION_2LINES;
-	g_hspiExternal.Init.DataSize = SPI_DATASIZE_8BIT;
-	g_hspiExternal.Init.CLKPolarity = SPI_POLARITY_LOW;
-	g_hspiExternal.Init.CLKPhase = SPI_PHASE_1EDGE;
-	g_hspiExternal.Init.NSS = SPI_NSS_SOFT;
-	//The scaler is of no real importance here, as it should be set by SpiExternalPrescaler at least once
-	g_hspiExternal.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
-	g_hspiExternal.Init.FirstBit = SPI_FIRSTBIT_MSB;
-	g_hspiExternal.Init.TIMode = SPI_TIMODE_DISABLE;
-	g_hspiExternal.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-	g_hspiExternal.Init.CRCPolynomial = 7;
-	HAL_SPI_Init(&g_hspiExternal);
+	SpiPlatformInit(SPI2);
 }
 
 __weak void SpiExternalInit(void) {
@@ -76,43 +62,18 @@ void SpiExternalChipSelect(uint8_t chipSelect, bool selected) {
 	}
 }
 
-__weak void SpiExternalTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len, uint8_t chipSelect, bool resetChipSelect) {
+void SpiExternalTransferPolling(const uint8_t * dataOut, uint8_t * dataIn, size_t len, uint8_t chipSelect, bool resetChipSelect) {
 	SpiExternalChipSelect(chipSelect, true);
-	if ((dataIn) && (dataOut)) {
-		HAL_SPI_TransmitReceive(&g_hspiExternal, (uint8_t*)dataOut, dataIn, len, 100);
-	} else if (dataOut) {
-		HAL_SPI_Transmit(&g_hspiExternal, (uint8_t*)dataOut, len, 100);
-	} else if (dataIn) {
-		HAL_SPI_Receive(&g_hspiExternal ,dataIn, len, 100);
-	}
+	SpiGenericPolling(SPI2, dataOut, dataIn, len);
 	if (resetChipSelect) {
 		SpiExternalChipSelect(chipSelect, false);
 	}
 }
 
-void SpiExternalPrescaler(uint32_t prescaler) {
-	uint32_t bits;
-	if (prescaler <= 2) {
-		bits = SPI_BAUDRATEPRESCALER_2;
-	} else if (prescaler <= 4) {
-		bits = SPI_BAUDRATEPRESCALER_4;
-	} else if (prescaler <= 8) {
-		bits = SPI_BAUDRATEPRESCALER_8;
-	} else if (prescaler <= 16) {
-		bits = SPI_BAUDRATEPRESCALER_16;
-	} else if (prescaler <= 32) {
-		bits = SPI_BAUDRATEPRESCALER_32;
-	} else if (prescaler <= 64) {
-		bits = SPI_BAUDRATEPRESCALER_64;
-	} else if (prescaler <= 128) {
-		bits = SPI_BAUDRATEPRESCALER_128;
-	} else {
-		bits = SPI_BAUDRATEPRESCALER_256;
-	}
-	uint32_t reg = READ_REG(g_hspiExternal.Instance->CR1);
-	reg &= ~SPI_CR1_BR_Msk;
-	reg |= bits;
-	WRITE_REG(g_hspiExternal.Instance->CR1, reg);
+__weak void SpiExternalTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len, uint8_t chipSelect, bool resetChipSelect) {
+	SpiExternalTransferPolling(dataOut, dataIn, len, chipSelect, resetChipSelect);
 }
 
-
+void SpiExternalPrescaler(uint32_t prescaler) {
+	SpiGenericPrescaler(SPI2, prescaler);
+}

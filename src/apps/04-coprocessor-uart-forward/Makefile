@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = Coprocessor-forward
 #Version of this application, to be used in the metadata
-VERSION  = 0.12.5
+VERSION  = 0.12.6
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata

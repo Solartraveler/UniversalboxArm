@@ -6,6 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stddef.h>
 
 #include "boxlib/peripheral.h"
@@ -14,8 +15,8 @@ SPDX-License-Identifier: BSD-3-Clause
 
 #include "boxlib/lcd.h"
 #include "boxlib/flash.h"
-
-SPI_HandleTypeDef g_hspi2;
+#include "boxlib/spiGeneric.h"
+#include "spiPlatform.h"
 
 void PeripheralBaseInit(void) {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -53,25 +54,7 @@ void PeripheralBaseInit(void) {
 	GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	//Copied from the STM cube generator output:
-	g_hspi2.Instance = SPI2;
-	g_hspi2.Init.Mode = SPI_MODE_MASTER;
-	g_hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-	g_hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
-	g_hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
-	g_hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-	g_hspi2.Init.NSS = SPI_NSS_SOFT;
-	//The scaler is of no real importance here, as it is set before every access anyway
-	g_hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
-	g_hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
-	g_hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
-	g_hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-	g_hspi2.Init.CRCPolynomial = 7;
-	g_hspi2.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-	g_hspi2.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
-	HAL_SPI_Init(&g_hspi2);
-
-
+	SpiPlatformInit(SPI2);
 }
 
 __weak void PeripheralInit(void) {
@@ -101,43 +84,20 @@ void PeripheralPowerOff(void) {
 	HAL_GPIO_Init(PeripheralNPower_GPIO_Port, &pinState);
 }
 
+void PeripheralTransferPolling(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
+	SpiGenericPolling(SPI2, dataOut, dataIn, len);
+}
+
 __weak void PeripheralTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
-	if ((dataIn) && (dataOut)) {
-		HAL_SPI_TransmitReceive(&g_hspi2, (uint8_t*)dataOut, dataIn, len, 100);
-	} else if (dataOut) {
-		HAL_SPI_Transmit(&g_hspi2, (uint8_t*)dataOut, len, 100);
-	} else if (dataIn) {
-		HAL_SPI_Receive(&g_hspi2 ,dataIn, len, 100);
-	}
+	PeripheralTransferPolling(dataOut, dataIn, len);
 }
 
 __weak void PeripheralTransferBackground(const uint8_t * dataOut, uint8_t * dataIn, size_t len) {
-	PeripheralTransfer(dataOut, dataIn, len);
+	PeripheralTransferPolling(dataOut, dataIn, len);
 }
 
 void PeripheralPrescaler(uint32_t prescaler) {
-	uint32_t bits;
-	if (prescaler <= 2) {
-		bits = SPI_BAUDRATEPRESCALER_2;
-	} else if (prescaler <= 4) {
-		bits = SPI_BAUDRATEPRESCALER_4;
-	} else if (prescaler <= 8) {
-		bits = SPI_BAUDRATEPRESCALER_8;
-	} else if (prescaler <= 16) {
-		bits = SPI_BAUDRATEPRESCALER_16;
-	} else if (prescaler <= 32) {
-		bits = SPI_BAUDRATEPRESCALER_32;
-	} else if (prescaler <= 64) {
-		bits = SPI_BAUDRATEPRESCALER_64;
-	} else if (prescaler <= 128) {
-		bits = SPI_BAUDRATEPRESCALER_128;
-	} else {
-		bits = SPI_BAUDRATEPRESCALER_256;
-	}
-	uint32_t reg = READ_REG(g_hspi2.Instance->CR1);
-	reg &= ~SPI_CR1_BR_Msk;
-	reg |= bits;
-	WRITE_REG(g_hspi2.Instance->CR1, reg);
+	SpiGenericPrescaler(SPI2, prescaler);
 }
 
 __weak void PeripheralTransferWaitDone(void) {

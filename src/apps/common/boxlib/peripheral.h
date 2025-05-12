@@ -27,15 +27,25 @@ void PeripheralPowerOn(void);
 //This includes disabling of signals to LCD and flash too
 void PeripheralPowerOff(void);
 
-//dataOut or dataIn may be a NULL pointer
+/*Does a transfer by polling or DMA, depending on the C souces compiled in.
+  dataOut or dataIn may be a NULL pointer
+*/
 void PeripheralTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len);
 
+/*Does a transfer by polling or DMA, depending on the C souces compiled in.
+  If DMA is used, the buffers must be valid until PeripheralTransferWaitDone returns or
+  this function has been called again and had returned.
+*/
 void PeripheralTransferBackground(const uint8_t * dataOut, uint8_t * dataIn, size_t len);
 
 void PeripheralPrescaler(uint32_t prescaler);
 
 //for non DMA, this is a dummy function
 void PeripheralTransferWaitDone(void);
+
+/*Transfer by polling. Same as PeripheralTransfer if DMA option is not compiled in.
+*/
+void PeripheralTransferPolling(const uint8_t * dataOut, uint8_t * dataIn, size_t len);
 
 /*Weak dummy functions, for real implementation and thread safety,
 peripheralMt.c must be compiled, which provide proper functions.

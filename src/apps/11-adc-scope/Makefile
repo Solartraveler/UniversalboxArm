@@ -17,7 +17,7 @@
 #Name of this application
 NAME     = ADC-Scope
 #Version of this application, to be used in the metadata
-VERSION  = 0.11.2
+VERSION  = 0.11.3
 #Author of this application, to be used in the metadata
 AUTHOR   = Malte Marwedel
 #Use the spdx notation here, to be used in the metadata
