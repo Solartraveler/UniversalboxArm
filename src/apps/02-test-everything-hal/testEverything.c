@@ -25,6 +25,7 @@ License: BSD-3-Clause
 #include "boxlib/esp.h"
 #include "boxlib/simpleadc.h"
 #include "boxlib/spiExternal.h"
+#include "boxlib/spiExternalDma.h"
 #include "boxlib/boxusb.h"
 #include "boxlib/mcu.h"
 #include "boxlib/readLine.h"
@@ -66,7 +67,8 @@ void MainMenu(void) {
 	printf("n: Manual coprocessor SPI voltage control\r\n");
 	printf("l: Minimize power for 4 seconds\r\n");
 	printf("p: Set analog, pull-up or pull down on pin\r\n");
-	printf("q: Test external SPI interface (assumes a SD/MMC card connected)\r\n");
+	printf("q: Test external SPI interface (assumes a SD/MMC card is connected)\r\n");
+	printf("v: Test external SPI interface (assumes a loop from MOSI to MISO)\r\n");
 	printf("r: Reboot with reset controller\r\n");
 	printf("s: Jump to DFU bootloader\r\n");
 	printf("t: Reboot to normal mode (needs coprocessor)\r\n");
@@ -163,6 +165,22 @@ void ChangePullPin(void) {
 	printf("Done\r\n");
 }
 
+SpiTransferFunc_t * AskDma(void) {
+	printf("Use DMA? y/n\r\n");
+	char input;
+	do {
+		input = Rs232GetChar();
+	} while (input == '\0');
+	SpiTransferFunc_t * pSpiTransfer = &SpiExternalTransferPolling;
+	if (input == 'y') {
+		pSpiTransfer = &SpiExternalTransferDma;
+		printf("Ok, DMA\r\n");
+	} else {
+		printf("Ok, polling\r\n");
+	}
+	return pSpiTransfer;
+}
+
 #define SD_CHIPSELECT 1
 
 /*Tested cards (all do respond as expected):
@@ -176,7 +194,8 @@ void CheckSpiExternal(void) {
 	SpiExternalInit();
 	//initializing SD/MMC cards require 100kHz - 400kHz
 	SpiExternalPrescaler(64); //so 125kHz @ 16MHz peripheral clock
-	if (!SdmmcInit(&SpiExternalTransfer, SD_CHIPSELECT) == 0) {
+	SpiTransferFunc_t * pSpiTransfer = AskDma();
+	if (!SdmmcInit(pSpiTransfer, SD_CHIPSELECT) == 0) {
 		return;
 	}
 	//CMD10 -> lets read out the vendor
@@ -259,6 +278,58 @@ void CheckSpiExternal(void) {
 		printf("  Write return indicated a failure\r\n");
 		return;
 	}
+}
+
+bool CheckSpiTransfer(SpiTransferFunc_t * pSpiTransfer, const uint8_t * out, size_t len) {
+	uint8_t readback[len];
+	memset(readback, 0, len);
+	pSpiTransfer(out, readback, len, 0, true);
+	if (memcmp(out, readback, len)) {
+		printf("Error, sent:\r\n");
+		PrintHex(out, len);
+		printf("Got:\r\n");
+		PrintHex(readback, len);
+		return false;
+	}
+	return true;
+}
+
+#define SPI_TESTBYTES 8
+void CheckSpiExternalLoopback(void) {
+	SpiExternalInit();
+	//initializing SD/MMC cards require 100kHz - 400kHz
+	SpiExternalPrescaler(64); //so 125kHz @ 16MHz peripheral clock
+	SpiTransferFunc_t * pSpiTransfer = AskDma();
+	const uint8_t testpattern[SPI_TESTBYTES] = {0x8C, 0x00, 0xFF, 0x01, 0xAA, 0xBB, 0xCC, 0xDD};
+	printf("Testing 1 byte transfer\r\n");
+	for (size_t i = 0; i < SPI_TESTBYTES; i++) {
+		CheckSpiTransfer(pSpiTransfer, &(testpattern[i]), 1);
+	}
+	printf("Testing 2 byte transfer\r\n");
+	for (size_t i = 0; i < SPI_TESTBYTES; i += 2) {
+		CheckSpiTransfer(pSpiTransfer, &(testpattern[i]), 2);
+	}
+	printf("Testing 6 byte TX only transfer\r\n");
+	pSpiTransfer(testpattern, NULL, 6, 0, true);
+	printf("Testing 1 byte TX only transfer\r\n");
+	pSpiTransfer(testpattern, NULL, 1, 0, true);
+	printf("Testing 4 byte transfer\r\n");
+	CheckSpiTransfer(pSpiTransfer, testpattern, 4);
+	printf("Testing 7 byte TX only transfer\r\n");
+	pSpiTransfer(testpattern, NULL, 7, 0, true);
+	printf("Testing 8 byte TX only transfer\r\n");
+	pSpiTransfer(testpattern, NULL, 7, 0, true);
+	printf("Testing 8 byte transfer\r\n");
+	CheckSpiTransfer(pSpiTransfer, testpattern, SPI_TESTBYTES);
+
+	uint8_t in[2];
+	printf("Testing 1 byte RX only transfer\r\n");
+	pSpiTransfer(NULL, in, 1, 0, true);
+	PrintHex(in, 1);
+	printf("Testing 2 byte RX only transfer\r\n");
+	pSpiTransfer(NULL, in, 2, 0, true);
+	PrintHex(in, 2);
+	printf("Done\r\n");
 }
 
 void SetLeds(void) {
@@ -975,6 +1046,7 @@ void AppCycle(void) {
 		case 's': JumpDfu(); break;
 		case 't': RebootToNormal(); break;
 		case 'u': TestUsb(); break;
+		case 'v': CheckSpiExternalLoopback(); break;
 		case 'z': RebootToDfu(); break;
 		default: break;
 	}
