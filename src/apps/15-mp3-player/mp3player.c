@@ -45,21 +45,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /*Should buffer 0.5s at 8bit, 44100Hz, mono -> 22050 bytes needed, but we need
   to save memory in order to fit the app into the 160KiB RAM, so make the buffer
-  smaller, risking underruns.
+  smaller, risking underruns. With 8KiB there are no underruns in the app,
+  as long as there is some pause between every keypress. With 5KiB there were underruns
+  even when not pressing any keys.
 */
-#if __GNUC__ <= 12
-
 //GCC version provided by Debian 12 for arm-none-eabi-gcc
-#define FIFO_SIZE 5000
-
-#else
-
-//GCC version provided by Ubuntu 24.04 for arm-none-eabi-gcc
-#define FIFO_SIZE 4500
-
-#endif
-
-
+#define FIFO_SIZE 8000
 
 //Reverse engineered by looking into steam and mad.h:
 //22652 byte for 32-bit ARM, 22732 byte for 64-bit x64
