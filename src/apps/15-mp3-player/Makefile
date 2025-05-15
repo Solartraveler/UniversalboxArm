@@ -112,8 +112,6 @@ $(STM_HAL)/Src/$(CHIPFAMILY)_hal_gpio.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_pwr.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_pwr_ex.c \
 $(STM_HAL)/Src/$(CHIPFAMILY)_hal_cortex.c \
-$(STM_HAL)/Src/$(CHIPFAMILY)_hal_spi.c \
-$(STM_HAL)/Src/$(CHIPFAMILY)_hal_dma.c \
 $(BOXLIB)/coproc.c \
 $(BOXLIB)/flash.c \
 $(BOXLIB)/keys.c \
