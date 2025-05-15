@@ -630,7 +630,8 @@ bool SdmmcReadSingleBlock(uint8_t * buffer, uint32_t block) {
 	uint16_t crcIs = SdmmcDataCrc(bufferStart);
 	uint16_t crcShould = (crc[0] << 8) | crc[1];
 	if (crcIs != crcShould) {
-		SDMMC_DEBUGERROR("Error, CRC mismatch, should %x, is %x\r\n", (unsigned int)crcShould, (unsigned int)crcIs);
+		SDMMC_DEBUGERROR("Error, CRC mismatch, should %x, is %x at block %x\r\n", (unsigned int)crcShould, (unsigned int)crcIs, (unsigned int)block);
+		SDMMC_DEBUGHEX(bufferStart, SDMMC_BLOCKSIZE);
 		return false;
 	}
 	return true;
