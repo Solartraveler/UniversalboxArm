@@ -175,3 +175,12 @@ The .mp3 file can be transferred to the flash with the 06-usb-mass-storage proje
 The audio quality can not be compared to a normal computer, it is more on the level of a telephone or a cheap toy doing some sounds.
 The reason is the simple A/D conversion with a 312,5kHz PWM signal.
 Stereo is converted to mono.
+
+## 16-led-matrix-tester
+
+Connect up to thee LEDs to external pins (might be one RGB LED) and control their brighness.
+LED 1 of the box can be controlled too.
+The intention is to test the actual brightness for using the LEDs in a matrix configuration.
+The number of colors, number of lines in a matrix and refresh rate can be configured.
+Then the duty cycle can be set for every LED.
+So this program basically provides 5 software generated PWM channels.

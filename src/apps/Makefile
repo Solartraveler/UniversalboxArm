@@ -28,6 +28,7 @@ all:
 	$(MAKE) -j -C 14-wav-player/pc-simulator
 	$(MAKE) -j -C 15-mp3-player
 	$(MAKE) -j -C 15-mp3-player/pc-simulator
+	$(MAKE) -j -C 16-led-matrix-tester
 
 clean:
 	$(MAKE) clean -C 01-blinky-hal
@@ -56,3 +57,4 @@ clean:
 	$(MAKE) clean -C 14-wav-player/pc-simulator
 	$(MAKE) clean -C 15-mp3-player
 	$(MAKE) clean -C 15-mp3-player/pc-simulator
+	$(MAKE) clean -C 16-led-matrix-tester
