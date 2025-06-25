@@ -52,6 +52,66 @@ The assumptions are:
 11. Command 0x1B (start/stop unit) is issued by the OS on unmount, it is not
    supported. This is ok.
 
+S.M.A.R.T. data can be get by
+smartctl --all -d scsi /dev/sdX
+returned values are however faked. Its just to prove how to implement it.
+It will look like:
+== START OF INFORMATION SECTION ===
+Vendor:               Marwedel
+Product:              UniversalboxARM
+Revision:             0.13
+Compliance:           SPC-4
+User Capacity:        8.384.512 bytes [8,38 MB]
+Logical block size:   512 bytes
+scsiModePageOffset: response length too short, resp_len=4 offset=4 bd_len=0
+Serial number:        31337
+Device type:          disk
+scsiModePageOffset: response length too short, resp_len=4 offset=4 bd_len=0
+Local Time is:        Wed Jun 25 23:12:29 2025 CEST
+SMART support is:     Available - device has SMART capability.
+SMART support is:     Enabled
+Temperature Warning:  Disabled or Not Supported
+scsiModePageOffset: response length too short, resp_len=4 offset=4 bd_len=0
+Read Cache is:        Unavailable
+Writeback Cache is:   Unavailable
+
+=== START OF READ SMART DATA SECTION ===
+SMART Health Status: OK
+
+Current Drive Temperature:     42 C
+Drive Trip Temperature:        80 C
+
+Elements in grown defect list: 1
+
+Error Counter logging not supported
+
+scsiModePageOffset: response length too short, resp_len=4 offset=4 bd_len=0
+Device does not support Self Test logging
+Device does not support Background scan results logging
+
+sginfo -d /dev/sdX
+shows a fake defect, like:
+
+NQUIRY response (cmd: 0x12)
+----------------------------
+Device Type                        0
+Vendor:                    Marwedel
+Product:                   UniversalboxARM
+Revision level:            0.13
+
+Defect Lists
+------------
+0 entries (0 bytes) in primary (PLIST) table.
+Format (4) is: bytes from index [Cyl:Head:Off]
+Offset -1 marks whole track as bad.
+
+
+1 entries (8 bytes) in grown (GLIST) table.
+Format (4) is: bytes from index [Cyl:Head:Off]
+Offset -1 marks whole track as bad.
+
+     0:  0:    1337|
+
 Tested with:
 Linux kernel 5.13: Disk needs 10s to appear when using 250kHz as flash clock, no double buffering
 Linux kernel 5.13: Disk needs 4s to appear when using 4MHz as flash clock, no double buffering
@@ -158,6 +218,12 @@ TODO:
 //from device to host (in)
 #define USB_ENDPOINT_TOHOST 0x81
 
+//fake data for S.M.A.R.T. Replace by some variable if real values are available.
+#define SMART_TEMP_LIMIT 80
+#define SMART_TEMP_MAX 50
+#define SMART_TEMP_CURRENT 42
+//if not 0, simulate reporting a defect sector
+#define SMART_DEFECT 1337
 
 typedef struct {
 	uint32_t signature;
@@ -476,24 +542,82 @@ void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 			}
 			printfNowait("\r\n");
 #endif
+			bool invalidCommand = false;
+			bool invalidField = false;
 			uint8_t command = cbw->data[0];
 			if ((command == 0x12) && (cbw->length >= 6)) { //inquiry command (1. done by the Linux host)
 				if (cbw->data[4] >= 36) { //Linux requests 36, Windows requests 255
-					scsiInquiry_t dataOut;
-					dataOut.deviceType = 0x0;
-					dataOut.rmb = 0x80; //removeable media
-					dataOut.versions = 0;
-					dataOut.responseFormat = 0x0;
-					dataOut.additionalLength = 31; //always this value
-					strcpy((char *)dataOut.vendorInformation, "Marw");
-					strcpy((char *)dataOut.productInformation, "UniversalboxARM");
-					memset(dataOut.productrevisionLevel, 0, 4);
-					StorageQueueToHost(dev, &dataOut, sizeof(dataOut));
-					StorageQueueCsw(dev, cbw->tag, 0);
+					uint8_t evpd = cbw->data[1] & 1; //enable vital product data
+					uint8_t pageCode = cbw->data[2];
+					if (evpd == 0) {
+						if (pageCode == 0) {
+							scsiInquiry_t dataOut;
+							dataOut.deviceType = 0x0;
+							dataOut.rmb = 0x80; //removeable media
+							dataOut.versions = 0x6; //SPC-4
+							dataOut.responseFormat = 0x0;
+							dataOut.additionalLength = 31; //always this value
+							memcpy((char *)dataOut.vendorInformation, "Marwedel", sizeof(dataOut.vendorInformation));
+							memcpy((char *)dataOut.productInformation, "UniversalboxARM", sizeof(dataOut.productInformation));
+							for (uint32_t i = 0; i < 4; i++) {
+								dataOut.productrevisionLevel[i] = APPVERSION[i];
+							}
+							StorageQueueToHost(dev, &dataOut, sizeof(dataOut));
+							StorageQueueCsw(dev, cbw->tag, 0);
+						} else {
+							invalidField = true;
+						}
+					} else { //requested by smartctrl
+						/*see
+						  https://www.seagate.com/files/staticfiles/support/docs/manual/Interface%20manuals/100293068j.pdf
+						  and
+						  https://ftp.hydata.com/Downloads/scsitools/scsitools.DRT/Resources/LOD_FactoryMadeLOD-Files/t10/sat4r06.pdf
+						*/
+						if (pageCode == 0) { //returns a list of supported page codes
+							uint8_t dataOut[7];
+							dataOut[0] = 0; //same value as if evpd == 0
+							dataOut[1] = pageCode;
+							dataOut[2] = 0; //reserved
+							dataOut[3] = sizeof(dataOut) - 4;
+							dataOut[4] = 0; //we support this command
+							dataOut[5] = 0x80; //we support reading the serial number
+							dataOut[6] = 0x83; //we support Device Identification VPD page
+							StorageQueueToHost(dev, &dataOut, sizeof(dataOut));
+							StorageQueueCsw(dev, cbw->tag, 0);
+						} else if (pageCode == 0x80) { //returns the serial number
+							uint8_t dataOut[9];
+							dataOut[0] = 0; //same value as if evpd == 0
+							dataOut[1] = pageCode;
+							dataOut[2] = 0; //reserved
+							dataOut[3] = sizeof(dataOut) - 4;
+							//serial number
+							for (uint32_t i = 0; i < 5; i++) {
+								dataOut[4 + i] = g_serial_desc.wString[i];
+							}
+							StorageQueueToHost(dev, &dataOut, sizeof(dataOut));
+							StorageQueueCsw(dev, cbw->tag, 0);
+						} else if (pageCode == 0x83) { //Device Identification VPD page
+							const char * id = "Marwedels.de UniversalboxARM";
+							uint8_t dataOut[64];
+							size_t lenText = strlen(id);
+							size_t len = lenText + 4;
+							dataOut[0] = 0; //same value as if evpd == 0
+							dataOut[1] = pageCode;
+							dataOut[2] = 0; //size MSB
+							dataOut[3] = len;
+							dataOut[4] = 0xF2; //Protocol identifier = 0xF -> reserved (found used by a card reader), code set = 2 -> ascii
+							dataOut[5] = 1; //PIV = 0, ASSOCIATION = 0, IDENTIFIER = 1 -> first 8 byte are the vendor id
+							dataOut[6] = 0; //reserved
+							dataOut[7] = lenText;
+							memcpy(dataOut + 8, id, lenText);
+							StorageQueueToHost(dev, &dataOut, len  + 4);
+							StorageQueueCsw(dev, cbw->tag, 0);
+						} else {
+							invalidField = true;
+						}
+					}
 				} else {
-					g_storageState.senseKey = 0x5; //illegal request
-					g_storageState.additionalSenseCode = 0x24; //invalid field in command packet
-					StorageQueueCsw(dev, cbw->tag, 1);
+					invalidField = true;
 				}
 			} else if ((command == 0x0) && (cbw->length >= 6)) { //test unit ready (2. done by the host)
 				StorageQueueCsw(dev, cbw->tag, 0);
@@ -511,7 +635,7 @@ void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 				dataOut.reserved3 = 0;
 				StorageQueueToHost(dev, &dataOut, sizeof(dataOut));
 				StorageQueueCsw(dev, cbw->tag, 0);
-			} else if ((command == 0x25) && (cbw->length >= 6)) { //read capacity (3. request by the host)
+			} else if ((command == 0x25) && (cbw->length >= 6)) { //read capacity (10) (3. request by the host)
 				uint32_t capacity[2];
 				capacity[0] = BytesFlip(g_storageState.flashBytes / DISK_BLOCKSIZE - 1);
 				capacity[1] = BytesFlip(DISK_BLOCKSIZE);
@@ -530,16 +654,45 @@ void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 				StorageQueueToHost(dev, data, sizeof(data));
 				StorageQueueCsw(dev, cbw->tag, 0);
 			} else if ((command == 0x1A) && (cbw->length >= 6)) { //mode sense(6) (4. request by the host)
-				uint8_t data[4];
-				data[0] = 3; //three bytes follow
+				uint8_t dbd = (cbw->data[1] >> 3) & 1; //disable block descriptor
+				//uint8_t pc = (cbw->data[2] >> 6) & 3; //page control, 0 -> current values
+				uint8_t pageCode = cbw->data[2]  & 0x3F; //smartctrl requests this with a value of 0x1C -> informational exceptions control
+				//uint8_t subpageCode = cbw->data[3];
+
+				size_t idx = 0;
+				uint8_t data[64];
+				//block descriptor header
 				data[1] = 0; //medium type
 				if (g_storageState.writeProtected) {
 					data[2] = 0x80;
 				} else {
 					data[2] = 0x0;
 				}
-				data[3] = 0; //block descriptor length
-				StorageQueueToHost(dev, data, sizeof(data));
+				if (dbd) {
+					data[3] = 0; //block descriptor length, must be 0
+					idx = 4;
+				} else {
+					data[3] = 0; //block descriptor length, can be 0
+					idx = 4;
+					//add block descriptors if needed
+				}
+				/*0x3F: Request all supported mode pages. Common by 4. request by the host
+				  0x1C: Request informational exception control, requested by smartctrl
+				*/
+				if ((pageCode == 0x3F) || (pageCode == 0x1C)) {
+					data[idx] = 0x1C; //support exception control
+					const size_t pageLen = 0xA;
+					data[idx + 1] = pageLen;
+					/*1. byte: PERF = 0, EBF = 0, EWASC = 0, DEXCPT = 0, test = 0, EBACKERR = 0, LOGERR = 0
+					  2. byte: MRIE = 0
+					  3..6 byte: interval timer = 0
+					  7..10 byte: report count = 0 -> no limit
+					*/
+					memset(data + idx + 2, 0, pageLen);
+					idx += pageLen + 2;
+				}
+				data[0] = idx - 1; //this byte itself is excluded in the length field
+				StorageQueueToHost(dev, data, idx);
 				StorageQueueCsw(dev, cbw->tag, 0);
 			} else if ((command == 0x5A) && (cbw->length >= 6)) { //mode sense(10) (4. looks like a MAC does this instead of mode sense(6))
 				uint8_t data[8] = {0};
@@ -590,10 +743,177 @@ void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 			} else if ((command == 0x2F) && (cbw->length >= 10)) { //verify data
 				//nothing to do. We simply tell everything is ok :P
 				StorageQueueCsw(dev, cbw->tag, 0);
+			} else if ((command == 0x9E) && (cbw->length >= 10)) { //service action (requested by smartctrl if called with --all -d scsi <device> parameter)
+				uint8_t serviceAction = cbw->data[1];
+				if (serviceAction == 0x10) { //read capacity (16)
+					uint32_t capacity[8] = {0};
+					capacity[1] = BytesFlip(g_storageState.flashBytes / DISK_BLOCKSIZE - 1); //capacity[0] is for data above 2TiB drives
+					capacity[2] = BytesFlip(DISK_BLOCKSIZE);
+					StorageQueueToHost(dev, capacity, sizeof(capacity));
+					StorageQueueCsw(dev, cbw->tag, 0);
+				} else {
+					printfNowait("Service action 0x%x unsuppored\r\n", serviceAction);
+					invalidCommand = true;
+				}
+			} else if ((command == 0x4D) && (cbw->length >= 10)) { //log sense command, requested by smartctrl if mode sense claims to support S.M.A.R.T.
+				uint8_t sp = cbw->data[1] & 1;
+				//uint8_t pc = (cbw->data[2] >> 6) & 0x3;
+				uint8_t pageCode = cbw->data[2] & 0x3F;
+				uint8_t subpageCode = cbw->data[3];
+				//uint16_t paraPointer = (cbw->data[5] << 8) | cbw->data[6];
+				uint16_t allocLen = (cbw->data[7] << 8) | cbw->data[8];
+				//uint8_t control = cbw->data[9];
+				/*smartctrl typically calls eache pageCode twiche. Once with a allocLen of 4 and then
+				  with a larger allocLen. Should the first call return too much data, a reset is issued and
+				  reading the data fails.
+				*/
+				//printfNowait("LSense sp 0x%x, pc 0x%x, pCode 0x%x, sp 0x%x, pP 0x%x, all 0x%x, ctrl 0x%x\r\n",
+				//     (unsigned int)sp, (unsigned int)pc, (unsigned int)pageCode, (unsigned int)subpageCode, paraPointer, allocLen, control);
+				if ((sp == 0) && (subpageCode == 0)) {
+					if (pageCode == 0) { //list supported page codes
+						uint8_t data[9] = {0}; //for some reasons, if the array is smaller (and actually fitting to the used length of 7 bytes), an USB reset is sent and wireshark reports a decoding error
+						data[0] = 0x80 | pageCode; //ds = 1 -> disable save, spf = 0, so sub page code must be zero
+						data[1] = 0; //sub page code
+						data[2] = 0; //page length (high byte)
+						data[3] = 3; //page length (low byte)
+						data[4] = pageCode; //support this code
+						data[5] = 0x0D; //support temperature page
+						data[6] = 0x2F; //support information exception log page
+						StorageQueueToHost(dev, data, MIN(sizeof(data), allocLen));
+						StorageQueueCsw(dev, cbw->tag, 0);
+					} else if (pageCode == 0x0D) { //temperature page
+						uint8_t data[16];
+						data[0] = 0x80 | pageCode; //ds = 1 -> disable save, spf = 0, so sub page code must be zero
+						data[1] = 0; //sub page code
+						data[2] = 0; //page length (high byte)
+						data[3] = sizeof(data) - 4; //page length (low byte)
+						size_t idx = 4;
+						//one temperature entry is 12 byte in size
+						data[idx + 0] = 0x00; //temperature report
+						data[idx + 1] = 0x00; //temperature report
+						data[idx + 2] = 3; //parameter control byte. format and linking = 3 -> binary list
+						data[idx + 3] = 0x2; //parameter length
+						data[idx + 4] = 0; //reserved
+						data[idx + 5] = SMART_TEMP_CURRENT; //actual temperature
+						data[idx + 6] = 0x00; //reference temperature report
+						data[idx + 7] = 0x01; //reference temperature report
+						data[idx + 8] = 3; //parameter control byte. format and linking = 3 -> binary list
+						data[idx + 9] = 0x2; //parameter length
+						data[idx + 10] = 0; //reserved
+						data[idx + 11] = SMART_TEMP_LIMIT; //reference temperature
+						StorageQueueToHost(dev, data, MIN(sizeof(data), allocLen));
+						StorageQueueCsw(dev, cbw->tag, 0);
+					} else if (pageCode == 0x2F) { //information exception log page
+						uint8_t data[13];
+						data[0] = 0x80 | pageCode; //ds = 1 -> disable save, spf = 0, so sub page code must be zero
+						data[1] = 0; //sub page code
+						data[2] = 0; //page length (high byte)
+						data[3] = sizeof(data) - 4; //page length (low byte)
+						size_t idx = 4;
+						//one entry is at least 8 bytes in size
+						data[idx + 0] = 0x00; //parameter code -> informational exceptions general parameter
+						data[idx + 1] = 0x00; //parameter code -> informational exceptions general parameter
+						data[idx + 2] = 3; //parameter control byte. format and linking = 3 -> binary list
+						data[idx + 3] = 0x5; //parameter length
+						data[idx + 4] = 0; //no information pending = 0
+						data[idx + 5] = 0; //unspecified, because no information are pending
+						data[idx + 6] = SMART_TEMP_CURRENT; //most recent temperature read
+						data[idx + 7] = SMART_TEMP_LIMIT; //if this temperature is reached, a warning should be issued
+						data[idx + 8] = SMART_TEMP_MAX; //maximum temperature ever measured
+						StorageQueueToHost(dev, data, MIN(sizeof(data), allocLen));
+						StorageQueueCsw(dev, cbw->tag, 0);
+					} else {
+						invalidField = true;
+					}
+				} else {
+					invalidField = true; //we do not support saving and not subpages
+				}
+			} else if ((command == 0xB7) && (cbw->length >= 12)) { //read defect data (12), requested by smartctrl if mode sense claims to support S.M.A.R.T.
+				uint8_t reqPList = (cbw->data[1] >> 4) & 1;
+				uint8_t reqGList = (cbw->data[1] >> 3) & 1;
+				uint8_t format = cbw->data[1] & 7;
+				uint32_t descIndex = (cbw->data[2] << 24) | (cbw->data[3] << 16) | (cbw->data[4] << 8) | cbw->data[5];
+				uint32_t allocLen = (cbw->data[6] << 24) | (cbw->data[7] << 16) | (cbw->data[8] << 8) | cbw->data[9];
+				//printfNowait("0xB7 P %u, G: %u, format: 0x%x, idx %u len %u\r\n", reqPList, reqGList, format, (unsigned int)descIndex, (unsigned int)allocLen);
+				size_t idx = 0;
+				uint8_t data[16] = {0};
+				idx = 8;
+				data[1] = (reqPList << 4) | (reqGList << 3) | 4; //we only support format 4
+				data[4] = 0; //defect list length high byte
+				data[5] = 0; //defect list length
+				data[6] = 0; //defect list length
+				if ((SMART_DEFECT) && (reqGList) && (descIndex == 0)) {
+					data[7] = 8; //defect list length low byte (8 byte per entry)
+					data[8] = 0; //cylinder number
+					data[9] = 0; //cylinder number
+					data[10] = 0; //cylinder number
+					data[11] = 0; //head number
+					data[12] = (SMART_DEFECT >> 24) & 0xFF; //bytes from idx high
+					data[13] = (SMART_DEFECT >> 16) & 0xFF; //bytes from idx
+					data[14] = (SMART_DEFECT >> 8) & 0xFF; //bytes from idx
+					data[15] = SMART_DEFECT & 0xFF; //bytes from idx low
+					idx += 8;
+				}
+				StorageQueueToHost(dev, data, MIN(idx, allocLen));
+				if (format != 4) { //bytes from index format descriptor
+					g_storageState.senseKey = 0x1; //recovered error
+					g_storageState.additionalSenseCode = 0x1C; //defect list not found
+					StorageQueueCsw(dev, cbw->tag, 1);
+				} else {
+					StorageQueueCsw(dev, cbw->tag, 0);
+				}
+			} else if ((command == 0x37) && (cbw->length >= 10)) { //read defect data (10), requested by smartctrl if mode sense claims to support S.M.A.R.T. and read defect data (12) did not work
+				uint8_t reqPList = (cbw->data[2] >> 4) & 1;
+				uint8_t reqGList = (cbw->data[2] >> 3) & 1;
+				uint8_t format = cbw->data[2] & 7;
+				uint16_t allocLen = (cbw->data[7] << 8) | cbw->data[8];
+				//printfNowait("0x37 p: %u, G: %u, format: 0x%x, len %u\r\n", reqPList, reqGList, format, allocLen);
+				size_t idx = 0;
+				uint8_t data[12] = {0};
+				idx = 4;
+				data[1] = (reqPList << 4) | (reqGList << 3) | 4; //we only support format 4
+				data[2] = 0; //defect list length high byte
+				if ((SMART_DEFECT) && (reqGList)) {
+					data[3] = 8; //defect list length low byte (8 byte per entry)
+					data[4] = 0; //cylinder number
+					data[5] = 0; //cylinder number
+					data[6] = 0; //cylinder number
+					data[7] = 0; //head number
+					data[8] = (SMART_DEFECT >> 24) & 0xFF; //bytes from idx high
+					data[9] = (SMART_DEFECT >> 16) & 0xFF; //bytes from idx
+					data[10] = (SMART_DEFECT >> 8) & 0xFF; //bytes from idx
+					data[11] = SMART_DEFECT & 0xFF; //bytes from idx low
+					idx += 8;
+				}
+				StorageQueueToHost(dev, data, MIN(idx, allocLen));
+				if (format != 4) { //bytes from index format descriptor
+					g_storageState.senseKey = 0x1; //recovered error
+					g_storageState.additionalSenseCode = 0x1C; //defect list not found
+					StorageQueueCsw(dev, cbw->tag, 1);
+				} else {
+					StorageQueueCsw(dev, cbw->tag, 0);
+				}
 			} else { //unsupported command
-				printfNowait("Cmd 0x%x unsuppored\r\n", command);
-				g_storageState.senseKey = 0x5;
+				/*HDSentinal requests:
+				  0xE4: <no documentation found>
+				  0x24: <no documentation found>
+				  0xA1: ATA pass through (12)
+				  0xDF: <no documentation found>
+				  0xF8: <no documentation found>
+				  0xD8: <no documentation found>
+				  0xEE: <no documentation found>
+				*/
+				invalidCommand = true;
+			}
+			if (invalidCommand) {
+				printfNowait("Cmd 0x%x unsuppored, length %u\r\n", command, (unsigned int)cbw->length);
 				g_storageState.additionalSenseCode = 0x20; //invalid command operational code
+			} else if (invalidField) {
+				printfNowait("Field for cmd 0x%x unsuppored, length %u\r\n", command, (unsigned int)cbw->length);
+				g_storageState.additionalSenseCode = 0x24; //invalid field in command packet
+			}
+			if ((invalidCommand) || (invalidField)) {
+				g_storageState.senseKey = 0x5; //illegal request
 				StorageQueueCsw(dev, cbw->tag, 1); //command failed
 			}
 		} else {
