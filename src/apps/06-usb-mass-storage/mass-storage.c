@@ -1,5 +1,5 @@
 /* Mass storage
-(c) 2022 by Malte Marwedel
+(c) 2022-2025 by Malte Marwedel
 
 SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -54,12 +54,16 @@ The assumptions are:
 
 S.M.A.R.T. data can be get by
 smartctl --all -d scsi /dev/sdX
-returned values are however faked. Its just to prove how to implement it.
+returned values are mostly faked. Its just to prove how to implement it.
+Only "Gigabytes processed" is properly counted since the last program start
+(not stored across reboots).
+
 It will look like:
-== START OF INFORMATION SECTION ===
+-----------------
+=== START OF INFORMATION SECTION ===
 Vendor:               Marwedel
 Product:              UniversalboxARM
-Revision:             0.13
+Revision:             0.14
 Compliance:           SPC-4
 User Capacity:        8.384.512 bytes [8,38 MB]
 Logical block size:   512 bytes
@@ -67,32 +71,36 @@ scsiModePageOffset: response length too short, resp_len=4 offset=4 bd_len=0
 Serial number:        31337
 Device type:          disk
 scsiModePageOffset: response length too short, resp_len=4 offset=4 bd_len=0
-Local Time is:        Wed Jun 25 23:12:29 2025 CEST
+Local Time is:        Sun Jul 13 23:24:09 2025 CEST
 SMART support is:     Available - device has SMART capability.
 SMART support is:     Enabled
 Temperature Warning:  Disabled or Not Supported
-scsiModePageOffset: response length too short, resp_len=4 offset=4 bd_len=0
-Read Cache is:        Unavailable
-Writeback Cache is:   Unavailable
 
 === START OF READ SMART DATA SECTION ===
 SMART Health Status: OK
 
+Percentage used endurance indicator: 1%
 Current Drive Temperature:     42 C
 Drive Trip Temperature:        80 C
 
 Elements in grown defect list: 1
 
-Error Counter logging not supported
+Error counter log:
+           Errors Corrected by           Total   Correction     Gigabytes    Total
+               ECC          rereads/    errors   algorithm      processed    uncorrected
+           fast | delayed   rewrites  corrected  invocations   [10^9 bytes]  errors
+read:          0        0         0         0          0          0,000           1
+write:         0        0         0         0          0          0,000           2
 
 scsiModePageOffset: response length too short, resp_len=4 offset=4 bd_len=0
 Device does not support Self Test logging
-Device does not support Background scan results logging
+-----------------
+
 
 sginfo -d /dev/sdX
 shows a fake defect, like:
 
-NQUIRY response (cmd: 0x12)
+INQUIRY response (cmd: 0x12)
 ----------------------------
 Device Type                        0
 Vendor:                    Marwedel
@@ -224,6 +232,9 @@ TODO:
 #define SMART_TEMP_CURRENT 42
 //if not 0, simulate reporting a defect sector
 #define SMART_DEFECT 1337
+#define SMART_PERCENTAGE_USED 1
+#define SMART_UNCORRECTED_READS 1
+#define SMART_UNCORRECTED_WRITES 2
 
 typedef struct {
 	uint32_t signature;
@@ -380,6 +391,8 @@ typedef struct {
 	uint32_t writeBlockNum;
 	uint8_t writeBuffer[DISK_BLOCKSIZE];
 	uint32_t writeStatus; //accumulate errors of one write request
+	uint64_t writtenBytes; //for S.M.A.R.T.
+	uint64_t readBytes; //for S.M.A.R.T.
 } storageState_t;
 
 typedef struct {
@@ -519,6 +532,29 @@ void EndpointFillDatabuffer(usbd_device *dev, uint8_t ep) {
 	}
 }
 
+static void DataInsert16(uint8_t * out, uint16_t data) {
+	//USB wants MSB first
+	out[0] = data >> 8;
+	out[1] = (data & 0xFF);
+}
+
+#if 0
+//currently just unused
+static void DataInsert32(uint8_t * out, uint32_t data) {
+	for (uint32_t i = 0; i < sizeof(uint32_t); i++) {
+		out[sizeof(uint32_t) - 1 - i] = data & 0xFF;
+		data >>= 8;
+	}
+}
+#endif
+
+static void DataInsert64(uint8_t * out, uint32_t data) {
+	for (uint32_t i = 0; i < sizeof(uint64_t); i++) {
+		out[sizeof(uint64_t) - 1 - i] = data & 0xFF;
+		data >>= 8;
+	}
+}
+
 void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 	//printfNowait("Bulk out %u %u\r\n", event, ep);
 	if (g_storageState.needWriteRx) {
@@ -603,8 +639,7 @@ void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 							size_t len = lenText + 4;
 							dataOut[0] = 0; //same value as if evpd == 0
 							dataOut[1] = pageCode;
-							dataOut[2] = 0; //size MSB
-							dataOut[3] = len;
+							DataInsert16(dataOut + 2, len);
 							dataOut[4] = 0xF2; //Protocol identifier = 0xF -> reserved (found used by a card reader), code set = 2 -> ascii
 							dataOut[5] = 1; //PIV = 0, ASSOCIATION = 0, IDENTIFIER = 1 -> first 8 byte are the vendor id
 							dataOut[6] = 0; //reserved
@@ -771,26 +806,66 @@ void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 				//     (unsigned int)sp, (unsigned int)pc, (unsigned int)pageCode, (unsigned int)subpageCode, paraPointer, allocLen, control);
 				if ((sp == 0) && (subpageCode == 0)) {
 					if (pageCode == 0) { //list supported page codes
-						uint8_t data[9] = {0}; //for some reasons, if the array is smaller (and actually fitting to the used length of 7 bytes), an USB reset is sent and wireshark reports a decoding error
+						uint8_t data[10] = {0}; //for some reasons, if the array is smaller than 9 bytes, an USB reset is sent and wireshark reports a decoding error
 						data[0] = 0x80 | pageCode; //ds = 1 -> disable save, spf = 0, so sub page code must be zero
 						data[1] = 0; //sub page code
-						data[2] = 0; //page length (high byte)
-						data[3] = 3; //page length (low byte)
+						DataInsert16(data + 2, 6); //page length = 6 supported IDs
 						data[4] = pageCode; //support this code
-						data[5] = 0x0D; //support temperature page
-						data[6] = 0x2F; //support information exception log page
+						data[5] = 0x02; //support write error log page
+						data[6] = 0x03; //support read error log page
+						data[7] = 0x0D; //support temperature page
+						data[8] = 0x11; //support solid state media log page
+						data[9] = 0x2F; //support information exception log page
+						StorageQueueToHost(dev, data, MIN(sizeof(data), allocLen));
+						StorageQueueCsw(dev, cbw->tag, 0);
+					} else if (pageCode == 0x02) { //write error log page
+						uint8_t data[28];
+						data[0] = 0x80 | pageCode; //ds = 1 -> disable save, spf = 0, so sub page code must be zero
+						data[1] = 0; //sub page code
+						DataInsert16(data + 2, sizeof(data) - 4); //page length
+						size_t idx = 4;
+						//entry for total bytes processed
+						DataInsert16(data + idx, 0x05); //entry id
+						data[idx + 2] = 3; //parameter control byte. format and linking = 3 -> binary list
+						data[idx + 3] = sizeof(uint64_t); //parameter length
+						DataInsert64(data + idx + 4, g_storageState.writtenBytes);
+						idx += 12;
+						//entry for total uncorrected errors
+						DataInsert16(data + idx, 0x6); //entry id
+						data[idx + 2] = 3; //parameter control byte. format and linking = 3 -> binary list
+						data[idx + 3] = sizeof(uint64_t); //parameter length
+						DataInsert64(data + idx + 4, SMART_UNCORRECTED_WRITES);
+						idx += 12;
+						StorageQueueToHost(dev, data, MIN(sizeof(data), allocLen));
+						StorageQueueCsw(dev, cbw->tag, 0);
+					} else if (pageCode == 0x03) { //read error log page
+						uint8_t data[28];
+						data[0] = 0x80 | pageCode; //ds = 1 -> disable save, spf = 0, so sub page code must be zero
+						data[1] = 0; //sub page code
+						DataInsert16(data + 2, sizeof(data) - 4); //page length
+						size_t idx = 4;
+						//entry for total bytes processed
+						DataInsert16(data + idx, 0x05); //entry id
+						data[idx + 2] = 3; //parameter control byte. format and linking = 3 -> binary list
+						data[idx + 3] = sizeof(uint64_t); //parameter length
+						DataInsert64(data + idx + 4, g_storageState.readBytes);
+						idx += 12;
+						//entry for total uncorrected errors
+						DataInsert16(data + idx, 0x06); //entry id
+						data[idx + 2] = 3; //parameter control byte. format and linking = 3 -> binary list
+						data[idx + 3] = sizeof(uint64_t); //parameter length
+						DataInsert64(data + idx + 4, SMART_UNCORRECTED_READS);
+						idx += 12;
 						StorageQueueToHost(dev, data, MIN(sizeof(data), allocLen));
 						StorageQueueCsw(dev, cbw->tag, 0);
 					} else if (pageCode == 0x0D) { //temperature page
 						uint8_t data[16];
 						data[0] = 0x80 | pageCode; //ds = 1 -> disable save, spf = 0, so sub page code must be zero
 						data[1] = 0; //sub page code
-						data[2] = 0; //page length (high byte)
-						data[3] = sizeof(data) - 4; //page length (low byte)
+						DataInsert16(data + 2, sizeof(data) - 4); //page length
 						size_t idx = 4;
 						//one temperature entry is 12 byte in size
-						data[idx + 0] = 0x00; //temperature report
-						data[idx + 1] = 0x00; //temperature report
+						DataInsert16(data + idx, 0x0); //temperature report
 						data[idx + 2] = 3; //parameter control byte. format and linking = 3 -> binary list
 						data[idx + 3] = 0x2; //parameter length
 						data[idx + 4] = 0; //reserved
@@ -803,16 +878,30 @@ void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 						data[idx + 11] = SMART_TEMP_LIMIT; //reference temperature
 						StorageQueueToHost(dev, data, MIN(sizeof(data), allocLen));
 						StorageQueueCsw(dev, cbw->tag, 0);
+					} else if (pageCode == 0x11) { //solid state media log page
+						uint8_t data[12];
+						data[0] = 0x80 | pageCode; //ds = 1 -> disable save, spf = 0, so sub page code must be zero
+						data[1] = 0; //sub page code
+						DataInsert16(data + 2, sizeof(data) - 4); //page length
+						size_t idx = 4;
+						//one entry is at least 8 bytes in size
+						DataInsert16(data + idx, 0x01); //parameter code -> percentage used endurance indicator
+						data[idx + 2] = 3; //parameter control byte. format and linking = 3 -> binary list
+						data[idx + 3] = 0x4; //parameter length
+						data[idx + 4] = 0; //reserved
+						data[idx + 5] = 0; //reserved
+						data[idx + 6] = 0; //reserved
+						data[idx + 7] = SMART_PERCENTAGE_USED; //starts at 0, at 100 the expected life is over
+						StorageQueueToHost(dev, data, MIN(sizeof(data), allocLen));
+						StorageQueueCsw(dev, cbw->tag, 0);
 					} else if (pageCode == 0x2F) { //information exception log page
 						uint8_t data[13];
 						data[0] = 0x80 | pageCode; //ds = 1 -> disable save, spf = 0, so sub page code must be zero
 						data[1] = 0; //sub page code
-						data[2] = 0; //page length (high byte)
-						data[3] = sizeof(data) - 4; //page length (low byte)
+						DataInsert16(data + 2, sizeof(data) - 4); //page length
 						size_t idx = 4;
 						//one entry is at least 8 bytes in size
-						data[idx + 0] = 0x00; //parameter code -> informational exceptions general parameter
-						data[idx + 1] = 0x00; //parameter code -> informational exceptions general parameter
+						DataInsert16(data + idx, 0x00);//parameter code -> informational exceptions general parameter
 						data[idx + 2] = 3; //parameter control byte. format and linking = 3 -> binary list
 						data[idx + 3] = 0x5; //parameter length
 						data[idx + 4] = 0; //no information pending = 0
@@ -823,9 +912,11 @@ void EndpointBulkOut(usbd_device *dev, uint8_t event, uint8_t ep) {
 						StorageQueueToHost(dev, data, MIN(sizeof(data), allocLen));
 						StorageQueueCsw(dev, cbw->tag, 0);
 					} else {
+						printfNowait("Unsupported pageCode 0x%x\r\n", (unsigned int)pageCode);
 						invalidField = true;
 					}
 				} else {
+					printfNowait("Unsupported sp 0x%x pageCode 0x%x subpageCode 0x%x\r\n", (unsigned int)sp, (unsigned int)pageCode, (unsigned int)subpageCode);
 					invalidField = true; //we do not support saving and not subpages
 				}
 			} else if ((command == 0xB7) && (cbw->length >= 12)) { //read defect data (12), requested by smartctrl if mode sense claims to support S.M.A.R.T.
@@ -1165,6 +1256,7 @@ bool ProcessFlashAccess(void) {
 						break;
 					}
 				}
+				g_storageState.readBytes += DISK_BLOCKSIZE;
 			} else {
 				printf("Error, read failed\r\n");
 				status = 1; //command failed
@@ -1216,6 +1308,7 @@ bool ProcessFlashAccess(void) {
 			g_storageState.senseKey = 0x3; //medium error
 			g_storageState.additionalSenseCode = 0x3; //write fault
 		}
+		g_storageState.writtenBytes += DISK_BLOCKSIZE;
 #else
 		if (firstBlock) {
 			printf("Sim write block %u, len %u\r\n", (unsigned int)writeBlock, (unsigned int)blocks);
