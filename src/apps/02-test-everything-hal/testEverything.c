@@ -278,6 +278,45 @@ void CheckSpiExternal(void) {
 		printf("  Write return indicated a failure\r\n");
 		return;
 	}
+	printf("Test vendor cmd (only some industrial cards support this)? Enter parameter (hex) the specific card needs. Or enter to skip.\r\n");
+	/*CMD56 for getting something like S.M.A.R.T. data. But this is highly vendor
+	  specific and most (consumer) cards do not support it at all.
+	  The argument should be odd to perform a read.
+	*/
+	char serialBuffer[16] = {0};
+	ReadSerialLine(serialBuffer, sizeof(serialBuffer));
+	unsigned int argument = 0;
+	if (strlen(serialBuffer) == 0) {
+		printf("  Not testing...\r\n");
+		return;
+	}
+	sscanf(serialBuffer, "%x", &argument);
+	if ((argument & 1) == 0) {
+		printf("\r\n  Not testing (not a read command)...\r\n");
+		return;
+	}
+	printf("\r\nTesting with arg = 0x%x\r\n", argument);
+	uint8_t dataOutCmd56[526]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait byte, 512 response bytes
+	uint8_t dataInCmd56[526];
+	SdmmcFillCommand(dataOutCmd56, dataInCmd56, sizeof(dataOutCmd56), 56, argument);
+	SpiExternalTransfer(dataOutCmd56, dataInCmd56, sizeof(dataInCmd56), SD_CHIPSELECT, true);
+	printf("Response from CMD56:\r\n");
+	PrintHex(dataInCmd56, sizeof(dataInCmd56));
+	idxR1 = SdmmcSDR1ResponseIndex(dataInCmd56, sizeof(dataInCmd56));
+	if (idxR1 == 0) {
+		printf("  No response found\r\n");
+		return;
+	}
+	index = idxR1 + 1;
+	bytesLeft = sizeof(dataInCmd56) - index;
+	dataStart = SdmmcSeekDataStart(dataInCmd56 + index, bytesLeft);
+	if (dataStart >= bytesLeft) {
+		printf("  No data start found\r\n");
+	}
+	dataStart++;
+	if ((bytesLeft - dataStart) < 512) {
+		printf("  Data started too late... should increase number of bytes to read...\r\n");
+	}
 }
 
 bool CheckSpiTransfer(SpiTransferFunc_t * pSpiTransfer, const uint8_t * out, size_t len) {
