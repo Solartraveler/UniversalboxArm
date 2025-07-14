@@ -278,7 +278,8 @@ static uint8_t SdmmcCheckCmd0(void) {
 	g_sdmmcState.pSpi(dataOutCmd0, dataInCmd0, sizeof(dataOutCmd0), g_sdmmcState.chipSelect, true);
 	SDMMC_DEBUG("Response from CMD0 (reset):\r\n");
 	SDMMC_DEBUGHEX(dataInCmd0, sizeof(dataInCmd0));
-	if (SdmmcSDR1ResponseIndex(dataInCmd0, sizeof(dataInCmd0)) == 0) {
+	uint32_t idx = SdmmcSDR1ResponseIndex(dataInCmd0, sizeof(dataInCmd0));
+	if ((idx == 0) || ((dataInCmd0[idx] & 0x81) != 0x01)) { //lowest bit must be set, otherwise the card is not idle
 		return 1;
 	}
 	return 0;
@@ -475,6 +476,7 @@ uint32_t SdmmcInit(SpiTransferFunc_t * pSpiTransfer, uint8_t chipSelect) {
 	HAL_Delay(100);
 	//CMD0 -> software reset to enter SPI mode
 	if (SdmmcCheckCmd0() != 0) {
+		SDMMC_DEBUGERROR("Error, card not in idle state\r\n");
 		return 1;
 	}
 	//CMD8 to determine working voltage range (and if it is a SDHC/SDXC card)
