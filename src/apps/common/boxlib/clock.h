@@ -42,5 +42,18 @@ bool ClockUtcSet(uint32_t timestamp, uint16_t milliseconds, bool precise, int64_
 */
 int32_t ClockCalibrationGet(void);
 
+/*Returns the value of the backup register, which are powered by the RTC battery.
+  idx may be 0..31.
+  Note: Idx values 0 and 1 are used internally for calibration data.
+*/
+uint32_t ClockBackupRegGet(uint32_t idx);
+
+/*Sets the value of the backup register, which are powered by the RTC battery.
+  idx may be 0..31.
+  Note: Idx values 0 and 1 are used internally for calibration data.
+*/
+void ClockBackupRegSet(uint32_t idx, uint32_t value);
+
 //For debugging the clock
 void ClockPrintRegisters(void);
+

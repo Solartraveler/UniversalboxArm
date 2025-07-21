@@ -239,3 +239,21 @@ bool ClockUtcSet(uint32_t timestamp, uint16_t milliseconds, bool precise, int64_
 int32_t ClockCalibrationGet(void) {
 	return ClockRegToPPB(RTC->CALR);
 }
+
+uint32_t ClockBackupRegGet(uint32_t idx) {
+	if (idx < 32) {
+		volatile uint32_t * p = (&(RTC->BKP0R)) + idx;
+		return *p;
+	}
+	return 0;
+}
+
+void ClockBackupRegSet(uint32_t idx, uint32_t value) {
+	if (idx < 32) {
+		volatile uint32_t * p = (&(RTC->BKP0R)) + idx;
+		*p = value;
+	}
+}
+
+
+

@@ -11,9 +11,12 @@ SPDX-License-Identifier:  BSD-3-Clause
 
 #include "boxlib/clock.h"
 
+#define CLOCK_BACKUP_REGS 32
+
 uint8_t g_lastSetType;
 uint32_t g_lastSetTime;
 uint32_t g_lastSetMilliseconds;
+uint32_t g_backupRegs[CLOCK_BACKUP_REGS];
 
 bool ClockInit(void) {
 	return true;
@@ -69,6 +72,19 @@ bool ClockUtcSet(uint32_t timestamp, uint16_t milliseconds, bool precise, int64_
 
 int32_t ClockCalibrationGet(void) {
 	return 0;
+}
+
+uint32_t ClockBackupRegGet(uint32_t idx) {
+	if (idx < CLOCK_BACKUP_REGS) {
+		return g_backupRegs[idx];
+	}
+	return 0;
+}
+
+void ClockBackupRegSet(uint32_t idx, uint32_t value) {
+	if (idx < CLOCK_BACKUP_REGS) {
+		g_backupRegs[idx] = value;
+	}
 }
 
 void ClockPrintRegisters(void) {
