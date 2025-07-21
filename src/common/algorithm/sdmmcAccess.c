@@ -270,7 +270,7 @@ size_t SdmmcSeekDataStart(const uint8_t * data, size_t len) {
 }
 
 //returns 0: ok, otherwise an error
-static uint8_t SdmmcCheckCmd0(void) {
+uint8_t SdmmcCheckCmd0(void) {
 	//CMD0 to reset the card
 	uint8_t dataOutCmd0[15]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait bytes, 1 response byte
 	uint8_t dataInCmd0[15];
@@ -311,7 +311,7 @@ static uint8_t SdmmcCheckCmd1(void) {
 }
 
 //returns 0: ok, otherwise an error
-static uint8_t SdmmcCheckCmd8(void) {
+uint8_t SdmmcCheckCmd8(void) {
 	//CMD8 to determine working voltage range (and if it is a SDHC/SDXC card)
 	uint8_t dataOutCmd8[19]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait bytes, 5 response bytes
 	uint8_t dataInCmd8[19];
@@ -383,7 +383,7 @@ static uint8_t SdmmcCheckCmd9(uint32_t * capacity) {
 }
 
 //returns 0: ok, otherwise an error
-static uint8_t SdmmcCheckCmd16(void) {
+uint8_t SdmmcCheckCmd16(void) {
 	//set block length to be 512byte (for SD cards, SDHC and SDXC always use 512)
 	uint8_t dataOutCmd16[15]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait bytes, 1 response byte
 	uint8_t dataInCmd16[15];
@@ -398,7 +398,7 @@ static uint8_t SdmmcCheckCmd16(void) {
 }
 
 //returns 0: ok, 1: busy (retry), 2: voltage range not fitting, 3: error
-static uint8_t SdmmcCheckCmd58(bool * pIsSdHc) {
+uint8_t SdmmcCheckCmd58(bool * pIsSdHc) {
 	uint8_t dataOutCmd58[19]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait bytes, 5 response bytes
 	uint8_t dataInCmd58[19];
 	SdmmcFillCommand(dataOutCmd58, dataInCmd58, sizeof(dataOutCmd58), 58, 0);
@@ -409,7 +409,7 @@ static uint8_t SdmmcCheckCmd58(bool * pIsSdHc) {
 }
 
 //returns 0: ok, otherwise an error
-static uint8_t SdmmcCheckCmd59(void) {
+uint8_t SdmmcCheckCmd59(void) {
 	//set block length to be 512byte (for SD cards, SDHC and SDXC always use 512)
 	uint8_t dataOutCmd59[15]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait bytes, 1 response byte
 	uint8_t dataInCmd59[15];
@@ -424,7 +424,7 @@ static uint8_t SdmmcCheckCmd59(void) {
 }
 
 //returns 0: ok, 1: idle, 2: unsupported, 3: error
-static uint8_t SdmmcCheckAcmd41(void) {
+uint8_t SdmmcCheckAcmd41(void) {
 	//CMD55 - application specific command follows
 	uint8_t dataOutCmd55[15]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait bytes, 1 response byte
 	uint8_t dataInCmd55[15];

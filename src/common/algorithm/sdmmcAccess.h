@@ -82,3 +82,36 @@ size_t SdmmcSDR1ResponseIndex(const uint8_t * data, size_t len);
 */
 size_t SdmmcSeekDataStart(const uint8_t * data, size_t len);
 
+/*Software reset.
+  returns 0: ok, otherwise an error
+*/
+uint8_t SdmmcCheckCmd0(void);
+
+/*If SDMMC_DEBUG is enabled, information about the supported voltage range are
+  printed.
+  returns 0: ok, otherwise an error
+*/
+uint8_t SdmmcCheckCmd8(void);
+
+/*Sets the block length to 512 byte.
+  returns 0: ok, otherwise an error
+*/
+uint8_t SdmmcCheckCmd16(void);
+
+/*Inits the SD card (not MMC, these it will return unsupported).
+  returns 0: ok, 1: idle, 2: unsupported, 3: error
+*/
+uint8_t SdmmcCheckAcmd41(void);
+
+/*Reads the OCR register.
+  If pIsSdHc is not NULL and the return value is 0, the variable is set to true.
+  Therefore the parameter needs to be initialized to false before calling to be
+  of any use.
+  returns 0: ok, 1: busy (retry), 2: voltage range not fitting, 3: error
+*/
+uint8_t SdmmcCheckCmd58(bool * pIsSdHc);
+
+/*Enables the CRC check of the card.
+  returns 0: ok, otherwise an error
+*/
+uint8_t SdmmcCheckCmd59(void);
