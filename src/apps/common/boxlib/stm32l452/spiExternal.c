@@ -26,7 +26,7 @@ void SpiExternalBaseInit(void) {
 	GPIO_InitStruct.Pin = Extern12_Pin | Extern13_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH; //up to 50MHz
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	__HAL_RCC_SPI1_CLK_ENABLE();
@@ -34,16 +34,39 @@ void SpiExternalBaseInit(void) {
 	GPIO_InitStruct.Pin = Extern8_Pin | Extern9_Pin | Extern10_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 	GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 	SpiPlatformInit(SPI1);
 }
 
+void SpiExternalBaseDeinit(void) {
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	GPIO_InitStruct.Pin = Extern12_Pin | Extern13_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	GPIO_InitStruct.Pin = Extern8_Pin | Extern9_Pin | Extern10_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	__HAL_RCC_SPI1_CLK_DISABLE();
+}
+
 __weak void SpiExternalInit(void) {
 	SpiExternalBaseInit();
 }
+
+__weak void SpiExternalDeinit(void) {
+	SpiExternalBaseDeinit();
+}
+
 
 void SpiExternalChipSelect(uint8_t chipSelect, bool selected) {
 	GPIO_PinState state = GPIO_PIN_SET;

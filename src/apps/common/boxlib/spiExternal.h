@@ -10,6 +10,9 @@ void SpiExternalBaseInit();
 */
 void SpiExternalInit(void);
 
+/*Switches the I/Os back to input configuration*/
+void SpiExternalDeinit(void);
+
 void SpiExternalChipSelect(uint8_t chipSelect, bool selected);
 
 /*dataOut or dataIn may be a NULL pointer.
