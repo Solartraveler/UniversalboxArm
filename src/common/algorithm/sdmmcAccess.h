@@ -68,6 +68,7 @@ uint32_t SdmmcCapacity(void);
 /*Fills in the command in outBuff, also calculating the CRC. Everything after
   the crc is padded with 0xFF.
   inBuff and outBuff must be buffLen in size.
+  inBuff may be NULL (can be used to speed things up).
   bufLen must be at least 6.
 */
 void SdmmcFillCommand(uint8_t * outBuff, uint8_t * inBuff, size_t buffLen, uint8_t cmd, uint32_t param);
@@ -82,14 +83,19 @@ size_t SdmmcSDR1ResponseIndex(const uint8_t * data, size_t len);
 */
 size_t SdmmcSeekDataStart(const uint8_t * data, size_t len);
 
+/*Calculates the CRC of a datablock.
+  datablock must always be 512 bytes in length.
+*/
+uint16_t SdmmcDataCrc(const uint8_t * datablock);
+
 /*Software reset.
   returns 0: ok, otherwise an error
 */
 uint8_t SdmmcCheckCmd0(void);
 
 /*If SDMMC_DEBUG is enabled, information about the supported voltage range are
-  printed.
-  returns 0: ok, otherwise an error
+  printed. Required before issuing ACMD58.
+  returns 0: ok (SDHC/SDXC, some SD), 1: unsupported voltage (SDHC/SDXC, some SD), 2: unsupported command (MMC and some SD), 3: otherwise an error
 */
 uint8_t SdmmcCheckCmd8(void);
 
@@ -99,9 +105,10 @@ uint8_t SdmmcCheckCmd8(void);
 uint8_t SdmmcCheckCmd16(void);
 
 /*Inits the SD card (not MMC, these it will return unsupported).
+  v2OrLaterCard: Needs to be true to determine if the card is SD (can be version 2.0) or SDHC/SDXC (always version 2.0 cards)
   returns 0: ok, 1: idle, 2: unsupported, 3: error
 */
-uint8_t SdmmcCheckAcmd41(void);
+uint8_t SdmmcCheckAcmd41(bool v2OrLaterCard);
 
 /*Reads the OCR register.
   If pIsSdHc is not NULL and the return value is 0, the variable is set to true.
@@ -115,3 +122,13 @@ uint8_t SdmmcCheckCmd58(bool * pIsSdHc);
   returns 0: ok, otherwise an error
 */
 uint8_t SdmmcCheckCmd59(void);
+
+/*If init was successful, this
+  returns: true if the card is a SD card (not SDHC, SDXC or MMC)
+*/
+bool SdmmcIsSdCard(void);
+
+/*If init was successful, this
+  returns: true if the card is a SDHC or SDXC card (not SD or MMC)
+*/
+bool SdmmcIsSdhcCard(void);

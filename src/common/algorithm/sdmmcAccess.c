@@ -1,5 +1,5 @@
 /* sdmmcAccess.c
-(c) 2024 by Malte Marwedel
+(c) 2024-2025 by Malte Marwedel
 
 SPDX-License-Identifier: BSD-3-Clause
 
@@ -11,12 +11,20 @@ The SPI frequency must be set before calling init and may be increased after
 init has returned.
 Thread safety must be provided by the caller.
 
-Tested cards:
+Successfully tested cards:
 64MB MMC from Dual (as expected, it reports not supported when sending ACMD41)
-512MB SD from ExtremeMemory
+512MB SD from ExtremeMemory (SD version 1.0 card)
 1GB Micro SD from Sandisk (sends one more wait bytes until CMD10 delivers data)
+2GB Micro SD from Transcend ***
+8GB Micro SD from Intenso
 16GB SDHC from Platinum
 64GB Micro SDXC from Samsung
+
+*** Most sensitive card tested - needs a cap with a few pF (connecting an oscilloscope
+    probe provides enough) on the SCK pin in order to work where other cards do
+    not need this. Or are just the wires too long? Or do I need a termination resistor?
+
+(No tested cards failed to work.)
 
 By default only single block read and write is enabled.
 Multiblock read can be enabled. But it does not increase the speed a lot and
@@ -26,6 +34,7 @@ Multiblock write has not been added.
 
 Changelog:
 2024-07-13: Version 1.0
+2025-08-05: Version 1.1
 */
 
 #include <stdbool.h>
@@ -72,8 +81,8 @@ static sdmmcState_t g_sdmmcState;
 //Suggested value, but any others might? be possible too
 #define SDMMC_CHECKPATTERN 0xAA
 
-//time in [100ms] to wait for card init
-#define SDMMC_INIT_TIMEOUT 100
+//time in [10ms] to wait for card init
+#define SDMMC_INIT_TIMEOUT 1000
 
 //time in [ms] to wait for data
 #define SDMMC_TIMEOUT 1000
@@ -92,8 +101,12 @@ static sdmmcState_t g_sdmmcState;
   bufLen must be at least 6.
 */
 void SdmmcFillCommand(uint8_t * outBuff, uint8_t * inBuff, size_t buffLen, uint8_t cmd, uint32_t param) {
-	memset(inBuff, 0, buffLen);
-	memset(outBuff, 0xFF, buffLen);
+	if (inBuff) {
+		memset(inBuff, 0, buffLen);
+	}
+	if (buffLen > 6) {
+		memset(outBuff + 6, 0xFF, buffLen - 6);
+	}
 	outBuff[0] = 0x40 | cmd;
 	outBuff[1] = param >> 24;
 	outBuff[2] = param >> 16;
@@ -205,7 +218,6 @@ static uint32_t SdmmcSeekSDR3Response(const uint8_t * data, size_t len, bool *pI
 		if ((ocr & 0x003E0000) != 0x003E0000) { //2.9...3.4 V supported
 			result = 2;
 		}
-		//this is only set when ACMD41 was sent before
 		if (ocr & 0x80000000) {
 			SDMMC_DEBUG("  ready\r\n");
 			if (ocr & 0x40000000) {
@@ -229,31 +241,34 @@ static uint32_t SdmmcSeekSDR3Response(const uint8_t * data, size_t len, bool *pI
 	return result;
 }
 
-//returns 0: ok, otherwise an error
+//returns 0: ok (SDHC/SDXC, some SD), 1: unsupported voltage (SDHC/SDXC, some SD), 2: unsupported command (MMC and some SD), 3: otherwise an error
 static uint8_t SdmmcSeekSDR7Response(const uint8_t * data, size_t len) {
 	if (len < (SDMMC_R1_RESPONSE_RANGE + 4)) {
-		return 1;
+		return 3;
 	}
 	size_t i = SdmmcSeekSDR1Response(data, SDMMC_R1_RESPONSE_RANGE);
 	if (i >= SDMMC_R1_RESPONSE_RANGE) {
-		return 1;
+		return 3;
 	}
 	if (((data[i] & SDMMC_R1_ILLEGALCMD) == 0) && ((i + 4) < len)) {
-		SDMMC_DEBUG("  -> SD version 2.0 or later\r\n");
 		SDMMC_DEBUG("  Command set version %u\r\n", (unsigned int)(data[i + 1] >> 4));
 		if (data[i + 4] == SDMMC_CHECKPATTERN) {
 			SDMMC_DEBUG("  Check pattern ok\r\n");
 		} else {
 			SDMMC_DEBUG("  Check pattern error\r\n");
+			return 1;
 		}
 		uint8_t voltageRange = data[i + 3];
 		if (voltageRange == 0x1) {
 			SDMMC_DEBUG("  2.7 - 3.3V accepted\r\n");
 		} else {
 			SDMMC_DEBUG("  unsuppored voltage!\r\n");
+			return 1;
 		}
+		SDMMC_DEBUG("  -> version 2.0 or later\r\n");
 	} else {
 		SDMMC_DEBUG("  -> SD ver 1.0 or MMC card\r\n");
+		return 2;
 	}
 	return 0;
 }
@@ -310,7 +325,7 @@ static uint8_t SdmmcCheckCmd1(void) {
 	return 0; //ready
 }
 
-//returns 0: ok, otherwise an error
+//returns 0: ok (SDHC/SDXC, some SD), 1: unsupported voltage (SDHC/SDXC, some SD), 2: unsupported command (MMC and some SD), 3: otherwise an error
 uint8_t SdmmcCheckCmd8(void) {
 	//CMD8 to determine working voltage range (and if it is a SDHC/SDXC card)
 	uint8_t dataOutCmd8[19]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait bytes, 5 response bytes
@@ -320,6 +335,45 @@ uint8_t SdmmcCheckCmd8(void) {
 	SDMMC_DEBUG("Response from CMD8 (if cmd):\r\n");
 	SDMMC_DEBUGHEX(dataInCmd8, sizeof(dataInCmd8));
 	return SdmmcSeekSDR7Response(dataInCmd8 + SDMMC_COMMAND_LEN, sizeof(dataInCmd8) - SDMMC_COMMAND_LEN);
+}
+
+
+static uint8_t SdmmcCmd9AnswerDecode(const uint8_t * dataInCmd9, size_t len, uint32_t * capacity) {
+	if (len < 15) {
+		/*In theory there could be hundreds of 0xFF until data start, but only zero or one 0xFF has been
+		  observed with the tested cards.
+		*/
+		SDMMC_DEBUG("  Data started too late... should increase number of bytes to read...\r\n");
+		return 1;
+	}
+	uint8_t csdVersion = 1; //MMC have the relevant bits set like version 1
+	if ((g_sdmmcState.isSd == true) || (g_sdmmcState.isSdhc == true)) {
+		csdVersion = ((dataInCmd9[0] & 0xC0) >> 6) + 1;
+		SDMMC_DEBUG("  CSD version %u\r\n", csdVersion);
+	}
+	uint32_t csize = 0;
+	uint32_t cmult = 0;
+	uint32_t bllen = 0;
+	if (csdVersion == 1) {
+		//SD/MMC
+		bllen = 1 << (dataInCmd9[5] & 0x0F); //allowed range 512 ... 2048
+		csize = ((dataInCmd9[6] & 0x3) << 10) | (dataInCmd9[7] << 2) | ((dataInCmd9[8] & 0xC0) >> 6);
+		cmult = ((dataInCmd9[9] & 0x3) << 1) | ((dataInCmd9[10] & 0x80) >> 7);
+		cmult = 4 << cmult;
+	} else if (csdVersion == 2) {
+		//SDHC cards
+		bllen = 512; //fixed :P
+		cmult = 1024; //fixed :P (specs just says multiply (csize + 1) with 512KiB)
+		csize = ((dataInCmd9[7] & 0x3F) << 16) | (dataInCmd9[8] << 8) | (dataInCmd9[9]);
+	}
+	uint32_t blocks = (csize + 1) * cmult;
+	uint64_t bytes = (uint64_t)blocks * (uint64_t)bllen;
+	SDMMC_DEBUG("  csize %u, mult %u, bl_len %u -> %u blocks, %uMiB\r\n", (unsigned int)csize, (unsigned int)cmult, (unsigned int)bllen,
+	       (unsigned int)blocks, (unsigned int)(bytes / (1024LLU * 1024LLU)));
+	if (capacity) {
+		*capacity = bytes / SDMMC_BLOCKSIZE;
+	}
+	return 0;
 }
 
 //returns 0: ok, otherwise an error
@@ -344,42 +398,7 @@ static uint8_t SdmmcCheckCmd9(uint32_t * capacity) {
 		return 1;
 	}
 	dataStart++;
-	if ((bytesLeft - dataStart) < 15) {
-		/*In theory there could be hundreds of 0xFF until data start, but only zero or one 0xFF has been
-		  observed with the tested cards.
-		*/
-		SDMMC_DEBUG("  Data started too late... should increase number of bytes to read...\r\n");
-		return 1;
-	}
-	index += dataStart;
-	uint8_t csdVersion = 1; //MMC have the relevant bits set like version 1
-	if (g_sdmmcState.isSd == true) {
-		csdVersion = ((dataInCmd9[index + 0] & 0xC0) >> 6) + 1;
-		SDMMC_DEBUG("  CSD version %u\r\n", csdVersion);
-	}
-	uint32_t csize = 0;
-	uint32_t cmult = 0;
-	uint32_t bllen = 0;
-	if (csdVersion == 1) {
-		//SD/MMC
-		bllen = 1 << (dataInCmd9[index + 5] & 0x0F); //allowed range 512 ... 2048
-		csize = ((dataInCmd9[index + 6] & 0x3) << 10) | (dataInCmd9[index + 7] << 2) | ((dataInCmd9[index + 8] & 0xC0) >> 6);
-		cmult = ((dataInCmd9[index + 9] & 0x3) << 1) | ((dataInCmd9[index + 10] & 0x80) >> 7);
-		cmult = 4 << cmult;
-	} else if (csdVersion == 2) {
-		//SDHC cards
-		bllen = 512; //fixed :P
-		cmult = 1024; //fixed :P (specs just says multiply (csize + 1) with 512KiB)
-		csize = ((dataInCmd9[index + 7] & 0x3F) << 16) | (dataInCmd9[index + 8] << 8) | (dataInCmd9[index + 9]);
-	}
-	uint32_t blocks = (csize + 1) * cmult;
-	uint64_t bytes = (uint64_t)blocks * (uint64_t)bllen;
-	SDMMC_DEBUG("  csize %u, mult %u, bl_len %u -> %u blocks, %uMiB\r\n", (unsigned int)csize, (unsigned int)cmult, (unsigned int)bllen,
-	       (unsigned int)blocks, (unsigned int)(bytes / (1024LLU * 1024LLU)));
-	if (capacity) {
-		*capacity = bytes / SDMMC_BLOCKSIZE;
-	}
-	return 0;
+	return SdmmcCmd9AnswerDecode(dataInCmd9 + index + dataStart, bytesLeft - dataStart, capacity);
 }
 
 //returns 0: ok, otherwise an error
@@ -424,7 +443,7 @@ uint8_t SdmmcCheckCmd59(void) {
 }
 
 //returns 0: ok, 1: idle, 2: unsupported, 3: error
-uint8_t SdmmcCheckAcmd41(void) {
+uint8_t SdmmcCheckAcmd41(bool v2OrLaterCard) {
 	//CMD55 - application specific command follows
 	uint8_t dataOutCmd55[15]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait bytes, 1 response byte
 	uint8_t dataInCmd55[15];
@@ -442,7 +461,11 @@ uint8_t SdmmcCheckAcmd41(void) {
 	//ACMD41 to get the card to be initalized
 	uint8_t dataOutCmd41[15]; //1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait bytes, 1 response byte
 	uint8_t dataInCmd41[15];
-	SdmmcFillCommand(dataOutCmd41, dataInCmd41, sizeof(dataOutCmd41), 41, 0x40000000); //param -> tell, we support SDHC
+	uint32_t argument = 0;
+	if (v2OrLaterCard) {
+		argument = 0x40000000; //param -> tell, we support SDHC
+	}
+	SdmmcFillCommand(dataOutCmd41, dataInCmd41, sizeof(dataOutCmd41), 41, argument);
 	g_sdmmcState.pSpi(dataOutCmd41, dataInCmd41, sizeof(dataOutCmd41), g_sdmmcState.chipSelect, true);
 	SDMMC_DEBUG("Response from ACMD41 (start init):\r\n");
 	SDMMC_DEBUGHEX(dataInCmd41, sizeof(dataInCmd41));
@@ -463,6 +486,14 @@ uint8_t SdmmcCheckAcmd41(void) {
 }
 
 uint32_t SdmmcInit(SpiTransferFunc_t * pSpiTransfer, uint8_t chipSelect) {
+	/* This init sequence represents mostly an init as described in:
+	   Physical Layer Simplified Specification Version 6.00
+	   Figure 7-2: SPI Mode Initialization Flow
+	   The MMC init and CRC enabled has been inserted, also CMD16 and CMD9 have been
+	   appended.
+	   It is assumed cards accepting CMD8 but not giving a valid answer should be
+	   handled as if the command has been rejected.
+	*/
 	memset(&g_sdmmcState, 0, sizeof(sdmmcState_t));
 	if (pSpiTransfer == NULL) {
 		return 4;
@@ -473,15 +504,26 @@ uint32_t SdmmcInit(SpiTransferFunc_t * pSpiTransfer, uint8_t chipSelect) {
 	uint8_t initArray[16]; //128 clocks :P
 	memset(&initArray, 0xFF, sizeof(initArray));
 	pSpiTransfer(initArray, NULL, sizeof(initArray), 0, true);
-	HAL_Delay(100);
+	HAL_Delay(20); //looks like even 0ms works
 	//CMD0 -> software reset to enter SPI mode
 	if (SdmmcCheckCmd0() != 0) {
 		SDMMC_DEBUGERROR("Error, card not in idle state\r\n");
 		return 1;
 	}
-	//CMD8 to determine working voltage range (and if it is a SDHC/SDXC card)
-	if (SdmmcCheckCmd8() != 0) {
+	/*CMD8 to determine working voltage range (and if it is a SDHC/SDXC card)
+	  According to the datasheet, we should reject if unsupported voltage is reported,
+	  but we can only check for a 2.7-3.6 voltage range and a card might not support this range
+	  and then we can check with CMD58 for a more limited range (2.9-3.4 will be fine for us too..),
+	  so the card rejecting 2.7-3.6 would be correct... and we will continue the init process.
+	  CMD8 also should be send before ACMD41 because it enables some features required for SDHC and SDXC cards.
+	*/
+	bool cmd8Supported = false;
+	uint8_t cmd8Result = SdmmcCheckCmd8();
+	if (cmd8Result > 2) {
 		return 1;
+	}
+	if (cmd8Result == 0) {
+		cmd8Supported = true;
 	}
 	//CMD58 -> get status (the card is not ready now)
 	if (SdmmcCheckCmd58(NULL) >= 2) {
@@ -492,42 +534,57 @@ uint32_t SdmmcInit(SpiTransferFunc_t * pSpiTransfer, uint8_t chipSelect) {
 	if (SdmmcCheckCmd59() != 0) {
 		return 1;
 	}
-	//ACMD41 -> init the card SD/SDHC card and wait for the init to be done
-	uint8_t result;
+	//ACMD41 -> not supported -> MMC
+	uint8_t acmd41Result;
 	for (uint32_t i = 0; i < SDMMC_INIT_TIMEOUT; i++) {
-		result = SdmmcCheckAcmd41();
-		if (result >= 2) {
-			break; //MMC cards will stop here
+		acmd41Result = SdmmcCheckAcmd41(cmd8Supported);
+		if (acmd41Result >= 2) {
+			break; //SD/MMC cards and general errors would stop here
 		}
-		if (result == 0) {
-			g_sdmmcState.isSd = true;
+		if (acmd41Result == 0) {
 			break;
 		}
-		HAL_Delay(100);
+		HAL_Delay(10);
 	}
-	if (result == 2) { //try init for MMC
+	if (acmd41Result == 2) { //try init for MMC
+		SDMMC_DEBUGERROR("MMC card\r\n");
+		uint8_t cmd1Result;
 		for (uint32_t i = 0; i < SDMMC_INIT_TIMEOUT; i++) {
-			result = SdmmcCheckCmd1();
-			if (result >= 2) {
+			cmd1Result = SdmmcCheckCmd1();
+			if (cmd1Result >= 2) {
 				SDMMC_DEBUGERROR("Error, card init did not complete\r\n");
 				return 1;
 			}
-			if (result == 0) {
+			if (cmd1Result == 0) {
 				break;
 			}
-			HAL_Delay(100);
+			HAL_Delay(10);
 		}
-		if (result == 1) {
+		if (cmd1Result == 1) {
 			SDMMC_DEBUGERROR("Error, card init did not complete\r\n");
+			return 1;
 		}
-	} else if (g_sdmmcState.isSd != true) {
-		SDMMC_DEBUGERROR("Error, card init did not complete\r\n");
-		return 1;
-	}
-	//CMD58 -> get status (now the busy bit should be cleared and the report if it is a SD or SDHC card be valid)
-	if (SdmmcCheckCmd58(&g_sdmmcState.isSdhc) != 0) {
+	} else if (acmd41Result == 0) { //try init for SD and SDHC cards
+		if (cmd8Supported) {
+			//check if it is a SD or SDHC card
+			uint8_t cmd58Result = SdmmcCheckCmd58(&g_sdmmcState.isSdhc);
+			if (cmd58Result == 0) {
+				if (g_sdmmcState.isSdhc == false) {
+					SDMMC_DEBUGERROR("SD card version 2.0\r\n");
+					g_sdmmcState.isSd = true;
+				} else {
+					SDMMC_DEBUGERROR("SDHC/SDXC card version 2.0\r\n");
+				}
+			} else {
+				SDMMC_DEBUGERROR("Error, CMD58 failed for SD/SDHC card version 2.0\r\n");
+				return 1;
+			}
+		} else {
+			g_sdmmcState.isSd = true;
+			SDMMC_DEBUGERROR("SD card version 1.0\r\n");
+		}
+	} else {
 		SDMMC_DEBUGERROR("Error, card is still busy\r\n");
-		return 1;
 	}
 	//set block length to be 512byte (for SD cards, SDHC and SDXC always use 512)
 	if (SdmmcCheckCmd16() != 0) {
@@ -894,4 +951,12 @@ bool SdmmcWrite(const uint8_t * buffer, uint32_t block, uint32_t blockNum) {
 
 uint32_t SdmmcCapacity(void) {
 	return g_sdmmcState.capacity;
+}
+
+bool SdmmcIsSdCard(void) {
+	return g_sdmmcState.isSd;
+}
+
+bool SdmmcIsSdhcCard(void) {
+	return g_sdmmcState.isSdhc;
 }
