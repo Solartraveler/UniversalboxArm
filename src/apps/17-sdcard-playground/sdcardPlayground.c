@@ -130,7 +130,7 @@ static uint32_t CardReinit(uint32_t startupDelay, uint32_t clocks8) {
 	*/
 #if 0
 	//CMD8 to determine working voltage range (and if it is a SDHC/SDXC card)
-	if (SdmmcCheckCmd8() != 0) {
+	if (SdmmcCheckCmd8() > 2) {
 		return 1;
 	}
 	//CMD58 -> get status (the card is not ready now)
@@ -148,7 +148,7 @@ static uint32_t CardReinit(uint32_t startupDelay, uint32_t clocks8) {
 	//ACMD41 -> init the card SD/SDHC card and wait for the init to be done
 	uint8_t result;
 	for (uint32_t i = 0; i < 5000; i++) {
-		result = SdmmcCheckAcmd41();
+		result = SdmmcCheckAcmd41(true);
 		if (result >= 2) {
 			printf("Error, MMC cards are not supported\r\n");
 			return 1; //MMC cards will stop here
@@ -178,9 +178,9 @@ static uint32_t CardReinit(uint32_t startupDelay, uint32_t clocks8) {
 }
 
 bool CalibrateSd(void) {
-	SafeSdCardOn();
 	//initializing SD/MMC cards require 100kHz - 400kHz
-	SpiExternalPrescaler(256); //so 187kHz @ 48MHz peripheral clock
+	g_prescalerInit = 256;  //so 187kHz @ 48MHz peripheral clock
+	SafeSdCardOn();
 	if (CardInit()) {
 		printf("Error, could not initialize SD card (1)\r\n");
 		return false;
@@ -193,6 +193,7 @@ bool CalibrateSd(void) {
 		printf("Error, could not hard reset SD card - code %u\r\n", (unsigned int)cmd58);
 		return false;
 	}
+	HardReset(1000); //some cards might not answer if SdmmcCheckCmd58 is called before the init
 	if (CardInit()) {
 		printf("Error, could not initialize SD card (2)\r\n");
 		return false;
