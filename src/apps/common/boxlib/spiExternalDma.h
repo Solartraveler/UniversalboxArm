@@ -22,3 +22,10 @@ void SpiExternalTransferDma(const uint8_t * dataOut, uint8_t * dataIn, size_t le
 /*Same as SpiExternalTransferDma.
 */
 void SpiExternalTransfer(const uint8_t * dataOut, uint8_t * dataIn, size_t len, uint8_t chipSelect, bool resetChipSelect);
+
+/*Starts a background transfer.
+  The pointers needs to be valid until SpiExternalTransferWaitDone returns.
+  This function calls SpiExternalTransferWaitDone at the beginning, so no need to call it extra.
+  The chip select needs to be manually controlled.
+*/
+void SpiExternalTransferBackground(const uint8_t * dataOut, uint8_t * dataIn, size_t len);
