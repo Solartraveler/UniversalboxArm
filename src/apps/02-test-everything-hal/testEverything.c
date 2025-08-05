@@ -224,22 +224,38 @@ void CheckSpiExternal(void) {
 		printf("  Data started too late... should increase number of bytes to read...\r\n");
 	}
 	index += dataStart;
-	//decoding is valid for SD(HC) cards only (not MMC)
 	uint8_t manufacturerId = dataInCmd10[index + 0];
 	printf("  Manufacturer ID %u\r\n", manufacturerId);
 	char oemId[3] = {0};
 	oemId[0] = dataInCmd10[index + 1];
 	oemId[1] = dataInCmd10[index + 2];
 	printf("  OemId >%s<\r\n", oemId);
-	char productName[6] = {0};
-	memcpy(productName, dataInCmd10 + index + 3, 5);
+	char productName[7] = {0};
+	uint8_t revision;
+	uint32_t serial;
+	uint16_t year;
+	uint16_t month;
+	if ((SdmmcIsSdCard()) || (SdmmcIsSdhcCard())) {
+		//decoding is valid for SD(HC/XC) cards only
+		memcpy(productName, dataInCmd10 + index + 3, 5);
+		revision = dataInCmd10[index + 8];
+		serial = (dataInCmd10[index + 9] << 24) | (dataInCmd10[index + 10] << 16) | (dataInCmd10[index + 11] << 8) | dataInCmd10[index + 12];
+		uint16_t date = (dataInCmd10[index + 13] << 8) | (dataInCmd10[index + 14]);
+		year = ((date >> 4) & 0xFF) + 2000;
+		month = date & 0xF;
+	} else {
+		//decoding for MMC
+		memcpy(productName, dataInCmd10 + index + 3, 6);
+		revision = dataInCmd10[index + 9];
+		serial = (dataInCmd10[index + 10] << 24) | (dataInCmd10[index + 11] << 16) | (dataInCmd10[index + 12] << 8) | dataInCmd10[index + 13];
+		uint16_t date = dataInCmd10[index + 14];
+		month = ((date >> 4) & 0xFF);
+		year = (date & 0xF) + 1997;
+	}
 	printf("  Name >%s<\r\n", productName);
-	uint8_t revision = dataInCmd10[index + 8];
 	printf("  Revision %u.%u\r\n", (revision >> 4), (revision & 0xF));
-	uint32_t serial = (dataInCmd10[index + 9] << 24) | (dataInCmd10[index + 10] << 16) | (dataInCmd10[index + 11] << 8) | dataInCmd10[index + 12];
 	printf("  Serial %u\r\n", (unsigned int)serial);
-	uint16_t date = (dataInCmd10[index + 13] << 8) | (dataInCmd10[index + 14]);
-	printf("  Date %u-%u\r\n", ((date >> 4) & 0xFF) + 2000, date & 4);
+	printf("  Date %u-%u\r\n", year, month);
 	const size_t numTestblocks = 2;
 	uint8_t buffer[SDMMC_BLOCKSIZE * numTestblocks];
 	if (SdmmcRead(buffer, 0, numTestblocks) == false) {
@@ -282,6 +298,7 @@ void CheckSpiExternal(void) {
 	/*CMD56 for getting something like S.M.A.R.T. data. But this is highly vendor
 	  specific and most (consumer) cards do not support it at all.
 	  The argument should be odd to perform a read.
+	  At least some Transcend cards use 0x110005f9.
 	*/
 	char serialBuffer[16] = {0};
 	ReadSerialLine(serialBuffer, sizeof(serialBuffer));
@@ -301,21 +318,40 @@ void CheckSpiExternal(void) {
 	SdmmcFillCommand(dataOutCmd56, dataInCmd56, sizeof(dataOutCmd56), 56, argument);
 	SpiExternalTransfer(dataOutCmd56, dataInCmd56, sizeof(dataInCmd56), SD_CHIPSELECT, true);
 	printf("Response from CMD56:\r\n");
-	PrintHex(dataInCmd56, sizeof(dataInCmd56));
 	idxR1 = SdmmcSDR1ResponseIndex(dataInCmd56, sizeof(dataInCmd56));
 	if (idxR1 == 0) {
 		printf("  No response found\r\n");
+		PrintHex(dataInCmd56, sizeof(dataInCmd56));
 		return;
 	}
 	index = idxR1 + 1;
+	printf("Until response start:\r\n");
+	PrintHex(dataInCmd56, index);
 	bytesLeft = sizeof(dataInCmd56) - index;
 	dataStart = SdmmcSeekDataStart(dataInCmd56 + index, bytesLeft);
 	if (dataStart >= bytesLeft) {
 		printf("  No data start found\r\n");
+		PrintHex(dataInCmd56 + index, bytesLeft);
+		return;
 	}
 	dataStart++;
-	if ((bytesLeft - dataStart) < 512) {
+	printf("Until data start:\r\n");
+	PrintHex(dataInCmd56 + index, dataStart);
+	if ((bytesLeft - dataStart) < 514) {
 		printf("  Data started too late... should increase number of bytes to read...\r\n");
+		PrintHex(dataInCmd56 + index + dataStart, bytesLeft - dataStart);
+		return;
+	}
+	PrintHex(dataInCmd56 + index + dataStart, 512);
+	printf("CRC:\r\n");
+	size_t indexCrc = index + dataStart + 512;
+	PrintHex(dataInCmd56 + indexCrc, 2);
+	uint16_t crcIs = SdmmcDataCrc(dataInCmd56 + index + dataStart);
+	uint16_t crcShould = (dataInCmd56[indexCrc] << 8) | dataInCmd56[indexCrc + 1];
+	if (crcIs == crcShould) {
+		printf("  Matches\r\n");
+	} else {
+		printf("  Should be 0x%x\r\n", crcShould);
 	}
 }
 
