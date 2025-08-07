@@ -3,7 +3,7 @@
 
 License: BSD-3-Clause
 */
-
+#include <assert.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -52,11 +52,23 @@ static bool g_sdcardOn; //current state of SD card power supply
 static bool g_dumpNextAnswer; //print the hex values of the next test cycle
 static uint32_t g_timeLastPowerOff; //last time when power was turned off
 
-//1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait byte, 512 response bytes
-#define COMMAND_LEN 526
 
-static uint8_t g_dataOut[COMMAND_LEN];
-static uint8_t g_dataIn[COMMAND_LEN];
+//1 command byte, 4 parameter bytes, 1 CRC byte
+#define SDMMC_COMMAND_LEN 6
+
+/*By breaking up the transfer to multiple smaller DMA transfers, we can increase the speed
+  by searching for data while the next block is already be transferred
+*/
+#define TRANSFER_BLOCK_SIZE 32
+/*1 byte CMD index, 4 bytes CMD parameter, 1 byte CRC, up to 8 wait byte, 512 response bytes,
+   but this might not be enough and we increment the value to multiple of CMD_BLOCK_TRANSFER_SIZE.
+*/
+#define TRANSFER_LEN 640
+
+_Static_assert(TRANSFER_LEN % TRANSFER_BLOCK_SIZE == 0, "Please fix defines");
+
+static uint8_t g_dataOut[TRANSFER_LEN];
+static uint8_t g_dataIn[TRANSFER_LEN];
 
 static uint32_t g_commandOutCached[2];
 static uint32_t g_commandOutCachedArg; //if 0, its invalid, and we never try even args
@@ -339,29 +351,131 @@ bool WriteError(void) {
 	return true;
 }
 
-
-static bool IsNotFF(const uint8_t * data, size_t len) {
+static bool ContainsData(const uint8_t * data, size_t len) {
+	bool contains0 = false;
+	bool contains1 = false;
 	while (len >= 8) {
 		//ARM allows unaligned access to up to 4 byte. Not 8byte.
 		uint32_t * p = (uint32_t *)data;
-		if (p[0] != 0xFFFFFFFF) {
+		if ((p[0] != 0xFFFFFFFF) && (p[0] != 0)) {
 			return true;
 		}
-		if (p[1] != 0xFFFFFFFF) {
+		if (p[0] == 0) {
+			contains0 = true;
+		}
+		if (p[0] == 0xFFFFFFFF) {
+			contains1 = true;
+		}
+		if ((p[1] != 0xFFFFFFFF) && (p[1] != 0)) {
 			return true;
+		}
+		if (p[1] == 0) {
+			contains0 = true;
+		}
+		if (p[1] == 0xFFFFFFFF) {
+			contains1 = true;
 		}
 		len -= 8;
 		data += 8;
 	}
 	for (size_t i = 0; i < len; i++) {
-		if (data[i] != 0xFF) {
+		if ((data[i] != 0xFF) && (data[i] != 0)) {
 			return true;
 		}
+		if (data[i] == 0x0) {
+			contains0 = true;
+		}
+		if (data[i] == 0xFF) {
+			contains1 = true;
+		}
+	}
+	if ((contains0 == true) && (contains1 == true)) {
+		return true; //strange data, but its at least data...
 	}
 	return false;
 }
 
 #define CMD_TEST 56
+
+#define SDMMC_R1_RESPONSE_RANGE 9
+
+/*returns 0 if data have been found and the next param should be tried
+  1 if the next param should be tried
+  2 if the current command should continue to seek
+  3 if an error occurred and therefore the seek should stop
+*/
+static uint8_t TestCycleAnalyze(const uint8_t * data, size_t dataLen, size_t dataOffset) {
+	static size_t idxR1 = 0;
+	static size_t idxData = 0;
+	static bool dataFound = false;
+	if (dataOffset == 0) {
+		//time to start a new seek
+		idxR1 = 0;
+		idxData = 0;
+		dataFound = false;
+	}
+	if (idxR1 == 0) {
+		if ((dataLen + dataOffset) > SDMMC_COMMAND_LEN) {
+			size_t seekStart = 0;
+			if (dataOffset < SDMMC_COMMAND_LEN) {
+				seekStart += SDMMC_COMMAND_LEN - dataOffset;
+			}
+			for (size_t i = seekStart; i < dataLen; i++) {
+				if ((dataOffset + i) > (SDMMC_COMMAND_LEN + SDMMC_R1_RESPONSE_RANGE)) {
+					return 3; //no command answer found
+				}
+				if ((data[i] & 0x80) == 0) {
+					idxR1 = dataOffset + i;
+					//printf("idxR1: %u\r\n", idxR1);
+					if (data[i] & 0x7F) {
+						return 1; //illegal command or wrong state, try the next one
+					}
+					break;
+				}
+			}
+		}
+	}
+	if ((idxR1) && (idxData == 0)) {
+		size_t seekStart = 0;
+		if (dataOffset < idxR1) {
+			seekStart += idxR1 + 1 - dataOffset;
+		}
+		for (size_t i = seekStart; i < dataLen; i++) {
+			if (data[i] == 0xFE) {
+				idxData = dataOffset + i + 1;
+				//printf("idxData: %u, [%u]\r\n", idxData, i);
+				break;
+			}
+		}
+	}
+	if ((idxData) && (dataFound == false)) {
+		size_t seekStart = 0;
+		if (dataOffset < idxData) {
+			seekStart += idxData - dataOffset;
+		}
+		if (dataLen > seekStart) {
+			size_t searched = dataOffset - idxData;
+			if (searched < SDMMC_BLOCKSIZE) {
+				size_t maxSearch = SDMMC_BLOCKSIZE - searched;
+				size_t dataAvailable = dataLen - seekStart;
+				size_t thisRound = MIN(maxSearch, dataAvailable);
+				//printf("This round %u\r\n", thisRound);
+				if (ContainsData(data + seekStart, thisRound)) {
+					//printf("Data found\r\n");
+					dataFound = true;
+				}
+			}
+		}
+	}
+	if ((idxData) && ((dataLen + dataOffset) >= (idxData + SDMMC_BLOCKSIZE + 2))) { //+2 for the CRC
+		//printf("transferred: %u, %u, %u = %u\r\n", idxData, dataLen, dataOffset, idxData + dataLen + dataOffset);
+		if (dataFound) {
+			return 0;
+		}
+		return 1;
+	}
+	return 2;
+}
 
 /*Interesing data are written to a file and the 2. LED will be green.
   If things will go wrong, the 2. LED will be red.
@@ -385,44 +499,60 @@ void TestCycle(void) {
 			SdmmcFillCommand(g_dataOut, NULL, 6, CMD_TEST, g_testArg);
 		}
 		SpiExternalChipSelect(SD_CHIPSELECT, true);
-		SpiExternalTransferBackground(g_dataOut, g_dataIn, COMMAND_LEN);
-		//use the time of the transfer to prepare the next command
-		g_commandOutCachedArg = g_testArg + g_increment;
-		SdmmcFillCommand((uint8_t *)g_commandOutCached, NULL, sizeof(g_commandOutCached), CMD_TEST, g_commandOutCachedArg);
+		uint8_t res = 0;
+		size_t transferred = 0;
+		for (uint32_t i = 0; i < TRANSFER_LEN; i += TRANSFER_BLOCK_SIZE) {
+			SpiExternalTransferBackground(g_dataOut + i, g_dataIn + i, TRANSFER_BLOCK_SIZE);
+			transferred += TRANSFER_BLOCK_SIZE;
+			if (i == 0) {
+				//use the time of the transfer to prepare the next command, since the 1. transfer is still running
+				g_commandOutCachedArg = g_testArg + g_increment;
+				SdmmcFillCommand((uint8_t *)g_commandOutCached, NULL, sizeof(g_commandOutCached), CMD_TEST, g_commandOutCachedArg);
+			} else {
+				res = TestCycleAnalyze(g_dataIn + i - TRANSFER_BLOCK_SIZE, TRANSFER_BLOCK_SIZE, i - TRANSFER_BLOCK_SIZE);
+				if (res != 2) {
+					break;
+				}
+			}
+		}
 		SpiExternalTransferWaitDone();
 		SpiExternalChipSelect(SD_CHIPSELECT, false);
 		if (g_needPowercycle == true) {
 			SafeSdCardOff();
 		}
-		if (g_dumpNextAnswer) {
-			printf("Arg = 0x%x\r\n", (unsigned int)g_testArg);
-			PrintHex(g_dataIn, COMMAND_LEN);
+		if (res == 2) {
+			res = TestCycleAnalyze(g_dataIn + transferred - TRANSFER_BLOCK_SIZE, TRANSFER_BLOCK_SIZE, transferred - TRANSFER_BLOCK_SIZE);
+		}
+		/*if (g_dumpNextAnswer)*/ {
+			printf("Arg = 0x%x, transferred %u\r\n", (unsigned int)g_testArg, (unsigned int)transferred);
+			PrintHex(g_dataIn, transferred);
 			g_dumpNextAnswer = 0;
 		}
-		size_t idxR1 = SdmmcSDR1ResponseIndex(g_dataIn, COMMAND_LEN);
-		if (idxR1) {
-			size_t index = idxR1 + 1;
-			size_t bytesLeft = COMMAND_LEN - index;
-			if (IsNotFF(g_dataIn + index, bytesLeft)) {
-				Led2Green();
-				printf("Success with arg 0x%x\r\n", (unsigned int)g_testArg);
-				if (WriteSuccess(g_dataIn, COMMAND_LEN) != true) {
-					printf("Stop testing (1)\r\n");
-					g_runTest = false;
-					SafeSdCardOff();
-				}
+		if (res == 0) {
+			Led2Green();
+			printf("Success with arg 0x%x\r\n", (unsigned int)g_testArg);
+			if (WriteSuccess(g_dataIn, transferred) != true) {
+				printf("Stop testing (1)\r\n");
+				g_runTest = false;
+				SafeSdCardOff();
 			}
-		} else {
-			printf("No answer found\r\n");
+		}
+		if (res == 3) {
 			SafeSdCardOff();
+			Led2Red();
+			printf("No card answer with arg 0x%x\r\n", (unsigned int)g_testArg);
+			PrintHex(g_dataIn, transferred);
+			g_runTest = false;
+			WriteError();
 		}
 		g_testArg += g_increment;
 		ClockBackupRegSet(BKREG_IDX, g_testArg);
 		Led1Off();
 	} else {
 		SafeSdCardOff();
+		Led2Red();
 		g_runTest = false;
-		printf("Stop testing (2)\r\n");
+		printf("Stop testing (3)\r\n");
 		WriteError();
 	}
 }
@@ -516,7 +646,7 @@ void AppInit(void) {
 	FilesystemMount();
 	f_mkdir("/logs");
 	LoadSettings();
-	memset(g_dataOut, 0xFF, COMMAND_LEN);
+	memset(g_dataOut, 0xFF, TRANSFER_LEN);
 	Led1Yellow();
 	if (!CalibrateSd()) {
 		g_runTest = false; //never start if calibration fails
