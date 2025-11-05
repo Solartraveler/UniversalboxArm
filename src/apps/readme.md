@@ -184,3 +184,10 @@ The intention is to test the actual brightness for using the LEDs in a matrix co
 The number of colors, number of lines in a matrix and refresh rate can be configured.
 Then the duty cycle can be set for every LED.
 So this program basically provides 5 software generated PWM channels.
+
+## 18-dac-tester
+
+Tests the DAC (digital analog converter).
+Pretty simple.
+Select a 1Hz sawtooth, 1kHz sine or a 1MHz rectangle signal to be outputted to the DAC channel with a DMA transfer.
+The 1MHz is out of the limit of the DAC and will result in a triangle.
