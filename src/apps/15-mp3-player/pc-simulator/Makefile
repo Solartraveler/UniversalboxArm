@@ -125,7 +125,9 @@ AS_DEFS =
 C_DEFS = \
 -DPC_SIM \
 -DFPM_64BIT \
--DAPPVERSION=\"0.0.0\"
+-DAPPVERSION=\"0.0.0\" \
+-include stdlib.h
+
 
 
 

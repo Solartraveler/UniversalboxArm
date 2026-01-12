@@ -211,7 +211,8 @@ C_DEFS =  \
 -Dmalloc=mallocIncept \
 -Dcalloc=callocIncept \
 -Dfree=freeIncept \
--Dabort=abortIncept
+-Dabort=abortIncept \
+-include mp3player.h
 
 
 # AS includes

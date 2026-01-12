@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdbool.h>
+#include <stddef.h>
+
 void AppInit(void);
 
 void AppCycle(void);
@@ -13,3 +16,5 @@ void PlayerStop(void);
 void PlayerFileGetMeta(char * text, size_t maxLen);
 
 void PlayerFileGetState(char * text, size_t maxLen);
+
+void abortIncept(void);
