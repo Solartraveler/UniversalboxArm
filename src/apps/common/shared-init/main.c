@@ -23,8 +23,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include <reent.h>
+#include <unistd.h>
+
 #include "appInterface.h"
 #include "boxlib/rs232debug.h"
+
 
 /* USER CODE END Includes */
 
@@ -63,6 +67,69 @@ __attribute__((weak)) void AppCycle(void)
 
 }
 
+//See https://stackoverflow.com/questions/73742774/gcc-arm-none-eabi-11-3-is-not-implemented-and-will-always-fail
+
+int _close_r(struct _reent * ptr, int fd) {
+	(void)ptr;
+	(void)fd;
+	return -1;
+}
+
+_ssize_t _read_r(struct _reent * ptr, int fd, void *buf, size_t cnt) {
+	(void)ptr;
+	(void)fd;
+	(void)buf;
+	(void)cnt;
+	return -1;
+}
+
+_ssize_t _write_r(struct _reent * ptr, int fd, const void *buf, size_t cnt) {
+	(void)ptr;
+	(void)fd;
+	(void)buf;
+	(void)cnt;
+	return -1;
+}
+
+int _fstat_r(struct _reent * ptr, int fd, struct stat * pstat) {
+	(void)ptr;
+	(void)fd;
+	(void)pstat;
+	return -1;
+}
+
+off_t _lseek_r(struct _reent * ptr, int fd, off_t pos, int whence) {
+	(void)ptr;
+	(void)fd;
+	(void)pos;
+	(void)whence;
+	return -1;
+}
+
+int _kill_r(struct _reent * ptr, int pid, int sig) {
+	(void)ptr;
+	(void)pid;
+	(void)sig;
+	return -1;
+}
+
+int _getpid_r(struct _reent * ptr) {
+	(void)ptr;
+	return -1;
+}
+
+int _stat_r(struct _reent * ptr, const char * file, struct stat * pstat) {
+	(void)ptr;
+	(void)file;
+	(void)pstat;
+	return -1;
+}
+
+int _isatty_r(struct _reent * ptr, int fd) {
+	(void)ptr;
+	(void)fd;
+	return -1;
+}
 
 /* USER CODE END 0 */
 
