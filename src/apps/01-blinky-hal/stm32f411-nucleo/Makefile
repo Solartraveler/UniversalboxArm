@@ -2,7 +2,7 @@ CHIP=stm32f411xe
 BOARD=nucleo
 
 all:
-	CHIP=$(CHIP) BOARD=$(BOARD) make -j -C ..
+	CHIP=$(CHIP) BOARD=$(BOARD) make -C ..
 
 clean:
 	make -C .. clean

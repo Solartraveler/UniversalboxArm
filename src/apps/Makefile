@@ -1,35 +1,162 @@
-all:
-	$(MAKE) -j -C 01-blinky-hal
+.PHONY: all \
+	01-blinky-hal \
+	01-blinky-hal-stm32f411-nucleo \
+	02-test-everything-hal \
+	02-test-everything-hal-stm32f411-nucleo \
+	03-loader \
+	03-loader-pc-simulator \
+	04-coprocessor-uart-forward \
+	04-coprocessor-uart-forward-pc-simulator \
+	05-coprocessor-control \
+	05-coprocessor-control-pc-simulator \
+	06-usb-mass-storage \
+	07-ntp-clock \
+	07-ntp-clock-pc-simulator \
+	08-freertos-helloworld \
+	08-freertos-helloworld-pc-simulator \
+	09-gamebox-pc-simulator \
+	09-gamebox-avr \
+	09-gamebox-arm \
+	10-infrared-decoder \
+	11-adc-scope \
+	11-adc-scope-pc-simulator \
+	11-adc-scope-stm32f411-nucleo \
+	12-usb-cdc-loop \
+	13-battery-capacity-tester \
+	13-battery-capacity-tester-pc-simulator \
+	14-wav-player \
+	14-wav-player-pc-simulator \
+	15-mp3-player \
+	15-mp3-player-pc-simulator \
+	16-led-matrix-tester \
+	18-dac-tester
+
+all: \
+	01-blinky-hal \
+	01-blinky-hal-stm32f411-nucleo \
+	02-test-everything-hal \
+	02-test-everything-hal-stm32f411-nucleo \
+	03-loader \
+	03-loader-pc-simulator \
+	04-coprocessor-uart-forward \
+	04-coprocessor-uart-forward-pc-simulator \
+	05-coprocessor-control \
+	05-coprocessor-control-pc-simulator \
+	06-usb-mass-storage \
+	07-ntp-clock \
+	07-ntp-clock-pc-simulator \
+	08-freertos-helloworld \
+	08-freertos-helloworld-pc-simulator \
+	09-gamebox-pc-simulator \
+	09-gamebox-avr \
+	09-gamebox-arm \
+	10-infrared-decoder \
+	11-adc-scope \
+	11-adc-scope-pc-simulator \
+	11-adc-scope-stm32f411-nucleo \
+	12-usb-cdc-loop \
+	13-battery-capacity-tester \
+	13-battery-capacity-tester-pc-simulator \
+	14-wav-player \
+	14-wav-player-pc-simulator \
+	15-mp3-player \
+	15-mp3-player-pc-simulator \
+	16-led-matrix-tester \
+	18-dac-tester
+
+
+01-blinky-hal:
+	$(MAKE) -C 01-blinky-hal
+
+01-blinky-hal-stm32f411-nucleo:
 	$(MAKE) -C 01-blinky-hal/stm32f411-nucleo
-	$(MAKE) -j -C 02-test-everything-hal
+
+02-test-everything-hal:
+	$(MAKE) -C 02-test-everything-hal
+
+02-test-everything-hal-stm32f411-nucleo:
 	$(MAKE) -C 02-test-everything-hal/stm32f411-nucleo
-	$(MAKE) -j -C 03-loader
-	$(MAKE) -j -C 03-loader/pc-simulator
-	$(MAKE) -j -C 04-coprocessor-uart-forward
-	$(MAKE) -j -C 04-coprocessor-uart-forward/pc-simulator
-	$(MAKE) -j -C 05-coprocessor-control
-	$(MAKE) -j -C 05-coprocessor-control/pc-simulator
-	$(MAKE) -j -C 06-usb-mass-storage
-	$(MAKE) -j -C 07-ntp-clock
-	$(MAKE) -j -C 07-ntp-clock/pc-simulator
-	$(MAKE) -j -C 08-freertos-helloworld
-	$(MAKE) -j -C 08-freertos-helloworld/pc-simulator
-	$(MAKE) -j -C 09-gamebox/pc-simulator
-	$(MAKE) -j -C 09-gamebox/avr
-	$(MAKE) -j -C 09-gamebox/arm
-	$(MAKE) -j -C 10-infrared-decoder
-	$(MAKE) -j -C 11-adc-scope
-	$(MAKE) -j -C 11-adc-scope/pc-simulator
+
+03-loader:
+	$(MAKE) -C 03-loader
+
+03-loader-pc-simulator:
+	$(MAKE) -C 03-loader/pc-simulator
+
+04-coprocessor-uart-forward:
+	$(MAKE) -C 04-coprocessor-uart-forward
+
+04-coprocessor-uart-forward-pc-simulator:
+	$(MAKE) -C 04-coprocessor-uart-forward/pc-simulator
+
+05-coprocessor-control:
+	$(MAKE) -C 05-coprocessor-control
+
+05-coprocessor-control-pc-simulator:
+	$(MAKE) -C 05-coprocessor-control/pc-simulator
+
+06-usb-mass-storage:
+	$(MAKE) -C 06-usb-mass-storage
+
+07-ntp-clock:
+	$(MAKE) -C 07-ntp-clock
+
+07-ntp-clock-pc-simulator:
+	$(MAKE) -C 07-ntp-clock/pc-simulator
+
+08-freertos-helloworld:
+	$(MAKE) -C 08-freertos-helloworld
+
+08-freertos-helloworld-pc-simulator:
+	$(MAKE) -C 08-freertos-helloworld/pc-simulator
+
+09-gamebox-pc-simulator:
+	$(MAKE) -C 09-gamebox/pc-simulator
+
+09-gamebox-avr:
+	$(MAKE) -C 09-gamebox/avr
+
+09-gamebox-arm:
+	$(MAKE) -C 09-gamebox/arm
+
+10-infrared-decoder:
+	$(MAKE) -C 10-infrared-decoder
+
+11-adc-scope:
+	$(MAKE) -C 11-adc-scope
+
+11-adc-scope-pc-simulator:
+	$(MAKE) -C 11-adc-scope/pc-simulator
+
+11-adc-scope-stm32f411-nucleo:
 	$(MAKE) -C 11-adc-scope/stm32f411-nucleo
-	$(MAKE) -j -C 12-usb-cdc-loop
-	$(MAKE) -j -C 13-battery-capacity-tester
-	$(MAKE) -j -C 13-battery-capacity-tester/pc-simulator
-	$(MAKE) -j -C 14-wav-player
-	$(MAKE) -j -C 14-wav-player/pc-simulator
-	$(MAKE) -j -C 15-mp3-player
-	$(MAKE) -j -C 15-mp3-player/pc-simulator
-	$(MAKE) -j -C 16-led-matrix-tester
-	$(MAKE) -j -C 18-dac-tester
+
+12-usb-cdc-loop:
+	$(MAKE) -C 12-usb-cdc-loop
+
+13-battery-capacity-tester:
+	$(MAKE) -C 13-battery-capacity-tester
+
+13-battery-capacity-tester-pc-simulator:
+	$(MAKE) -C 13-battery-capacity-tester/pc-simulator
+
+14-wav-player:
+	$(MAKE) -C 14-wav-player
+
+14-wav-player-pc-simulator:
+	$(MAKE) -C 14-wav-player/pc-simulator
+
+15-mp3-player:
+	$(MAKE) -C 15-mp3-player
+
+15-mp3-player-pc-simulator:
+	$(MAKE) -C 15-mp3-player/pc-simulator
+
+16-led-matrix-tester:
+	$(MAKE) -C 16-led-matrix-tester
+
+18-dac-tester:
+	$(MAKE) -C 18-dac-tester
 
 clean:
 	$(MAKE) clean -C 01-blinky-hal

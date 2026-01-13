@@ -18,7 +18,7 @@ jobs:
     - name: make Coprocessor
       run: make -C src/avr-coprocessor
     - name: make Apps
-      run: make -C src/apps
+      run: make -j -C src/apps
     - name: make Tests
       run: make -C src/common/algorithm/unittests test
 #Artifact upload always breaks the CI by becoming deprecated, refusing to repeat pipelines

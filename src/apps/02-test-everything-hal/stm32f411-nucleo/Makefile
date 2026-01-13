@@ -3,7 +3,7 @@ BOARD=nucleo
 
 #The app is too large for the RAM, so it can only run from the flash
 all:
-	CHIP=$(CHIP) BOARD=$(BOARD) make -j -C .. build-flash
+	CHIP=$(CHIP) BOARD=$(BOARD) make -C .. build-flash
 
 clean:
 	make -C .. clean
