@@ -68,7 +68,7 @@ static sdmmcState_t g_sdmmcState;
 #define SDMMC_DEBUG(...)
 #endif
 
-#ifndef SDMMC_DEBUG
+#ifndef SDMMC_DEBUGERROR
 #define SDMMC_DEBUGERROR(...)
 #endif
 
