@@ -29,6 +29,7 @@
 	15-mp3-player \
 	15-mp3-player-pc-simulator \
 	16-led-matrix-tester \
+	17-sdcard-playground \
 	18-dac-tester
 
 all: \
@@ -62,6 +63,7 @@ all: \
 	15-mp3-player \
 	15-mp3-player-pc-simulator \
 	16-led-matrix-tester \
+	17-sdcard-playground \
 	18-dac-tester
 
 
@@ -155,6 +157,9 @@ all: \
 16-led-matrix-tester:
 	$(MAKE) -C 16-led-matrix-tester
 
+17-sdcard-playground:
+	$(MAKE) -C 17-sdcard-playground
+
 18-dac-tester:
 	$(MAKE) -C 18-dac-tester
 
@@ -186,4 +191,5 @@ clean:
 	$(MAKE) clean -C 15-mp3-player
 	$(MAKE) clean -C 15-mp3-player/pc-simulator
 	$(MAKE) clean -C 16-led-matrix-tester
+	$(MAKE) clean -C 17-sdcard-playground
 	$(MAKE) clean -C 18-dac-tester

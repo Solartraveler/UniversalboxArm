@@ -185,6 +185,13 @@ The number of colors, number of lines in a matrix and refresh rate can be config
 Then the duty cycle can be set for every LED.
 So this program basically provides 5 software generated PWM channels.
 
+## 17-sdcard-playground
+
+Determines properies of SD cards not to be found with an USB card reader and
+usually not found in any datasheet.
+
+Can be used to scan SD cards for bad blocks, determine read acces times and undocumented reset behaviour.
+
 ## 18-dac-tester
 
 Tests the DAC (digital analog converter).
